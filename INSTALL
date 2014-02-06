@@ -1,0 +1,9 @@
+Building MintCoin
+
+See doc/readme-qt.rst for instructions on building MintCoin QT,
+the intended-for-end-users, nice-graphical-interface, reference
+implementation of MintCoin.
+
+See doc/build-*.txt for instructions on building MintCoind,
+the intended-for-services, no-graphical-interface, reference
+implementation of MintCoin.
