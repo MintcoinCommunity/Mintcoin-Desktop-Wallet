@@ -537,14 +537,15 @@ int64 GetAccountBalance(const string& strAccount, int nMinDepth)
 
 Value getbalance(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 0)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
-            "getbalance \n"
-            "no other arguments after getbalance.");
+            "getbalance [account] [minconf=1]\n"
+            "If [account] is not specified, returns the server's total available balance.\n"
+            "If [account] is specified, returns the balance in the account.");
 
-    return  ValueFromAmount(pwalletMain->GetBalance());
+    if (params.size() == 0)
+        return  ValueFromAmount(pwalletMain->GetBalance());
 
-	/*
     int nMinDepth = 1;
     if (params.size() > 1)
         nMinDepth = params[1].get_int();
@@ -585,7 +586,6 @@ Value getbalance(const Array& params, bool fHelp)
     int64 nBalance = GetAccountBalance(strAccount, nMinDepth);
 
     return ValueFromAmount(nBalance);
-	*/
 }
 
 
