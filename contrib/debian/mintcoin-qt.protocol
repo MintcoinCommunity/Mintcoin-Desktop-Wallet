@@ -1,0 +1,11 @@
+[Protocol]
+exec=mintcoin-qt '%u'
+protocol=mintcoin
+input=none
+output=none
+helper=true
+listing=
+reading=false
+writing=false
+makedir=false
+deleting=false
