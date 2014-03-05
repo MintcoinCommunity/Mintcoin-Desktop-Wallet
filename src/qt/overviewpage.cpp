@@ -8,6 +8,7 @@
 #include "transactionfilterproxy.h"
 #include "guiutil.h"
 #include "guiconstants.h"
+#include "askpassphrasedialog.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
@@ -152,6 +153,24 @@ void OverviewPage::setNumTransactions(int count)
     ui->labelNumTransactions->setText(QLocale::system().toString(count));
 }
 
+void OverviewPage::unlockWallet()
+{
+    if(model->getEncryptionStatus() == WalletModel::Locked)
+    {
+        AskPassphraseDialog dlg(AskPassphraseDialog::Unlock, this);
+        dlg.setModel(model);
+        if(dlg.exec() == QDialog::Accepted)
+        {
+            ui->unlockWalletButton->setText(QString("Lock wallet"));
+        }
+    }
+    else
+    {
+        model->setWalletLocked(true);
+        ui->unlockWalletButton->setText(QString("Unlock wallet"));
+    }
+}
+
 void OverviewPage::setModel(WalletModel *model)
 {
     this->model = model;
@@ -176,6 +195,14 @@ void OverviewPage::setModel(WalletModel *model)
         connect(model, SIGNAL(numTransactionsChanged(int)), this, SLOT(setNumTransactions(int)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+
+        // Unlock wallet button
+        WalletModel::EncryptionStatus status = model->getEncryptionStatus();
+        if(status == WalletModel::Unencrypted)
+        {
+            ui->unlockWalletButton->setDisabled(true);
+        }
+        connect(ui->unlockWalletButton, SIGNAL(clicked()), this, SLOT(unlockWallet()));
     }
 
     // update the display unit, to not use the default ("MINT")
