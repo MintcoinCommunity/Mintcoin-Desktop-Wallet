@@ -338,10 +338,19 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="unlockWalletButton">
+       <property name="text">
+        <string>Unlock wallet</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../bitcoin.qrc"/>
+ </resources>
  <connections/>
 </ui>

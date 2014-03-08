@@ -11,6 +11,8 @@
 #include "base58.h"
 #include "kernel.h"
 
+#include <boost/algorithm/string.hpp>
+
 using namespace std;
 extern int nStakeMaxAge;
 
