@@ -1909,6 +1909,11 @@ Address: %4
         <translation>Mined</translation>
     </message>
     <message>
+        <location line="+2"/>
+        <source>Minted</source>
+        <translation>Minted</translation>
+    </message>
+    <message>
         <location line="+38"/>
         <source>(n/a)</source>
         <translation>(n/a)</translation>
@@ -1996,6 +2001,11 @@ Address: %4
         <location line="+1"/>
         <source>Mined</source>
         <translation>Mined</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Minted</source>
+        <translation>Minted</translation>
     </message>
     <message>
         <location line="+1"/>
