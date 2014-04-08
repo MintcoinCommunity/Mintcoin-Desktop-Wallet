@@ -1,27 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="en">
+<TS version="2.0" language="en">
+<defaultcodec>UTF-8</defaultcodec>
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About Mintcoin</source>
-        <translation>About Mintcoin</translation>
+        <source>About BottleCaps</source>
+        <translation>About BottleCaps</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;Mintcoin&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;Mintcoin&lt;/b&gt; version</translation>
+        <source>&lt;b&gt;BottleCaps&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;BottleCaps&lt;/b&gt; version</translation>
     </message>
     <message>
         <location line="+41"/>
-        <source>Copyright © 2009-2014 The Bitcoin developers
-Copyright © 2012-2014 The NovaCoin developers</source>
-        <translation>Copyright © 2009-2014 The Bitcoin developers
-Copyright © 2012-2014 The NovaCoin developers</translation>
+        <source>Copyright © 2009-2012 The BottleCaps developers</source>
+        <translation>Copyright © 2009-2012 The BottleCaps developers</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+13"/>
         <source>
 This is experimental software.
 
@@ -65,8 +64,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-46"/>
-        <source>These are your Mintcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
-        <translation>These are your Mintcoin addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</translation>
+        <source>These are your BottleCaps addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</source>
+        <translation>These are your BottleCaps addresses for receiving payments. You may want to give a different one to each sender so you can keep track of who is paying you.</translation>
     </message>
     <message>
         <location line="+60"/>
@@ -80,23 +79,23 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+11"/>
-        <source>Sign a message to prove you own a Mintcoin address</source>
-        <translation>Sign a message to prove you own a Mintcoin address</translation>
+        <source>Sign a message to prove you own a BottleCaps address</source>
+        <translation>Sign a message to prove you own a BottleCaps address</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Sign &amp;Message</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Delete the currently selected address from the list</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-14"/>
-        <source>Verify a message to ensure it was signed with a specified Mintcoin address</source>
-        <translation>Verify a message to ensure it was signed with a specified Mintcoin address</translation>
+        <source>Verify a message to ensure it was signed with a specified BottleCaps address</source>
+        <translation>Verify a message to ensure it was signed with a specified BottleCaps address</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -142,7 +141,7 @@ This product includes software developed by the OpenSSL Project for use in the O
 <context>
     <name>AddressTableModel</name>
     <message>
-        <location filename="../addresstablemodel.cpp" line="+144"/>
+        <location filename="../addresstablemodel.cpp" line="+142"/>
         <source>Label</source>
         <translation>Label</translation>
     </message>
@@ -237,7 +236,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+15"/>
         <source>IMPORTANT: Any previous backups you have made of your wallet file should be replaced with the newly generated, encrypted wallet file. For security reasons, previous backups of the unencrypted wallet file will become useless as soon as you start using the new, encrypted wallet.</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+100"/>
@@ -253,8 +252,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-56"/>
-        <source>Mintcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
-        <translation>Mintcoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</translation>
+        <source>BottleCaps will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</source>
+        <translation>BottleCaps will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your coins from being stolen by malware infecting your computer.</translation>
     </message>
     <message>
         <location line="+13"/>
@@ -301,17 +300,17 @@ This product includes software developed by the OpenSSL Project for use in the O
 <context>
     <name>BitcoinGUI</name>
     <message>
-        <location filename="../bitcoingui.cpp" line="+277"/>
+        <location filename="../bitcoingui.cpp" line="+257"/>
         <source>Sign &amp;message...</source>
         <translation>Sign &amp;message...</translation>
     </message>
     <message>
-        <location line="+239"/>
+        <location line="+237"/>
         <source>Synchronizing with network...</source>
         <translation>Synchronizing with network...</translation>
     </message>
     <message>
-        <location line="-303"/>
+        <location line="-299"/>
         <source>&amp;Overview</source>
         <translation>&amp;Overview</translation>
     </message>
@@ -367,8 +366,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+4"/>
-        <source>Show information about Mintcoin</source>
-        <translation>Show information about Mintcoin</translation>
+        <source>Show information about BottleCaps</source>
+        <translation>Show information about BottleCaps</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -401,7 +400,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>&amp;Change Passphrase...</translation>
     </message>
     <message numerus="yes">
-        <location line="+245"/>
+        <location line="+241"/>
         <source>~%n block(s) remaining</source>
         <translation>
             <numerusform>~%n block remaining</numerusform>
@@ -414,27 +413,27 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Downloaded %1 of %2 blocks of transaction history (%3% done).</translation>
     </message>
     <message>
-        <location line="-244"/>
+        <location line="-242"/>
         <source>&amp;Export...</source>
         <translation>&amp;Export...</translation>
     </message>
     <message>
-        <location line="-60"/>
-        <source>Send coins to a Mintcoin address</source>
-        <translation>Send coins to a Mintcoin address</translation>
+        <location line="-58"/>
+        <source>Send coins to a BottleCaps address</source>
+        <translation>Send coins to a BottleCaps address</translation>
     </message>
     <message>
         <location line="+45"/>
-        <source>Modify configuration options for Mintcoin</source>
-        <translation>Modify configuration options for Mintcoin</translation>
+        <source>Modify configuration options for BottleCaps</source>
+        <translation>Modify configuration options for BottleCaps</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+14"/>
         <source>Export the data in the current tab to a file</source>
         <translation>Export the data in the current tab to a file</translation>
     </message>
     <message>
-        <location line="-12"/>
+        <location line="-10"/>
         <source>Encrypt or decrypt wallet</source>
         <translation>Encrypt or decrypt wallet</translation>
     </message>
@@ -449,7 +448,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Change the passphrase used for wallet encryption</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+6"/>
         <source>&amp;Debug window</source>
         <translation>&amp;Debug window</translation>
     </message>
@@ -464,9 +463,9 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>&amp;Verify message...</translation>
     </message>
     <message>
-        <location line="-198"/>
-        <source>Mintcoin</source>
-        <translation>Mintcoin</translation>
+        <location line="-186"/>
+        <source>BottleCaps</source>
+        <translation>BottleCaps</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -474,9 +473,9 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>Wallet</translation>
     </message>
     <message>
-        <location line="+178"/>
-        <source>&amp;About Mintcoin</source>
-        <translation>&amp;About Mintcoin</translation>
+        <location line="+168"/>
+        <source>&amp;About BottleCaps</source>
+        <translation>&amp;About BottleCaps</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -484,7 +483,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>&amp;Show / Hide</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+39"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
@@ -494,7 +493,7 @@ This product includes software developed by the OpenSSL Project for use in the O
         <translation>&amp;Settings</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+6"/>
         <source>&amp;Help</source>
         <translation>&amp;Help</translation>
     </message>
@@ -517,15 +516,15 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+0"/>
         <location line="+60"/>
-        <source>Mintcoin client</source>
-        <translation>Mintcoin client</translation>
+        <source>BottleCaps client</source>
+        <translation>BottleCaps client</translation>
     </message>
     <message numerus="yes">
         <location line="+69"/>
-        <source>%n active connection(s) to Mintcoin network</source>
+        <source>%n active connection(s) to BottleCaps network</source>
         <translation>
-            <numerusform>%n active connection to Mintcoin network</numerusform>
-            <numerusform>%n active connections to Mintcoin network</numerusform>
+            <numerusform>%n active connection to BottleCaps network</numerusform>
+            <numerusform>%n active connections to BottleCaps network</numerusform>
         </translation>
     </message>
     <message>
@@ -533,51 +532,16 @@ This product includes software developed by the OpenSSL Project for use in the O
         <source>Downloaded %1 blocks of transaction history.</source>
         <translation>Downloaded %1 blocks of transaction history.</translation>
     </message>
-    <message>
-        <location line="+402"/>
-        <source>Staking.&lt;br&gt;Your weight is %1&lt;br&gt;Network weight is %2&lt;br&gt;Expected time to earn reward is %3</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Not staking because wallet is locked</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Not staking because wallet is offline</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Not staking because wallet is syncing</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Not staking because you don&apos;t have mature coins</source>
-        <translation></translation>
-    </message>
     <message numerus="yes">
-        <location line="-392"/>
+        <location line="+22"/>
         <source>%n second(s) ago</source>
         <translation>
             <numerusform>%n second ago</numerusform>
             <numerusform>%n seconds ago</numerusform>
         </translation>
     </message>
-    <message>
-        <location line="-279"/>
-        <source>&amp;Unlock Wallet...</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Unlock wallet for staking</source>
-        <translation></translation>
-    </message>
     <message numerus="yes">
-        <location line="+282"/>
+        <location line="+4"/>
         <source>%n minute(s) ago</source>
         <translation>
             <numerusform>%n minute ago</numerusform>
@@ -618,7 +582,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+59"/>
         <source>This transaction is over the size limit.  You can still send it for a fee of %1, which goes to the nodes that process your transaction and helps to support the network.  Do you want to pay the fee?</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
@@ -657,21 +621,21 @@ Address: %4
     <message>
         <location line="-15"/>
         <location line="+15"/>
-        <source>URI can not be parsed! This can be caused by an invalid Mintcoin address or malformed URI parameters.</source>
-        <translation>URI can not be parsed! This can be caused by an invalid Mintcoin address or malformed URI parameters.</translation>
+        <source>URI can not be parsed! This can be caused by an invalid BottleCaps address or malformed URI parameters.</source>
+        <translation>URI can not be parsed! This can be caused by an invalid BottleCaps address or malformed URI parameters.</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+16"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</source>
         <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;unlocked&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</source>
         <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+23"/>
         <source>Backup Wallet</source>
         <translation>Backup Wallet</translation>
     </message>
@@ -690,319 +654,18 @@ Address: %4
         <source>There was an error trying to save the wallet data to the new location.</source>
         <translation>There was an error trying to save the wallet data to the new location.</translation>
     </message>
-    <message numerus="yes">
-        <location line="+68"/>
-        <source>%n second(s)</source>
-        <translation>
-            <numerusform>%n second</numerusform>
-            <numerusform>%n seconds</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <location line="+4"/>
-        <source>%n minute(s)</source>
-        <translation>
-            <numerusform>%n minute</numerusform>
-            <numerusform>%n minutes</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <location line="+4"/>
-        <source>%n hour(s)</source>
-        <translation>
-            <numerusform>%n hour</numerusform>
-            <numerusform>%n hours</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <location line="+4"/>
-        <source>%n day(s)</source>
-        <translation>
-            <numerusform>%n day</numerusform>
-            <numerusform>%n days</numerusform>
-        </translation>
-    </message>
     <message>
         <location filename="../bitcoin.cpp" line="+109"/>
-        <source>A fatal error occurred. Mintcoin can no longer continue safely and will quit.</source>
-        <translation>A fatal error occurred. Mintcoin can no longer continue safely and will quit.</translation>
+        <source>A fatal error occurred. BottleCaps can no longer continue safely and will quit.</source>
+        <translation>A fatal error occurred. BottleCaps can no longer continue safely and will quit.</translation>
     </message>
 </context>
 <context>
     <name>ClientModel</name>
     <message>
-        <location filename="../clientmodel.cpp" line="+90"/>
+        <location filename="../clientmodel.cpp" line="+87"/>
         <source>Network Alert</source>
         <translation>Network Alert</translation>
-    </message>
-</context>
-<context>
-    <name>CoinControlDialog</name>
-    <message>
-        <location filename="../forms/coincontroldialog.ui" line="+14"/>
-        <source>Coin Control</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+31"/>
-        <source>Quantity:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <location line="+32"/>
-        <source>0</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-19"/>
-        <source>Bytes:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+48"/>
-        <source>Amount:</source>
-        <translation type="unfinished">Amount:</translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <location line="+80"/>
-        <location line="+86"/>
-        <location line="+38"/>
-        <source>0.00 MINT</source>
-        <translation type="unfinished">123.456 MINT {0.00 ?}</translation>
-    </message>
-    <message>
-        <location line="-191"/>
-        <source>Priority:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+48"/>
-        <source>Fee:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+35"/>
-        <source>Low Output:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+22"/>
-        <location filename="../coincontroldialog.cpp" line="+551"/>
-        <source>no</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
-        <source>After Fee:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+35"/>
-        <source>Change:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+69"/>
-        <source>(un)select all</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>Tree mode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>List mode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+45"/>
-        <source>Amount</source>
-        <translation type="unfinished">Amount</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Label</source>
-        <translation type="unfinished">Label</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Address</source>
-        <translation type="unfinished">Address</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Date</source>
-        <translation type="unfinished">Date</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Confirmations</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Confirmed</source>
-        <translation type="unfinished">Confirmed</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>Priority</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../coincontroldialog.cpp" line="-515"/>
-        <source>Copy address</source>
-        <translation type="unfinished">Copy address</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy label</source>
-        <translation type="unfinished">Copy label</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <location line="+26"/>
-        <source>Copy amount</source>
-        <translation type="unfinished">Copy amount</translation>
-    </message>
-    <message>
-        <location line="-25"/>
-        <source>Copy transaction ID</source>
-        <translation type="unfinished">Copy transaction ID</translation>
-    </message>
-    <message>
-        <location line="+24"/>
-        <source>Copy quantity</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Copy fee</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy after fee</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy bytes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy priority</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy low output</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy change</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+317"/>
-        <source>highest</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>high</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>medium-high</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>medium</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>low-medium</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>low</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>lowest</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+155"/>
-        <source>DUST</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+0"/>
-        <source>yes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+10"/>
-        <source>This label turns red, if the transaction size is bigger than 10000 bytes.
-
- This means a fee of at least %1 per kb is required.
-
- Can vary +/- 1 Byte per input.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Transactions with higher priority get more likely into a block.
-
-This label turns red, if the priority is smaller than &quot;medium&quot;.
-
- This means a fee of at least %1 per kb is required.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>This label turns red, if any recipient receives an amount smaller than %1.
-
- This means a fee of at least %2 is required. 
-
- Amounts below 0.546 times the minimum relay fee are shown as DUST.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>This label turns red, if the change is smaller than %1.
-
- This means a fee of at least %2 is required.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+37"/>
-        <location line="+66"/>
-        <source>(no label)</source>
-        <translation type="unfinished">(no label)</translation>
-    </message>
-    <message>
-        <location line="-9"/>
-        <source>change from %1 (%2)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>(change)</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1053,17 +716,17 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Edit sending address</translation>
     </message>
     <message>
-        <location line="+76"/>
+        <location line="+60"/>
         <source>The entered address &quot;%1&quot; is already in the address book.</source>
         <translation>The entered address &quot;%1&quot; is already in the address book.</translation>
     </message>
     <message>
-        <location line="-5"/>
-        <source>The entered address &quot;%1&quot; is not a valid Mintcoin address.</source>
-        <translation>The entered address &quot;%1&quot; is not a valid Mintcoin address.</translation>
+        <location line="+5"/>
+        <source>The entered address &quot;%1&quot; is not a valid BottleCaps address.</source>
+        <translation>The entered address &quot;%1&quot; is not a valid BottleCaps address.</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+5"/>
         <source>Could not unlock wallet.</source>
         <translation>Could not unlock wallet.</translation>
     </message>
@@ -1076,10 +739,10 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
 <context>
     <name>GUIUtil::HelpMessageBox</name>
     <message>
-        <location filename="../guiutil.cpp" line="+420"/>
+        <location filename="../guiutil.cpp" line="+419"/>
         <location line="+12"/>
-        <source>Mintcoin-Qt</source>
-        <translation>Mintcoin-Qt</translation>
+        <source>BottleCaps-Qt</source>
+        <translation>BottleCaps-Qt</translation>
     </message>
     <message>
         <location line="-12"/>
@@ -1141,23 +804,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+31"/>
-        <source>Reserved amount does not participate in staking and is therefore spendable at any time.</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>Reserve</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+31"/>
-        <source>Automatically start Mintcoin after logging in to the system.</source>
-        <translation>Automatically start Mintcoin after logging in to the system.</translation>
+        <source>Automatically start BottleCaps after logging in to the system.</source>
+        <translation>Automatically start BottleCaps after logging in to the system.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start Mintcoin on system login</source>
-        <translation>&amp;Start Mintcoin on system login</translation>
+        <source>&amp;Start BottleCaps on system login</source>
+        <translation>&amp;Start BottleCaps on system login</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -1176,8 +829,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Mintcoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automatically open the Mintcoin client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
+        <source>Automatically open the BottleCaps client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automatically open the BottleCaps client port on the router. This only works when your router supports UPnP and it is enabled.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1186,8 +839,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Mintcoin network through a SOCKS proxy (e.g. when connecting through Tor).</source>
-        <translation>Connect to the Mintcoin network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
+        <source>Connect to the BottleCaps network through a SOCKS proxy (e.g. when connecting through Tor).</source>
+        <translation>Connect to the BottleCaps network through a SOCKS proxy (e.g. when connecting through Tor).</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1261,8 +914,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting Mintcoin.</source>
-        <translation>The user interface language can be set here. This setting will take effect after restarting Mintcoin.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting BottleCaps.</source>
+        <translation>The user interface language can be set here. This setting will take effect after restarting BottleCaps.</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -1276,23 +929,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show Mintcoin addresses in the transaction list or not.</source>
-        <translation>Whether to show Mintcoin addresses in the transaction list or not.</translation>
+        <source>Whether to show BottleCaps addresses in the transaction list or not.</source>
+        <translation>Whether to show BottleCaps addresses in the transaction list or not.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
         <translation>&amp;Display addresses in transaction list</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Whether to show coin control features or not.</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Display coin &amp;control features (experts only!)</source>
-        <translation></translation>
     </message>
     <message>
         <location line="+71"/>
@@ -1315,7 +958,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>default</translation>
     </message>
     <message>
-        <location line="+149"/>
+        <location line="+147"/>
         <location line="+9"/>
         <source>Warning</source>
         <translation>Warning</translation>
@@ -1323,8 +966,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location line="-9"/>
         <location line="+9"/>
-        <source>This setting will take effect after restarting Mintcoin.</source>
-        <translation>This setting will take effect after restarting Mintcoin.</translation>
+        <source>This setting will take effect after restarting BottleCaps.</source>
+        <translation>This setting will take effect after restarting BottleCaps.</translation>
     </message>
     <message>
         <location line="+29"/>
@@ -1341,37 +984,37 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+33"/>
-        <location line="+212"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Mintcoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the Mintcoin network after a connection is established, but this process has not completed yet.</translation>
+        <location line="+183"/>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the BottleCaps network after a connection is established, but this process has not completed yet.</source>
+        <translation>The displayed information may be out of date. Your wallet automatically synchronizes with the BottleCaps network after a connection is established, but this process has not completed yet.</translation>
     </message>
     <message>
-        <location line="-170"/>
+        <location line="-141"/>
         <source>Balance:</source>
         <translation>Balance:</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+118"/>
         <source>Stake:</source>
         <translation>Stake:</translation>
     </message>
     <message>
-        <location line="+84"/>
+        <location line="+58"/>
         <source>Number of transactions:</source>
         <translation>Number of transactions:</translation>
     </message>
     <message>
-        <location line="-55"/>
+        <location line="-29"/>
         <source>Unconfirmed:</source>
         <translation>Unconfirmed:</translation>
     </message>
     <message>
-        <location line="-107"/>
+        <location line="-78"/>
         <source>Wallet</source>
         <translation>Wallet</translation>
     </message>
     <message>
-        <location line="+136"/>
+        <location line="+124"/>
         <source>Immature:</source>
         <translation>Immature:</translation>
     </message>
@@ -1381,66 +1024,35 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Mined balance that has not yet matured</translation>
     </message>
     <message>
-        <location line="+63"/>
+        <location line="+46"/>
         <source>&lt;b&gt;Recent transactions&lt;/b&gt;</source>
         <translation>&lt;b&gt;Recent transactions&lt;/b&gt;</translation>
     </message>
     <message>
-        <location line="-147"/>
+        <location line="-118"/>
         <source>Your current balance</source>
         <translation>Your current balance</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+29"/>
         <source>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</source>
         <translation>Total of transactions that have yet to be confirmed, and do not yet count toward the current balance</translation>
     </message>
     <message>
-        <location line="-29"/>
+        <location line="+134"/>
         <source>Total of coins that was staked, and do not yet count toward the current balance</source>
         <translation>Total of coins that was staked, and do not yet count toward the current balance</translation>
     </message>
     <message>
-        <location line="+75"/>
+        <location line="+20"/>
         <source>Total number of transactions in wallet</source>
         <translation>Total number of transactions in wallet</translation>
     </message>
     <message>
-        <location filename="../overviewpage.cpp" line="+113"/>
+        <location filename="../overviewpage.cpp" line="+112"/>
         <location line="+1"/>
         <source>out of sync</source>
         <translation>out of sync</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message numerus="yes">
-        <source>%n second(s)</source>
-        <translation type="vanished">
-            <numerusform>%n second</numerusform>
-            <numerusform>%n seconds</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>%n minute(s)</source>
-        <translation type="vanished">
-            <numerusform>%n minute</numerusform>
-            <numerusform>%n minutes</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>%n hour(s)</source>
-        <translation type="vanished">
-            <numerusform>%n hour</numerusform>
-            <numerusform>%n hours</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>%n day(s)</source>
-        <translation type="vanished">
-            <numerusform>%n day</numerusform>
-            <numerusform>%n days</numerusform>
-        </translation>
     </message>
 </context>
 <context>
@@ -1589,8 +1201,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Show the Mintcoin-Qt help message to get a list with possible Mintcoin command-line options.</source>
-        <translation>Show the Mintcoin-Qt help message to get a list with possible Mintcoin command-line options.</translation>
+        <source>Show the BottleCaps-Qt help message to get a list with possible BottleCaps command-line options.</source>
+        <translation>Show the BottleCaps-Qt help message to get a list with possible BottleCaps command-line options.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1609,13 +1221,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-104"/>
-        <source>Mintcoin - Debug window</source>
-        <translation>Mintcoin - Debug window</translation>
+        <source>BottleCaps - Debug window</source>
+        <translation>BottleCaps - Debug window</translation>
     </message>
     <message>
         <location line="+25"/>
-        <source>Mintcoin Core</source>
-        <translation>Mintcoin Core</translation>
+        <source>BottleCaps Core</source>
+        <translation>BottleCaps Core</translation>
     </message>
     <message>
         <location line="+279"/>
@@ -1624,8 +1236,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the Mintcoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Open the Mintcoin debug log file from the current data directory. This can take a few seconds for large log files.</translation>
+        <source>Open the BottleCaps debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Open the BottleCaps debug log file from the current data directory. This can take a few seconds for large log files.</translation>
     </message>
     <message>
         <location line="+102"/>
@@ -1634,8 +1246,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-33"/>
-        <source>Welcome to the Mintcoin RPC console.</source>
-        <translation>Welcome to the Mintcoin RPC console.</translation>
+        <source>Welcome to the BottleCaps RPC console.</source>
+        <translation>Welcome to the BottleCaps RPC console.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1652,7 +1264,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <name>SendCoinsDialog</name>
     <message>
         <location filename="../forms/sendcoinsdialog.ui" line="+14"/>
-        <location filename="../sendcoinsdialog.cpp" line="+182"/>
+        <location filename="../sendcoinsdialog.cpp" line="+124"/>
         <location line="+5"/>
         <location line="+5"/>
         <location line="+5"/>
@@ -1663,96 +1275,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Send Coins</translation>
     </message>
     <message>
-        <location line="+76"/>
-        <source>Coin Control Features</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+20"/>
-        <source>Inputs...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>automatically selected</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>Insufficient funds!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+77"/>
-        <source>Quantity:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+22"/>
-        <location line="+35"/>
-        <source>0</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-19"/>
-        <source>Bytes:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+51"/>
-        <source>Amount:</source>
-        <translation type="unfinished">Amount:</translation>
-    </message>
-    <message>
-        <location line="+22"/>
-        <location line="+86"/>
-        <location line="+86"/>
-        <location line="+32"/>
-        <source>0.00 MINT</source>
-        <translation type="unfinished">123.456 MINT {0.00 ?}</translation>
-    </message>
-    <message>
-        <location line="-191"/>
-        <source>Priority:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>medium</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+32"/>
-        <source>Fee:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+35"/>
-        <source>Low Output:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+19"/>
-        <source>no</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+32"/>
-        <source>After Fee:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+35"/>
-        <source>Change</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location line="+50"/>
-        <source>custom change address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+106"/>
         <source>Send to multiple recipients at once</source>
         <translation>Send to multiple recipients at once</translation>
     </message>
@@ -1772,14 +1295,14 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Clear &amp;All</translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+22"/>
         <source>Balance:</source>
         <translation>Balance:</translation>
     </message>
     <message>
-        <location line="+16"/>
-        <source>123.456 MINT</source>
-        <translation>123.456 MINT</translation>
+        <location line="+10"/>
+        <source>123.456 BTC</source>
+        <translation>123.456 BTC</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -1792,52 +1315,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sendcoinsdialog.cpp" line="-173"/>
-        <source>Enter a Mintcoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>Enter a Mintcoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <source>Copy quantity</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy amount</source>
-        <translation>Copy amount</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy fee</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy after fee</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy bytes</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy priority</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy low output</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Copy change</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+86"/>
+        <location filename="../sendcoinsdialog.cpp" line="-59"/>
         <source>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; to %2 (%3)</translation>
     </message>
@@ -1857,7 +1335,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation> and </translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+23"/>
         <source>The recipient address is not valid, please recheck.</source>
         <translation>The recipient address is not valid, please recheck.</translation>
     </message>
@@ -1891,21 +1369,6 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <source>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
         <translation>Error: The transaction was rejected. This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</translation>
     </message>
-    <message>
-        <location line="+251"/>
-        <source>WARNING: Invalid Mintcoin address</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>(no label)</source>
-        <translation type="unfinished">(no label)</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>WARNING: unknown change address</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>SendCoinsEntry</name>
@@ -1937,8 +1400,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+18"/>
-        <source>The address to send the payment to  (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation></translation>
+        <source>The address to send the payment to  (e.g. 4Zo1ga6xuKuQ7JV7M9rGDoxdbYwV5zgQJ5)</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1967,8 +1430,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
-        <source>Enter a Mintcoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>Enter a Mintcoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
+        <source>Enter a valid BottleCaps address</source>
+        <translation>Enter a valid BottleCaps address </translation>
     </message>
 </context>
 <context>
@@ -1991,8 +1454,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+18"/>
-        <source>The address to sign the message with (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>The address to sign the message with (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
+        <source>The address to sign the message with </source>
+        <translation>The address to sign the message with </translation>
     </message>
     <message>
         <location line="+10"/>
@@ -2028,8 +1491,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Mintcoin address</source>
-        <translation>Sign the message to prove you own this Mintcoin address</translation>
+        <source>Sign the message to prove you own this BottleCaps address</source>
+        <translation>Sign the message to prove you own this BottleCaps address</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -2055,13 +1518,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+21"/>
-        <source>The address the message was signed with (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>The address the message was signed with (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
+        <source>The address the message was signed with </source>
+        <translation>The address the message was signed with </translation>
     </message>
     <message>
         <location line="+40"/>
-        <source>Verify the message to ensure it was signed with the specified Mintcoin address</source>
-        <translation>Verify the message to ensure it was signed with the specified Mintcoin address</translation>
+        <source>Verify the message to ensure it was signed with the specified BottleCaps address</source>
+        <translation>Verify the message to ensure it was signed with the specified BottleCaps address</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -2071,8 +1534,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     <message>
         <location filename="../signverifymessagedialog.cpp" line="+27"/>
         <location line="+3"/>
-        <source>Enter a Mintcoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>Enter a Mintcoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
+        <source>Enter a valid BottleCaps address</source>
+        <translation>Enter a valid BottleCaps address</translation>
     </message>
     <message>
         <location line="-2"/>
@@ -2081,8 +1544,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Enter Mintcoin signature</source>
-        <translation>Enter Mintcoin signature</translation>
+        <source>Enter BottleCaps signature</source>
+        <translation>Enter BottleCaps signature</translation>
     </message>
     <message>
         <location line="+82"/>
@@ -2168,11 +1631,6 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+8"/>
-        <source>conflicted</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+2"/>
         <source>%1/offline</source>
         <translation>%1/offline</translation>
     </message>
@@ -2295,12 +1753,13 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+3"/>
-        <source>Generated coins must mature 510 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Generated coins must mature 510 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</translation>
+        <source>Generated coins must mature 520 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
+        <translation>Generated coins must mature 520 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</translation>
     </message>
     <message>
-        <source>Staked coins must wait 510 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
-        <translation type="obsolete">Staked coins must wait 510 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \&quot;not accepted\&quot; and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</translation>
+        <location line="+4"/>
+        <source>Staked coins must wait 520 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</source>
+        <translation>Staked coins must wait 520 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -2379,72 +1838,43 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Amount</translation>
     </message>
     <message numerus="yes">
+        <location line="+57"/>
         <source>Open for %n block(s)</source>
-        <translation type="vanished">
+        <translation>
             <numerusform>Open for %n block</numerusform>
             <numerusform>Open for %n blocks</numerusform>
         </translation>
     </message>
     <message>
-        <location line="+60"/>
+        <location line="+3"/>
         <source>Open until %1</source>
         <translation>Open until %1</translation>
     </message>
     <message>
+        <location line="+3"/>
         <source>Offline (%1 confirmations)</source>
-        <translation type="vanished">Offline (%1 confirmations)</translation>
+        <translation>Offline (%1 confirmations)</translation>
     </message>
     <message>
+        <location line="+3"/>
         <source>Unconfirmed (%1 of %2 confirmations)</source>
-        <translation type="vanished">Unconfirmed (%1 of %2 confirmations)</translation>
+        <translation>Unconfirmed (%1 of %2 confirmations)</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+3"/>
         <source>Confirmed (%1 confirmations)</source>
         <translation>Confirmed (%1 confirmations)</translation>
     </message>
     <message numerus="yes">
+        <location line="+8"/>
         <source>Mined balance will be available when it matures in %n more block(s)</source>
-        <translation type="vanished">
+        <translation>
             <numerusform>Mined balance will be available when it matures in %n more block</numerusform>
             <numerusform>Mined balance will be available when it matures in %n more blocks</numerusform>
         </translation>
     </message>
-    <message numerus="yes">
-        <location line="-15"/>
-        <source>Open for %n more block(s)</source>
-        <translation>
-            <numerusform>Open for %n more block</numerusform>
-            <numerusform>Open for %n more blocks</numerusform>
-        </translation>
-    </message>
     <message>
-        <location line="+6"/>
-        <source>Offline</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Unconfirmed</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Confirming (%1 of %2 recommended confirmations)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Conflicted</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Immature (%1 confirmations, will be available after %2)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+3"/>
+        <location line="+5"/>
         <source>This block was not received by any other nodes and will probably not be accepted!</source>
         <translation>This block was not received by any other nodes and will probably not be accepted!</translation>
     </message>
@@ -2454,7 +1884,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Generated but not accepted</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+43"/>
         <source>Received with</source>
         <translation>Received with</translation>
     </message>
@@ -2484,7 +1914,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>(n/a)</translation>
     </message>
     <message>
-        <location line="+190"/>
+        <location line="+199"/>
         <source>Transaction status. Hover over this field to show number of confirmations.</source>
         <translation>Transaction status. Hover over this field to show number of confirmations.</translation>
     </message>
@@ -2599,11 +2029,6 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+1"/>
-        <source>Copy transaction ID</source>
-        <translation>Copy transaction ID</translation>
-    </message>
-    <message>
-        <location line="+1"/>
         <source>Edit label</source>
         <translation>Edit label</translation>
     </message>
@@ -2613,7 +2038,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Show transaction details</translation>
     </message>
     <message>
-        <location line="+144"/>
+        <location line="+142"/>
         <source>Export Transaction Data</source>
         <translation>Export Transaction Data</translation>
     </message>
@@ -2668,7 +2093,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Could not write to file %1.</translation>
     </message>
     <message>
-        <location line="+100"/>
+        <location line="+95"/>
         <source>Range:</source>
         <translation>Range:</translation>
     </message>
@@ -2681,7 +2106,7 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
 <context>
     <name>WalletModel</name>
     <message>
-        <location filename="../walletmodel.cpp" line="+206"/>
+        <location filename="../walletmodel.cpp" line="+192"/>
         <source>Sending...</source>
         <translation>Sending...</translation>
     </message>
@@ -2689,69 +2114,62 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
 <context>
     <name>bitcoin-core</name>
     <message>
-        <location filename="../bitcoinstrings.cpp" line="+29"/>
-        <source>Mintcoin version</source>
-        <translation>Mintcoin version</translation>
+        <location filename="../bitcoinstrings.cpp" line="+82"/>
+        <source>BottleCaps version</source>
+        <translation>BottleCaps version</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+82"/>
         <source>Usage:</source>
         <translation>Usage:</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Send command to -server or Mintcoind</source>
-        <translation>Send command to -server or Mintcoind</translation>
+        <location line="-25"/>
+        <source>Send command to -server or bitcoind</source>
+        <translation>Send command to -server or bitcoind</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-19"/>
         <source>List commands</source>
         <translation>List commands</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-11"/>
         <source>Get help for a command</source>
         <translation>Get help for a command</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+20"/>
         <source>Options:</source>
         <translation>Options:</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Specify configuration file (default: Mintcoin.conf)</source>
-        <translation>Specify configuration file (default: Mintcoin.conf)</translation>
+        <location line="+23"/>
+        <source>Specify configuration file (default: BottleCaps.conf)</source>
+        <translation>Specify configuration file (default: BottleCaps.conf)</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Specify pid file (default: Mintcoind.pid)</source>
-        <translation>Specify pid file (default: Mintcoind.pid)</translation>
+        <location line="+3"/>
+        <source>Specify pid file (default: BottleCapsd.pid)</source>
+        <translation>Specify pid file (default: BottleCapsd.pid)</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Specify wallet file (within data directory)</source>
-        <translation>Specify wallet file (within data directory)</translation>
+        <location line="-47"/>
+        <source>Generate coins</source>
+        <translation>Generate coins</translation>
     </message>
     <message>
-        <location line="-1"/>
+        <location line="-14"/>
+        <source>Don&apos;t generate coins</source>
+        <translation>Don&apos;t generate coins</translation>
+    </message>
+    <message>
+        <location line="+60"/>
         <source>Specify data directory</source>
         <translation>Specify data directory</translation>
     </message>
     <message>
-        <location line="-30"/>
-        <source>%s, you must set a rpcpassword in the configuration file:
- %s
-It is recommended you use the following random password:
-rpcuser=Mintcoinrpc
-rpcpassword=%s
-(you do not need to remember this password)
-If the file does not exist, create it with owner-readable-only file permissions.
-</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+32"/>
+        <location line="-8"/>
         <source>Set database cache size in megabytes (default: 25)</source>
         <translation>Set database cache size in megabytes (default: 25)</translation>
     </message>
@@ -2761,160 +2179,147 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Set database disk log size in megabytes (default: 100)</translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</translation>
+        <location line="-26"/>
+        <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
+        <translation>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+4"/>
         <source>Maintain at most &lt;n&gt; connections to peers (default: 125)</source>
         <translation>Maintain at most &lt;n&gt; connections to peers (default: 125)</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="-33"/>
         <source>Connect to a node to retrieve peer addresses, and disconnect</source>
         <translation>Connect to a node to retrieve peer addresses, and disconnect</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+64"/>
         <source>Specify your own public address</source>
         <translation>Specify your own public address</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="-75"/>
         <source>Bind to given address. Use [host]:port notation for IPv6</source>
         <translation>Bind to given address. Use [host]:port notation for IPv6</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>Stake your coins to support network and gain reward (default: 1)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+77"/>
         <source>Threshold for disconnecting misbehaving peers (default: 100)</source>
         <translation>Threshold for disconnecting misbehaving peers (default: 100)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-112"/>
         <source>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</source>
         <translation>Number of seconds to keep misbehaving peers from reconnecting (default: 86400)</translation>
     </message>
     <message>
-        <location line="-41"/>
+        <location line="-25"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv4: %s</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+48"/>
+        <location line="+8"/>
         <source>Detach block and address databases. Increases shutdown time (default: 0)</source>
         <translation>Detach block and address databases. Increases shutdown time (default: 0)</translation>
     </message>
     <message>
-        <location line="+107"/>
+        <location line="+5"/>
         <source>Error: The transaction was rejected.  This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="+4"/>
         <source>Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds  </source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-2"/>
-        <source>Error: Wallet unlocked for block minting only, unable to create transaction.</source>
-        <translation></translation>
+        <location line="+6"/>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-83"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 15715 or testnet: 25715)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="-11"/>
+        <location line="+31"/>
         <source>Accept command line and JSON-RPC commands</source>
         <translation>Accept command line and JSON-RPC commands</translation>
     </message>
     <message>
-        <location line="+99"/>
+        <location line="+26"/>
         <source>Error: Transaction creation failed  </source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-6"/>
+        <location line="+1"/>
         <source>Error: Wallet locked, unable to create transaction  </source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Find peers using DNS lookup (default: 0)</source>
-        <translation type="obsolete">Find peers using DNS lookup (default: 1) {0)?}</translation>
-    </message>
-    <message>
-        <location line="-8"/>
+        <location line="+10"/>
         <source>Importing blockchain data file.</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Importing bootstrap blockchain data file.</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-85"/>
+        <location line="+23"/>
         <source>Run in the background as a daemon and accept commands</source>
         <translation>Run in the background as a daemon and accept commands</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+33"/>
         <source>Use the test network</source>
         <translation>Use the test network</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-93"/>
         <source>Accept connections from outside (default: 1 if no -proxy or -connect)</source>
         <translation>Accept connections from outside (default: 1 if no -proxy or -connect)</translation>
     </message>
     <message>
-        <location line="-38"/>
+        <location line="-53"/>
         <source>An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+111"/>
+        <location line="+8"/>
         <source>Error initializing database environment %s! To recover, BACKUP THAT DIRECTORY, then remove everything from it except for wallet.dat.</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
+        <location line="+18"/>
         <source>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</source>
         <translation>Set maximum size of high-priority/low-fee transactions in bytes (default: 27000)</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+5"/>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
         <translation>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</translation>
     </message>
     <message>
+        <location line="+3"/>
         <source>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</source>
-        <translation type="obsolete">Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</translation>
+        <translation>Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.</translation>
     </message>
     <message>
-        <location line="+62"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Mintcoin will not work properly.</source>
-        <translation>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Mintcoin will not work properly.</translation>
+        <location line="+3"/>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong BottleCaps will not work properly.</source>
+        <translation>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong BottleCaps will not work properly.</translation>
     </message>
     <message>
-        <location line="-32"/>
+        <location line="+3"/>
         <source>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</source>
         <translation>Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.</translation>
     </message>
     <message>
-        <location line="-18"/>
+        <location line="+3"/>
         <source>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</source>
         <translation>Warning: wallet.dat corrupt, data salvaged! Original wallet.dat saved as wallet.{timestamp}.bak in %s; if your balance or transactions are incorrect you should restore from a backup.</translation>
     </message>
     <message>
-        <location line="-30"/>
+        <location line="+14"/>
         <source>Attempt to recover private keys from a corrupt wallet.dat</source>
         <translation>Attempt to recover private keys from a corrupt wallet.dat</translation>
     </message>
@@ -2924,42 +2329,32 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Block creation options:</translation>
     </message>
     <message>
-        <location line="-56"/>
+        <location line="+6"/>
         <source>Connect only to the specified node(s)</source>
         <translation>Connect only to the specified node(s)</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+3"/>
         <source>Discover own IP address (default: 1 when listening and no -externalip)</source>
         <translation>Discover own IP address (default: 1 when listening and no -externalip)</translation>
     </message>
     <message>
-        <location line="+88"/>
+        <location line="+11"/>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
         <translation>Failed to listen on any port. Use -listen=0 if you want this.</translation>
     </message>
     <message>
-        <location line="-84"/>
-        <source>Find peers using DNS lookup (default: 1)</source>
-        <translation>Find peers using DNS lookup (default: 1)</translation>
-    </message>
-    <message>
         <location line="+2"/>
-        <source>Sync checkpoints policy (default: strict)</source>
-        <translation>Sync checkpoints policy (default: strict)</translation>
+        <source>Find peers using DNS lookup (default: 0)</source>
+        <translation>Find peers using DNS lookup (default: 0)</translation>
     </message>
     <message>
-        <location line="+80"/>
+        <location line="+11"/>
         <source>Invalid -tor address: &apos;%s&apos;</source>
         <translation>Invalid -tor address: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Invalid amount for -reservebalance=&lt;amount&gt;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="-79"/>
+        <location line="+9"/>
         <source>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</source>
         <translation>Maximum per-connection receive buffer, &lt;n&gt;*1000 bytes (default: 5000)</translation>
     </message>
@@ -2969,12 +2364,12 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Maximum per-connection send buffer, &lt;n&gt;*1000 bytes (default: 1000)</translation>
     </message>
     <message>
-        <location line="-13"/>
+        <location line="+1"/>
         <source>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</source>
         <translation>Only connect to nodes in network &lt;net&gt; (IPv4, IPv6 or Tor)</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+2"/>
         <source>Output extra debugging information. Implies all other -debug* options</source>
         <translation>Output extra debugging information. Implies all other -debug* options</translation>
     </message>
@@ -2984,22 +2379,22 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Output extra network debugging information</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Prepend debug output with timestamp</source>
         <translation>Prepend debug output with timestamp</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+4"/>
         <source>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</source>
         <translation>SSL options: (see the Bitcoin Wiki for SSL setup instructions)</translation>
     </message>
     <message>
-        <location line="-68"/>
+        <location line="+1"/>
         <source>Select the version of socks proxy to use (4-5, default: 5)</source>
         <translation>Select the version of socks proxy to use (4-5, default: 5)</translation>
     </message>
     <message>
-        <location line="+38"/>
+        <location line="+3"/>
         <source>Send trace/debug info to console instead of debug.log file</source>
         <translation>Send trace/debug info to console instead of debug.log file</translation>
     </message>
@@ -3009,133 +2404,102 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Send trace/debug info to debugger</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+7"/>
         <source>Set maximum block size in bytes (default: 250000)</source>
         <translation>Set maximum block size in bytes (default: 250000)</translation>
     </message>
     <message>
-        <location line="-1"/>
+        <location line="+1"/>
         <source>Set minimum block size in bytes (default: 0)</source>
         <translation>Set minimum block size in bytes (default: 0)</translation>
     </message>
     <message>
-        <location line="-26"/>
+        <location line="+1"/>
         <source>Shrink debug.log file on client startup (default: 1 when no -debug)</source>
         <translation>Shrink debug.log file on client startup (default: 1 when no -debug)</translation>
     </message>
     <message>
-        <location line="-39"/>
+        <location line="+2"/>
         <source>Specify connection timeout in milliseconds (default: 5000)</source>
         <translation>Specify connection timeout in milliseconds (default: 5000)</translation>
     </message>
     <message>
-        <location line="+103"/>
-        <source>Unable to sign checkpoint, wrong checkpointkey?
-</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="-77"/>
+        <location line="+13"/>
         <source>Use UPnP to map the listening port (default: 0)</source>
         <translation>Use UPnP to map the listening port (default: 0)</translation>
     </message>
     <message>
-        <location line="-1"/>
+        <location line="+1"/>
         <source>Use UPnP to map the listening port (default: 1 when listening)</source>
         <translation>Use UPnP to map the listening port (default: 1 when listening)</translation>
     </message>
     <message>
-        <location line="-22"/>
+        <location line="+1"/>
         <source>Use proxy to reach tor hidden services (default: same as -proxy)</source>
         <translation>Use proxy to reach tor hidden services (default: same as -proxy)</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+2"/>
         <source>Username for JSON-RPC connections</source>
         <translation>Username for JSON-RPC connections</translation>
     </message>
     <message>
-        <location line="+44"/>
-        <source>Verifying database integrity...</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+58"/>
-        <source>WARNING: syncronized checkpoint violation detected, but skipped!</source>
-        <translation></translation>
-    </message>
-    <message>
         <location line="+1"/>
+        <source>Verifying database integrity...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>Warning: Disk space is low!</source>
         <translation>Warning: Disk space is low!</translation>
     </message>
     <message>
-        <location line="-2"/>
+        <location line="+1"/>
         <source>Warning: This version is obsolete, upgrade required!</source>
         <translation>Warning: This version is obsolete, upgrade required!</translation>
     </message>
     <message>
-        <location line="-49"/>
+        <location line="+1"/>
         <source>wallet.dat corrupt, salvage failed</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-51"/>
+        <location line="-43"/>
         <source>Password for JSON-RPC connections</source>
         <translation>Password for JSON-RPC connections</translation>
     </message>
     <message>
-        <location line="-13"/>
-        <source>When creating transactions, ignore inputs with value less than this (default: 0.01)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+16"/>
+        <location line="-53"/>
         <source>Allow JSON-RPC connections from specified IP address</source>
         <translation>Allow JSON-RPC connections from specified IP address</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+61"/>
         <source>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</source>
         <translation>Send commands to node running on &lt;ip&gt; (default: 127.0.0.1)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-99"/>
         <source>Execute command when the best block changes (%s in cmd is replaced by block hash)</source>
         <translation>Execute command when the best block changes (%s in cmd is replaced by block hash)</translation>
     </message>
     <message>
-        <location line="+3"/>
-        <source>Execute command when a wallet transaction changes (%s in cmd is replaced by TxID)</source>
-        <translation>Execute command when a wallet transaction changes (%s in cmd is replaced by TxID)</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>Require a confirmations for change (default: 0)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Enforce transaction scripts to use canonical PUSH operators (default: 1)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+2"/>
+        <location line="+122"/>
         <source>Upgrade wallet to latest format</source>
         <translation>Upgrade wallet to latest format</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-15"/>
         <source>Set key pool size to &lt;n&gt; (default: 100)</source>
         <translation>Set key pool size to &lt;n&gt; (default: 100)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-14"/>
         <source>Rescan the block chain for missing wallet transactions</source>
         <translation>Rescan the block chain for missing wallet transactions</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-24"/>
         <source>How many blocks to check at startup (default: 2500, 0 = all)</source>
         <translation>How many blocks to check at startup (default: 2500, 0 = all)</translation>
     </message>
@@ -3145,17 +2509,17 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>How thorough the block verification is (0-6, default: 1)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+3"/>
         <source>Imports blocks from external blk000?.dat file</source>
         <translation>Imports blocks from external blk000?.dat file</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+51"/>
         <source>Use OpenSSL (https) for JSON-RPC connections</source>
         <translation>Use OpenSSL (https) for JSON-RPC connections</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-21"/>
         <source>Server certificate file (default: server.cert)</source>
         <translation>Server certificate file (default: server.cert)</translation>
     </message>
@@ -3165,57 +2529,47 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Server private key (default: server.pem)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-127"/>
         <source>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</source>
         <translation>Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)</translation>
     </message>
     <message>
-        <location line="+72"/>
-        <source>WARNING: Invalid checkpoint found! Displayed transactions may not be correct! You may need to upgrade, or notify developers.</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="-153"/>
+        <location line="+139"/>
         <source>This help message</source>
         <translation>This help message</translation>
     </message>
     <message>
-        <location line="+89"/>
-        <source>Wallet %s resides outside data directory %s.</source>
-        <translation>Wallet %s resides outside data directory %s.</translation>
+        <location line="-131"/>
+        <source>Cannot obtain a lock on data directory %s.  BottleCaps is probably already running.</source>
+        <translation>Cannot obtain a lock on data directory %s.  BottleCaps is probably already running.</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Cannot obtain a lock on data directory %s.  Mintcoin is probably already running.</source>
-        <translation>Cannot obtain a lock on data directory %s.  Mintcoin is probably already running.</translation>
+        <location line="+57"/>
+        <source>BottleCaps</source>
+        <translation>BottleCaps</translation>
     </message>
     <message>
-        <location line="-92"/>
-        <source>Mintcoin</source>
-        <translation>Mintcoin</translation>
-    </message>
-    <message>
-        <location line="+134"/>
+        <location line="+77"/>
         <source>Unable to bind to %s on this computer (bind returned error %d, %s)</source>
         <translation>Unable to bind to %s on this computer (bind returned error %d, %s)</translation>
     </message>
     <message>
-        <location line="-124"/>
+        <location line="-69"/>
         <source>Connect through socks proxy</source>
         <translation>Connect through socks proxy</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="-13"/>
         <source>Allow DNS lookups for -addnode, -seednode and -connect</source>
         <translation>Allow DNS lookups for -addnode, -seednode and -connect</translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+44"/>
         <source>Loading addresses...</source>
         <translation>Loading addresses...</translation>
     </message>
     <message>
-        <location line="-15"/>
+        <location line="-26"/>
         <source>Error loading blkindex.dat</source>
         <translation>Error loading blkindex.dat</translation>
     </message>
@@ -3225,27 +2579,27 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Error loading wallet.dat: Wallet corrupted</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of Mintcoin</source>
-        <translation>Error loading wallet.dat: Wallet requires newer version of Mintcoin</translation>
+        <location line="+1"/>
+        <source>Error loading wallet.dat: Wallet requires newer version of BottleCaps</source>
+        <translation>Error loading wallet.dat: Wallet requires newer version of BottleCaps</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <source>Wallet needed to be rewritten: restart Mintcoin to complete</source>
-        <translation>Wallet needed to be rewritten: restart Mintcoin to complete</translation>
+        <location line="+73"/>
+        <source>Wallet needed to be rewritten: restart BottleCaps to complete</source>
+        <translation>Wallet needed to be rewritten: restart BottleCaps to complete</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-75"/>
         <source>Error loading wallet.dat</source>
         <translation>Error loading wallet.dat</translation>
     </message>
     <message>
-        <location line="-16"/>
+        <location line="+19"/>
         <source>Invalid -proxy address: &apos;%s&apos;</source>
         <translation>Invalid -proxy address: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="-1"/>
+        <location line="+46"/>
         <source>Unknown network specified in -onlynet: &apos;%s&apos;</source>
         <translation>Unknown network specified in -onlynet: &apos;%s&apos;</translation>
     </message>
@@ -3255,77 +2609,72 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Unknown -socks proxy version requested: %i</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="-74"/>
         <source>Cannot resolve -bind address: &apos;%s&apos;</source>
         <translation>Cannot resolve -bind address: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+1"/>
         <source>Cannot resolve -externalip address: &apos;%s&apos;</source>
         <translation>Cannot resolve -externalip address: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="-24"/>
+        <location line="+30"/>
         <source>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</source>
         <translation>Invalid amount for -paytxfee=&lt;amount&gt;: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="-15"/>
         <source>Error: could not start node</source>
         <translation>Error: could not start node</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+40"/>
         <source>Sending...</source>
         <translation>Sending...</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="-24"/>
         <source>Invalid amount</source>
         <translation>Invalid amount</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-4"/>
         <source>Insufficient funds</source>
         <translation>Insufficient funds</translation>
     </message>
     <message>
-        <location line="-35"/>
+        <location line="+8"/>
         <source>Loading block index...</source>
         <translation>Loading block index...</translation>
     </message>
     <message>
-        <location line="-97"/>
+        <location line="-46"/>
         <source>Add a node to connect to and attempt to keep the connection open</source>
         <translation>Add a node to connect to and attempt to keep the connection open</translation>
     </message>
     <message>
-        <location line="+116"/>
-        <source>Unable to bind to %s on this computer. Mintcoin is probably already running.</source>
-        <translation>Unable to bind to %s on this computer. Mintcoin is probably already running.</translation>
+        <location line="-25"/>
+        <source>Unable to bind to %s on this computer. BottleCaps is probably already running.</source>
+        <translation>Unable to bind to %s on this computer. BottleCaps is probably already running.</translation>
     </message>
     <message>
-        <location line="-110"/>
+        <location line="+55"/>
         <source>Find peers using internet relay chat (default: 1)</source>
         <translation>Find peers using internet relay chat (default: 1)</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="-2"/>
         <source>Fee per KB to add to transactions you send</source>
         <translation>Fee per KB to add to transactions you send</translation>
     </message>
     <message>
-        <location line="+52"/>
-        <source>Invalid amount for -mininput=&lt;amount&gt;: &apos;%s&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location line="+25"/>
+        <location line="+19"/>
         <source>Loading wallet...</source>
         <translation>Loading wallet...</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="-39"/>
         <source>Cannot downgrade wallet</source>
         <translation>Cannot downgrade wallet</translation>
     </message>
@@ -3335,26 +2684,27 @@ If the file does not exist, create it with owner-readable-only file permissions.
         <translation>Cannot initialize keypool</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+3"/>
         <source>Cannot write default address</source>
         <translation>Cannot write default address</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+46"/>
         <source>Rescanning...</source>
         <translation>Rescanning...</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="-40"/>
         <source>Done loading</source>
         <translation>Done loading</translation>
     </message>
     <message>
-        <location line="-157"/>
+        <location line="+64"/>
         <source>To use the %s option</source>
         <translation>To use the %s option</translation>
     </message>
     <message>
+        <location line="-150"/>
         <source>%s, you must set a rpcpassword in the configuration file:
  %s
 It is recommended you use the following random password:
@@ -3363,7 +2713,7 @@ rpcpassword=%s
 (you do not need to remember this password)
 If the file does not exist, create it with owner-readable-only file permissions.
 </source>
-        <translation type="vanished">%s, you must set a rpcpassword in the configuration file:
+        <translation>%s, you must set a rpcpassword in the configuration file:
  %s
 It is recommended you use the following random password:
 rpcuser=bitcoinrpc
@@ -3373,12 +2723,12 @@ If the file does not exist, create it with owner-readable-only file permissions.
 </translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+91"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="-30"/>
         <source>You must set rpcpassword=&lt;password&gt; in the configuration file:
 %s
 If the file does not exist, create it with owner-readable-only file permissions.</source>
