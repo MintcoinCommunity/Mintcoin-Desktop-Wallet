@@ -8,7 +8,15 @@ Debian
 -------
 
 First, make sure that the required packages for Qt4 development of your
-distribution are installed, for Debian and Ubuntu these are:
+distribution are installed.
+
+On recent Ubuntu releases, the `libdb4.8++-dev` package is not in the default
+repositories. However it's in the bitcoin repository, which we can add
+with:
+
+    apt-add-repository ppa:bitcoin/bitcoin
+
+Then we need to make sure our build environment is up to date. For Debian and Ubuntu:
 
 ::
 
