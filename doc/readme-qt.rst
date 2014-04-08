@@ -22,7 +22,7 @@ Then we need to make sure our build environment is up to date. For Debian and Ub
 
     apt-get install qt4-qmake libqt4-dev build-essential libboost-dev libboost-system-dev \
         libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev \
-        libssl-dev libdb4.8++-dev
+        libssl-dev libdb4.8++-dev libminiupnpc-dev libminiupnpc8
 
 then execute the following:
 
