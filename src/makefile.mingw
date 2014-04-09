@@ -3,23 +3,24 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 USE_UPNP:=0
-USE_IPV6:=1
+USE_IPV6:=0
 
 INCLUDEPATHS= \
- -I"C:\boost_1_53_0" \
- -I"C:\db-4.8.30.NC\build_unix" \
- -I"C:\openssl-1.0.1e\include
+ -I"C:/deps/boost_1_53_0" \
+ -I"C:/deps/db-4.8.30.NC/build_unix" \
+ -I"C:/deps/openssl-1.0.1g/include"
  
 LIBPATHS= \
- -L"C:\boost_1_53_0\stage/lib" \
- -L"C:\db-4.8.30.NC\build_unix" \
- -L"C:\openssl-1.0.1e" 
+ -L"C:/deps/boost_1_53_0/stage/lib" \
+ -L"C:/deps/db-4.8.30.NC/build_unix" \
+ -L"C:/deps/openssl-1.0.1g" 
+
 
 LIBS= \
- -l boost_system-mgw45-mt-d-1_53 \
- -l boost_filesystem-mgw45-mt-d-1_53 \
- -l boost_program_options-mgw45-mt-d-1_53 \
- -l boost_thread-mgw45-mt-d-1_53 \
+ -l boost_system-mgw48-mt-s-1_53 \
+ -l boost_filesystem-mgw48-mt-s-1_53 \
+ -l boost_program_options-mgw48-mt-s-1_53 \
+ -l boost_thread-mgw48-mt-s-1_53 \
  -l db_cxx \
  -l ssl \
  -l crypto
@@ -35,8 +36,8 @@ ifndef USE_UPNP
 	override USE_UPNP = -
 endif
 ifneq (${USE_UPNP}, -)
- INCLUDEPATHS += -I"C:\miniupnpc-1.6-mgw"
- LIBPATHS += -L"C:\miniupnpc-1.6-mgw"
+ INCLUDEPATHS += -I"C:/deps/"
+ LIBPATHS += -L"C:/deps/miniupnpc"
  LIBS += -l miniupnpc -l iphlpapi
  DEFS += -DSTATICLIB -DUSE_UPNP=$(USE_UPNP)
 endif
@@ -98,7 +99,7 @@ obj/scrypt-x86.o: scrypt-x86.S
 obj/scrypt-x86_64.o: scrypt-x86_64.S
 	$(CXX) -c $(xCXXFLAGS) -MMD -o $@ $<
 
-mintcoind.exe: $(OBJS:obj/%=obj/%)
+mintcoind.exC:/deps $(OBJS:obj/%=obj/%)
 	g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -106,7 +107,7 @@ TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 obj-test/%.o: test/%.cpp $(HEADERS)
 	g++ -c $(TESTDEFS) $(CFLAGS) -o $@ $<
 
-test_mintcoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_mintcoin.exC:/deps $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework $(LIBS)
 
 clean:
@@ -114,4 +115,4 @@ clean:
 	-del /Q obj\*
 	-del /Q obj-test\*
 
-FORCE:
+FORCC:/deps
