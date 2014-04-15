@@ -2759,7 +2759,6 @@ bool LoadExternalBlockFile(FILE* fileIn)
 extern map<uint256, CAlert> mapAlerts;
 extern CCriticalSection cs_mapAlerts;
 
-static string strMintMessage = "Info: Minting suspended due to locked wallet.";
 static string strMintWarning;
 
 string GetWarnings(string strFor)
@@ -4312,21 +4311,24 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     {
         if (fShutdown)
             return;
+
+        while (pwallet->IsLocked())
+        {
+            nLastCoinStakeSearchInterval = 0;
+            Sleep(1000);
+            if (fShutdown)
+                return;
+        }
+
         while (vNodes.empty() || IsInitialBlockDownload())
         {
+            nLastCoinStakeSearchInterval = 0;
             Sleep(1000);
             if (fShutdown)
                 return;
             if ((!fGenerateBitcoins) && !fProofOfStake)
                 return;
         }
-
-        while (pwallet->IsLocked())
-        {
-            strMintWarning = strMintMessage;
-            Sleep(1000);
-        }
-        strMintWarning = "";
 
         //
         // Create new block
@@ -4344,12 +4346,6 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             // ppcoin: if proof-of-stake block found then process block
             if (pblock->IsProofOfStake())
             {
-                if (!pblock->SignBlock(*pwalletMain))
-                {
-                    strMintWarning = strMintMessage;
-                    continue;
-                }
-                strMintWarning = "";
                 printf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str()); 
                 SetThreadPriority(THREAD_PRIORITY_NORMAL);
                 CheckWork(pblock.get(), *pwalletMain, reservekey);
@@ -4409,7 +4405,6 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                     assert(result == pblock->GetHash());
                     if (!pblock->SignBlock(*pwalletMain))
                     {
-//                        strMintWarning = strMintMessage;
                         break;
                     }
                     strMintWarning = "";
