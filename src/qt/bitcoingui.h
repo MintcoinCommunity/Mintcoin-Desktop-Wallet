@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QSystemTrayIcon>
 
+#include "util.h" // for uint64
+
 class TransactionTableModel;
 class ClientModel;
 class WalletModel;
@@ -99,6 +101,8 @@ private:
     RPCConsole *rpcConsole;
 
     QMovie *syncIconMovie;
+
+    uint64 nNetworkWeight;
 
     /** Create the main UI actions. */
     void createActions();

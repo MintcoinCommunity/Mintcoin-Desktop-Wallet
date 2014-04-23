@@ -4312,21 +4312,13 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         if (fShutdown)
             return;
 
-        while (pwallet->IsLocked())
+        while (vNodes.empty() || IsInitialBlockDownload() || pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
             Sleep(1000);
             if (fShutdown)
                 return;
-        }
-
-        while (vNodes.empty() || IsInitialBlockDownload())
-        {
-            nLastCoinStakeSearchInterval = 0;
-            Sleep(1000);
-            if (fShutdown)
-                return;
-            if ((!fGenerateBitcoins) && !fProofOfStake)
+            if (!fGenerateBitcoins && !fProofOfStake)
                 return;
         }
 
