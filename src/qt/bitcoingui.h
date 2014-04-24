@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QSystemTrayIcon>
 
+#include "util.h" // for uint64
+
 class TransactionTableModel;
 class ClientModel;
 class WalletModel;
@@ -67,6 +69,7 @@ private:
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
+    QLabel *labelMintingIcon;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
@@ -88,6 +91,7 @@ private:
     QAction *encryptWalletAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
+    QAction *lockWalletToggleAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
 
@@ -97,6 +101,8 @@ private:
     RPCConsole *rpcConsole;
 
     QMovie *syncIconMovie;
+
+    uint64 nNetworkWeight;
 
     /** Create the main UI actions. */
     void createActions();
@@ -167,13 +173,16 @@ private slots:
     void backupWallet();
     /** Change encrypted wallet passphrase */
     void changePassphrase();
-    /** Ask for passphrase to unlock wallet temporarily */
-    void unlockWallet();
+    /** Toggle unlocking wallet temporarily */
+    void lockWalletToggle();
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);
     /** simply calls showNormalIfMinimized(true) for use in SLOT() macro */
     void toggleHidden();
+
+    /** Update info about minting */
+    void updateMintingIcon();
 };
 
 #endif
