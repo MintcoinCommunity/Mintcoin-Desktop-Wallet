@@ -62,6 +62,7 @@
 extern CWallet *pwalletMain;
 extern int64 nLastCoinStakeSearchInterval;
 extern unsigned int nStakeTargetSpacing;
+extern bool fWalletUnlockMintOnly;
 
 BitcoinGUI::BitcoinGUI(QWidget *parent):
     QMainWindow(parent),
@@ -877,6 +878,21 @@ void BitcoinGUI::changePassphrase()
     dlg.exec();
 }
 
+void BitcoinGUI::unlockWallet()
+{
+    if(!walletModel)
+        return;
+
+    // Unlock wallet when requested by wallet model
+    if(walletModel->getEncryptionStatus() == WalletModel::Locked || fWalletUnlockMintOnly)
+    {
+        AskPassphraseDialog::Mode mode = AskPassphraseDialog::Unlock;
+        AskPassphraseDialog dlg(mode, this);
+        dlg.setModel(walletModel);
+        dlg.exec();
+    }
+}
+
 void BitcoinGUI::lockWalletToggle()
 {
     if(!walletModel)
@@ -885,13 +901,18 @@ void BitcoinGUI::lockWalletToggle()
     // Unlock wallet when requested by wallet model
     if(walletModel->getEncryptionStatus() == WalletModel::Locked)
     {
+        //AskPassphraseDialog::Mode mode = sender() == lockWalletToggleAction ?
+        //      AskPassphraseDialog::UnlockMinting : AskPassphraseDialog::Unlock;
         AskPassphraseDialog::Mode mode = AskPassphraseDialog::UnlockMinting;
         AskPassphraseDialog dlg(mode, this);
         dlg.setModel(walletModel);
         dlg.exec();
     }
-    else
+    else if(walletModel->getEncryptionStatus() == WalletModel::Unlocked)
+    {
         walletModel->setWalletLocked(true);
+        fWalletUnlockMintOnly = false;
+    }
 }
 
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
