@@ -12,6 +12,8 @@
 #include <QSet>
 #include <QTimer>
 
+extern bool fWalletUnlockMintOnly;
+
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
     transactionTableModel(0),
@@ -357,6 +359,14 @@ WalletModel::UnlockContext WalletModel::requestUnlock()
     bool was_locked = getEncryptionStatus() == Locked;
     if(was_locked)
     {
+        // Request UI to unlock wallet
+        emit requireUnlock();
+    }
+    else if(fWalletUnlockMintOnly)
+    {
+        // Relock so the user must give the right passphrase to continue
+        setWalletLocked(true);
+
         // Request UI to unlock wallet
         emit requireUnlock();
     }

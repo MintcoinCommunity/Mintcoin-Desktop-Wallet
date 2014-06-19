@@ -175,7 +175,9 @@ private slots:
     void backupWallet();
     /** Change encrypted wallet passphrase */
     void changePassphrase();
-    /** Toggle unlocking wallet temporarily */
+    /** Ask for passphrase to unlock wallet temporarily */
+    void unlockWallet();
+    /** Toggle unlocking wallet */
     void lockWalletToggle();
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
