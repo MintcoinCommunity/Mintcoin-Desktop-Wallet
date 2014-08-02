@@ -95,7 +95,7 @@ TransactionView::TransactionView(QWidget *parent) :
 #ifdef Q_OS_MAC
     amountWidget->setFixedWidth(97);
 #else
-    amountWidget->setFixedWidth(100);
+    amountWidget->setFixedWidth(120);
 #endif
     amountWidget->setValidator(new QDoubleValidator(0, 1e20, 8, this));
     hlayout->addWidget(amountWidget);
@@ -183,7 +183,7 @@ void TransactionView::setModel(WalletModel *model)
         transactionView->horizontalHeader()->setResizeMode(
                 TransactionTableModel::ToAddress, QHeaderView::Stretch);
         transactionView->horizontalHeader()->resizeSection(
-                TransactionTableModel::Amount, 100);
+                TransactionTableModel::Amount, 120);
     }
 }
 
