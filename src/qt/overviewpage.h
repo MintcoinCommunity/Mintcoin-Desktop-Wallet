@@ -2,6 +2,7 @@
 #define OVERVIEWPAGE_H
 
 #include <QWidget>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
@@ -45,6 +46,7 @@ private:
     TransactionFilterProxy *filter;
 
 private slots:
+    void urlClicked(QUrl url);
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
 };
