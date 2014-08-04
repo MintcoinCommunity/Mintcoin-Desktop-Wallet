@@ -1,12 +1,16 @@
 #include "addresstablemodel.h"
 #include "guiutil.h"
 #include "walletmodel.h"
+#include "bitcoinunits.h"
+#include "optionsmodel.h"
+#include "guiconstants.h"
 
 #include "wallet.h"
 #include "base58.h"
 
 #include <QFont>
 #include <QColor>
+#include <QTimer>
 
 const QString AddressTableModel::Send = "S";
 const QString AddressTableModel::Receive = "R";
@@ -21,10 +25,13 @@ struct AddressTableEntry
     Type type;
     QString label;
     QString address;
+    int64 amount;
 
     AddressTableEntry() {}
     AddressTableEntry(Type type, const QString &label, const QString &address):
         type(type), label(label), address(address) {}
+    AddressTableEntry(Type type, const QString &label, const QString &address, uint64 amount):
+        type(type), label(label), address(address), amount(amount) {}
 };
 
 struct AddressTableEntryLessThan
@@ -64,9 +71,26 @@ public:
                 const CBitcoinAddress& address = item.first;
                 const std::string& strName = item.second;
                 bool fMine = IsMine(*wallet, address.Get());
+                CKeyID addressCKeyID;
+                address.GetKeyID(addressCKeyID);
+                int64 amount=0;
+                std::map<QString, std::vector<COutput> > mapCoins;
+                parent->walletModel->listCoins(mapCoins);
+                BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
+                {
+                    QString sWalletAddress = coins.first;
+                    if(sWalletAddress.contains(QString(address.ToString().c_str()),Qt::CaseSensitive))
+                    {
+                      BOOST_FOREACH(const COutput& out, coins.second)
+                      {
+                          amount += out.tx->vout[out.i].nValue;
+                      }
+                    }
+                }
                 cachedAddressTable.append(AddressTableEntry(fMine ? AddressTableEntry::Receiving : AddressTableEntry::Sending,
                                   QString::fromStdString(strName),
-                                  QString::fromStdString(address.ToString())));
+                                  QString::fromStdString(address.ToString()),
+                                  amount));
             }
         }
     }
@@ -139,14 +163,23 @@ public:
 AddressTableModel::AddressTableModel(CWallet *wallet, WalletModel *parent) :
     QAbstractTableModel(parent),walletModel(parent),wallet(wallet),priv(0)
 {
-    columns << tr("Label") << tr("Address");
+    columns << tr("Label") << tr("Address") << tr("Amount");
     priv = new AddressTablePriv(wallet, this);
     priv->refreshAddressTable();
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(refreshAddressTable()));
+    timer->start(MODEL_UPDATE_DELAY);
 }
 
 AddressTableModel::~AddressTableModel()
 {
     delete priv;
+}
+
+void AddressTableModel::refreshAddressTable()
+{
+  priv->refreshAddressTable();
 }
 
 int AddressTableModel::rowCount(const QModelIndex &parent) const
@@ -183,6 +216,9 @@ QVariant AddressTableModel::data(const QModelIndex &index, int role) const
             }
         case Address:
             return rec->address;
+        case Amount:
+            int unit = walletModel->getOptionsModel()->getDisplayUnit();
+            return BitcoinUnits::format(unit, rec->amount);
         }
     }
     else if (role == Qt::FontRole)
