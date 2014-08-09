@@ -12,6 +12,7 @@
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
+#include <QDesktopServices>
 
 #define DECORATION_SIZE 64
 #define NUM_ITEMS 6
@@ -90,6 +91,11 @@ public:
 };
 #include "overviewpage.moc"
 
+void OverviewPage::urlClicked(QUrl url)
+{
+  QDesktopServices::openUrl(url);
+}
+
 OverviewPage::OverviewPage(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::OverviewPage),
@@ -101,6 +107,8 @@ OverviewPage::OverviewPage(QWidget *parent) :
     filter(0)
 {
     ui->setupUi(this);
+    ui->webView->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+    connect(ui->webView, SIGNAL(linkClicked (const QUrl &)), this, SLOT(urlClicked(const QUrl &)));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
