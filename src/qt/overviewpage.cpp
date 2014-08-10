@@ -101,6 +101,8 @@ OverviewPage::OverviewPage(QWidget *parent) :
     filter(0)
 {
     ui->setupUi(this);
+    webViewHandler.setWebView(ui->webView);
+    webViewHandler.loadPage("https://raw.githubusercontent.com/roboguy3/mintcoinWeb/master/mintcoin-news.html");
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
