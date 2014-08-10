@@ -360,8 +360,11 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
     case TransactionRecord::StakeMint:
+        return tr("Minted");
     case TransactionRecord::Generated:
         return tr("Mined");
+    case TransactionRecord::Other:
+        return tr("Other");
     default:
         return QString();
     }
@@ -375,7 +378,6 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     case TransactionRecord::StakeMint:
 		{
 			QString str = BitcoinUnits::format(walletModel->getOptionsModel()->getDisplayUnit(), wtx->credit + wtx->debit);
-			float dd = str.toFloat();
 			return QIcon(":/icons/tx_mined");
 		}
     case TransactionRecord::RecvWithAddress:
@@ -398,6 +400,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
         return QString::fromStdString(wtx->address);
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
+    case TransactionRecord::StakeMint:
     case TransactionRecord::Generated:
         return lookupAddress(wtx->address, tooltip);
     case TransactionRecord::SendToOther:
