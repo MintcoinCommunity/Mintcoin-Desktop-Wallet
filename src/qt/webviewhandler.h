@@ -28,6 +28,7 @@ private:
   QNetworkRequest req;
   QPixmap pmap;
   QTextBrowser *webView;
+  QUrl url;
 };
 
 #endif // WEBVIEWHANDLER_H
