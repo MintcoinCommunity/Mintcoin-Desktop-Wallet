@@ -2,6 +2,7 @@
 #include "ui_sendcoinsdialog.h"
 #include "init.h"
 #include "walletmodel.h"
+#include "bitcoinunits.h"
 #include "addresstablemodel.h"
 #include "addressbookpage.h"
 #include "bitcoinunits.h"
@@ -76,7 +77,6 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
  
     fNewRecipientAllowed = true;
 
-    ui->payFrom->addItem("Any Address");
 }
 
 void SendCoinsDialog::setModel(WalletModel *model)
@@ -106,25 +106,6 @@ void SendCoinsDialog::setModel(WalletModel *model)
         coinControlUpdateLabels();
     }
 
-    if(model)
-    {
-      AddressTableModel* addressTableModel = model->getAddressTableModel();
-      int numRows = 0;
-      if(addressTableModel)
-      {
-        numRows = addressTableModel->rowCount(QModelIndex());
-      }
-      for(int j=0; j<numRows; ++j)
-      {
-        QVariant type = addressTableModel->index(j, 0, QModelIndex()).data(AddressTableModel::TypeRole);
-        if(type==AddressTableModel::Receive)
-        {
-          QVariant address = addressTableModel->index(j, AddressTableModel::Address, QModelIndex()).data(Qt::DisplayRole);
-          QVariant label = addressTableModel->index(j, AddressTableModel::Label, QModelIndex()).data(Qt::DisplayRole);
-          ui->payFrom->addItem(label.toString() + "   " + address.toString());
-        }
-      }
-    }
 }
 
 SendCoinsDialog::~SendCoinsDialog()
@@ -391,25 +372,53 @@ bool SendCoinsDialog::handleURI(const QString &uri)
     return false;
 }
 
+void SendCoinsDialog::updateBalance(qint64 balance)
+{
+  if(model && model->getOptionsModel())
+  {
+    // Update labelBalance with the current balance and the current unit
+    ui->labelBalance->setText(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), balance));
+
+    // Update the pay from combo box
+    int currentIndex = ui->payFrom->currentIndex();
+    ui->payFrom->clear();
+    ui->payFrom->addItem("Any Address");
+    AddressTableModel* addressTableModel = model->getAddressTableModel();
+    int numRows = 0;
+    if(addressTableModel)
+    {
+      numRows = addressTableModel->rowCount(QModelIndex());
+    }
+    for(int j=0; j<numRows; ++j)
+    {
+      QVariant type = addressTableModel->index(j, 0, QModelIndex()).data(AddressTableModel::TypeRole);
+      if(type==AddressTableModel::Receive)
+      {
+        QVariant address = addressTableModel->index(j, AddressTableModel::Address, QModelIndex()).data(Qt::DisplayRole);
+        QVariant label = addressTableModel->index(j, AddressTableModel::Label, QModelIndex()).data(Qt::DisplayRole);
+        QVariant amount = addressTableModel->index(j, AddressTableModel::Amount, QModelIndex()).data(Qt::DisplayRole);
+        QString amountTextUnits = BitcoinUnits::name(model->getOptionsModel()->getDisplayUnit());
+        ui->payFrom->addItem(label.toString() + "   " + address.toString() + "  " +
+                             amount.toString() + " " + amountTextUnits);
+      }
+    }
+    ui->payFrom->setCurrentIndex(currentIndex);
+  }
+}
+
+
 void SendCoinsDialog::setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance)
 {
     Q_UNUSED(stake);
     Q_UNUSED(unconfirmedBalance);
     Q_UNUSED(immatureBalance);
-    if(!model || !model->getOptionsModel())
-        return;
 
-    int unit = model->getOptionsModel()->getDisplayUnit();
-    ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balance));
+    updateBalance(balance);
 }
 
 void SendCoinsDialog::updateDisplayUnit()
 {
-    if(model && model->getOptionsModel())
-    {
-        // Update labelBalance with the current balance and the current unit
-        ui->labelBalance->setText(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), model->getBalance()));
-    }
+    updateBalance(model->getBalance());
 }
 
  // Coin Control: copy label "Quantity" to clipboard
