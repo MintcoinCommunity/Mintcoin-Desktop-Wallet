@@ -16,6 +16,17 @@ public:
     {
         destChange = CNoDestination();
         setSelected.clear();
+        useOnlyMinCoinAge=false;
+    }
+
+    void setUseOnlyMinCoinAge()
+    {
+        useOnlyMinCoinAge=true;
+    }
+    
+    bool getUseOnlyMinCoinAge() const
+    {
+        return useOnlyMinCoinAge;
     }
     
     bool HasSelected() const
@@ -51,7 +62,7 @@ public:
         
 private:
     std::set<COutPoint> setSelected;
-
+    bool useOnlyMinCoinAge;
 };
 
 #endif // COINCONTROL_H

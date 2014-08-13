@@ -200,6 +200,7 @@ void SendCoinsDialog::on_sendButton_clicked()
       else
       {
         CCoinControl coinControlByAddress;
+        coinControlByAddress.setUseOnlyMinCoinAge();
         std::map<QString, std::vector<COutput> > mapCoins;
         model->listCoins(mapCoins);
         BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
