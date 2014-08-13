@@ -66,6 +66,8 @@ public:
         cachedAddressTable.clear();
         {
             LOCK(wallet->cs_wallet);
+            std::map<QString, std::vector<COutput> > mapCoins;
+            parent->walletModel->listCoins(mapCoins);
             BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& item, wallet->mapAddressBook)
             {
                 const CBitcoinAddress& address = item.first;
@@ -74,8 +76,6 @@ public:
                 CKeyID addressCKeyID;
                 address.GetKeyID(addressCKeyID);
                 int64 amount=0;
-                std::map<QString, std::vector<COutput> > mapCoins;
-                parent->walletModel->listCoins(mapCoins);
                 BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
                 {
                     QString sWalletAddress = coins.first;
