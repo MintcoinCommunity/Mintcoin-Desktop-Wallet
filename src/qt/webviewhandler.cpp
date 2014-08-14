@@ -2,20 +2,31 @@
 #include <QObject>
 #include <QTextFrame>
 #include <QTextBlock>
-
+#include <QTimer>
 
 WebViewHandler::WebViewHandler()
 {
 }
 
-void WebViewHandler::setWebView(QTextBrowser *webViewIn)
+void WebViewHandler::setWebView(QTextBrowser *webViewIn, QString address)
 {
+  mainUrl = QUrl(address);
   webView=webViewIn;
+  // Add timer to update the page once a day
+  QTimer *timer = new QTimer(this);
+  timer->start(24 * 60 * 60 * 1000);
+  connect(timer, SIGNAL(timeout()), this, SLOT(loadMainPage()));
+  // Load the web page for first time
+  loadPage(QUrl(address));
 }
 
-void WebViewHandler::loadPage(QString address)
+void WebViewHandler::loadMainPage()
 {
-  url = QUrl(address);
+  loadPage(mainUrl);
+}
+
+void WebViewHandler::loadPage(QUrl url)
+{
   req.setUrl(url);
   QNetworkReply *reply = netManager.get(req);
   connect(reply, SIGNAL(finished()), this, SLOT(htmlReply()));
@@ -33,7 +44,7 @@ void WebViewHandler::htmlReply()
       {
         url = newUrl;
         reply->deleteLater();
-        loadPage(url.toString());
+        loadPage(url);
         return;
       }
     }

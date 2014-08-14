@@ -16,10 +16,11 @@ class WebViewHandler : public QObject
   Q_OBJECT
 public:
   WebViewHandler();
-  void setWebView(QTextBrowser *webViewIn);
-  void loadPage(QString address);
+  void setWebView(QTextBrowser *webViewIn, QString address);
+  void loadPage(QUrl url);
 
 public slots:
+  void loadMainPage();
   void htmlReply();
   void imgReply();
 
@@ -28,6 +29,7 @@ private:
   QNetworkRequest req;
   QPixmap pmap;
   QTextBrowser *webView;
+  QUrl mainUrl;
   QUrl url;
 };
 
