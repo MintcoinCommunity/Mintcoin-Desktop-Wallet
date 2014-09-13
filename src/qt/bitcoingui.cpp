@@ -189,7 +189,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     statusBar()->addPermanentWidget(frameBlocks);
 
     syncIconMovie = new QMovie(":/movies/update_spinner", "mng", this);
-    // this->setStyleSheet("background-color: #effbef;");
+    qApp->setStyleSheet("background-color: #effbef;");
+    //load stylesheet if present
+    QFile File("style/stylesheet.qss");
+    File.open(QFile::ReadOnly);
+    QString StyleSheet = QLatin1String(File.readAll());
+    qApp->setStyleSheet(StyleSheet);
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
@@ -207,6 +212,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
 
     gotoOverviewPage();
+    statusBar()->showMessage(tr("Remember to make an external backup of your wallet"));
+    QTimer::singleShot(30000, this, SLOT(noMessage()));
+}
+
+void BitcoinGUI::noMessage()
+{
+  statusBar()->showMessage("");
 }
 
 BitcoinGUI::~BitcoinGUI()

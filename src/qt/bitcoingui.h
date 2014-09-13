@@ -194,6 +194,8 @@ private slots:
     void updateMintingIcon();
     /** Update minting weight info */
     void updateMintingWeights();
+
+    void noMessage();
 };
 
 #endif
