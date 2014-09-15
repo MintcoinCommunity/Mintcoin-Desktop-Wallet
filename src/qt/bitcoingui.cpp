@@ -77,7 +77,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     notificator(0),
     rpcConsole(0)
 {
-    resize(880, 550);
+    resize(940, 550);
     setWindowTitle(tr("MintCoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
@@ -417,6 +417,16 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         rpcConsole->setClientModel(clientModel);
         addressBookPage->setOptionsModel(clientModel->getOptionsModel());
         receiveCoinsPage->setOptionsModel(clientModel->getOptionsModel());
+
+        if(clientModel->getOptionsModel()->getShowShopDonate()==false)
+        {
+          merchantPage->setVisible(false);
+          merchantAction->setVisible(false);
+        }
+        else
+        {
+          merchantPage->loadPage();
+        }
     }
 }
 

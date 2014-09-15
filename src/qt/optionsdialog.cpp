@@ -148,7 +148,9 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->lang, OptionsModel::Language);
     mapper->addMapping(ui->unit, OptionsModel::DisplayUnit);
     mapper->addMapping(ui->displayAddresses, OptionsModel::DisplayAddresses);
-	mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
+    mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
+    mapper->addMapping(ui->showShopDonate, OptionsModel::ShowShopDonate);
+    mapper->addMapping(ui->showOverviewNews, OptionsModel::ShowOverviewNews);
 }
 
 void OptionsDialog::enableApplyButton()

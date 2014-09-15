@@ -45,9 +45,11 @@ void OptionsModel::Init()
     bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
     fMinimizeToTray = settings.value("fMinimizeToTray", false).toBool();
     fMinimizeOnClose = settings.value("fMinimizeOnClose", false).toBool();
-	fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
+    fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
     language = settings.value("language", "").toString();
+    bShowShopDonate = settings.value("bShowShopDonate", true).toBool();
+    bShowOverviewNews = settings.value("bShowOverviewNews", true).toBool();
 
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
@@ -173,6 +175,10 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return settings.value("language", "");
         case CoinControlFeatures:
             return QVariant(fCoinControlFeatures);
+        case ShowShopDonate:
+            return QVariant(bShowShopDonate);
+        case ShowOverviewNews:
+            return QVariant(bShowOverviewNews);
         default:
             return QVariant();
         }
@@ -268,6 +274,14 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             emit coinControlFeaturesChanged(fCoinControlFeatures);
             }
             break;
+        case ShowShopDonate: {
+            bShowShopDonate = value.toBool();
+            settings.setValue("bShowShopDonate", bShowShopDonate);
+            }
+        case ShowOverviewNews: {
+            bShowOverviewNews = value.toBool();
+            settings.setValue("bShowOverviewNews", bShowOverviewNews);
+            }
         default:
             break;
         }
@@ -286,7 +300,16 @@ bool OptionsModel::getCoinControlFeatures()
 {
      return fCoinControlFeatures;
 }
- 
+
+bool OptionsModel::getShowShopDonate()
+{
+     return bShowShopDonate;
+}
+
+bool OptionsModel::getShowOverviewNews()
+{
+     return bShowOverviewNews;
+}
 
 bool OptionsModel::getMinimizeToTray()
 {
@@ -307,3 +330,5 @@ bool OptionsModel::getDisplayAddresses()
 {
     return bDisplayAddresses;
 }
+
+
