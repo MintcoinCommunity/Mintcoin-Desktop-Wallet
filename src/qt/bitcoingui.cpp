@@ -287,6 +287,8 @@ void BitcoinGUI::createActions()
     quitAction->setToolTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
+    checkWalletAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Run Check Wallet"), this);
+    checkWalletAction->setToolTip(tr("Run a scan to fix transactions"));
     aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About MintCoin"), this);
     aboutAction->setToolTip(tr("Show information about MintCoin"));
     aboutAction->setMenuRole(QAction::AboutRole);
@@ -314,6 +316,7 @@ void BitcoinGUI::createActions()
     openRPCConsoleAction->setToolTip(tr("Open debugging and diagnostic console"));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(checkWalletAction, SIGNAL(triggered()), this, SLOT(checkWallet()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
@@ -354,6 +357,7 @@ void BitcoinGUI::createMenuBar()
 
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
     help->addAction(openRPCConsoleAction);
+    help->addAction(checkWalletAction);
     help->addSeparator();
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
@@ -522,6 +526,28 @@ void BitcoinGUI::aboutClicked()
     AboutDialog dlg;
     dlg.setModel(clientModel);
     dlg.exec();
+}
+
+void BitcoinGUI::checkWallet()
+{
+  int nMismatchSpent;
+  int64 nBalanceInQuestion;
+  pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, true);
+  if (nMismatchSpent == 0)
+  {
+      QMessageBox::information(
+          this,
+          tr("Check Wallet"),
+          tr("wallet check passed") );
+  }
+  else
+  {
+      QMessageBox::information(
+          this,
+          tr("Check Wallet"),
+          tr("mismatched spent coins ") + QString::number(nMismatchSpent),
+          tr("amount in question ") + QString::number(nBalanceInQuestion));
+  }
 }
 
 void BitcoinGUI::setNumConnections(int count)

@@ -86,6 +86,7 @@ private:
     QAction *merchantAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
+    QAction *checkWalletAction;
     QAction *aboutAction;
     QAction *receiveCoinsAction;
     QAction *optionsAction;
@@ -163,6 +164,8 @@ private slots:
 
     /** Show configuration dialog */
     void optionsClicked();
+    /** Check wallet */
+    void checkWallet();
     /** Show about dialog */
     void aboutClicked();
 #ifndef Q_OS_MAC
