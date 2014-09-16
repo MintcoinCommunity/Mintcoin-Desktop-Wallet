@@ -356,14 +356,14 @@
        <item>
         <widget class="QCheckBox" name="showShopDonate">
          <property name="text">
-          <string>Show Shop Donate</string>
+          <string>Show Shop Donate (Requires restart)</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="showOverviewNews">
          <property name="text">
-          <string>Show overview news</string>
+          <string>Show overview news (Requires restart)</string>
          </property>
         </widget>
        </item>
