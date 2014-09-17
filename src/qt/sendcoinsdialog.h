@@ -46,6 +46,8 @@ private:
     WalletModel *model;
     bool fNewRecipientAllowed;
 
+    void updateBalance(qint64 balance);
+
 private slots:
     void on_sendButton_clicked();
     void removeEntry(SendCoinsEntry* entry);

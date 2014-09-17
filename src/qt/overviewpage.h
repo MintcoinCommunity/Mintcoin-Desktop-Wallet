@@ -1,6 +1,7 @@
 #ifndef OVERVIEWPAGE_H
 #define OVERVIEWPAGE_H
 
+#include <webviewhandler.h>
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -43,6 +44,7 @@ private:
 
     TxViewDelegate *txdelegate;
     TransactionFilterProxy *filter;
+    WebViewHandler webViewHandler;
 
 private slots:
     void updateDisplayUnit();
