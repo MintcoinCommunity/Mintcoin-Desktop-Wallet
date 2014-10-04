@@ -9,12 +9,12 @@ USE_LEVELDB:=1
 INCLUDEPATHS= \
  -I"C:/deps/boost_1_53_0" \
  -I"C:/deps/db-4.8.30.NC/build_unix" \
- -I"C:/deps/openssl-1.0.1g/include"
+ -I"C:/deps/openssl-1.0.1h/include"
  
 LIBPATHS= \
  -L"C:/deps/boost_1_53_0/stage/lib" \
  -L"C:/deps/db-4.8.30.NC/build_unix" \
- -L"C:/deps/openssl-1.0.1g" 
+ -L"C:/deps/openssl-1.0.1h" 
 
 
 LIBS= \
