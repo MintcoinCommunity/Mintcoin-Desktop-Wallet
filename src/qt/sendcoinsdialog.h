@@ -7,6 +7,7 @@
 namespace Ui {
     class SendCoinsDialog;
 }
+class BitcoinGUI;
 class WalletModel;
 class SendCoinsEntry;
 class SendCoinsRecipient;
@@ -38,6 +39,7 @@ public slots:
     void reject();
     void accept();
     SendCoinsEntry *addEntry();
+    void addRecurring();
     void updateRemoveEnabled();
     void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
 
@@ -45,6 +47,7 @@ private:
     Ui::SendCoinsDialog *ui;
     WalletModel *model;
     bool fNewRecipientAllowed;
+    BitcoinGUI *bitcoinGui;
 
     void updateBalance(qint64 balance);
 

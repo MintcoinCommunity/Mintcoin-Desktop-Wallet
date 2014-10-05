@@ -33,6 +33,7 @@ public:
         CoinControlFeatures, // bool
         ShowShopDonate,    // bool
         ShowOverviewNews,  // bool
+        recurringSendEntries,//string
         OptionIDRowCount,
     };
 
@@ -54,6 +55,9 @@ public:
     bool getCoinControlFeatures();
     bool getShowShopDonate();
     bool getShowOverviewNews();
+    QString getRecurringSendEntries();
+    void setRecurringSendEntries(QString recurringSendEntries);
+
     QString getLanguage() { return language; }
 
 private:
@@ -64,6 +68,7 @@ private:
     bool fCoinControlFeatures;
     bool bShowShopDonate;
     bool bShowOverviewNews;
+    QString sRecurringSendEntries;
     QString language;
 
 signals:
