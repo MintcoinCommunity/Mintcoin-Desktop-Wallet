@@ -250,17 +250,18 @@ void BitcoinGUI::createActions()
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
     tabGroup->addAction(sendCoinsAction);
 
-    recurringSendAction = new QAction(QIcon(":/icons/send"), tr("&RecurringSend"), this);
-    recurringSendAction->setToolTip(tr("RecurringSend"));
-    recurringSendAction->setCheckable(true);
-    recurringSendAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
-    tabGroup->addAction(recurringSendAction);
 
     receiveCoinsAction = new QAction(QIcon(":/icons/receiving_addresses"), tr("&Receive coins"), this);
     receiveCoinsAction->setToolTip(tr("Show the list of addresses for receiving payments"));
     receiveCoinsAction->setCheckable(true);
-    receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
+    receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(receiveCoinsAction);
+
+    recurringSendAction = new QAction(QIcon(":/icons/send"), tr("&RecurringSend"), this);
+    recurringSendAction->setToolTip(tr("Add recurring send from Send coins tab"));
+    recurringSendAction->setCheckable(true);
+    recurringSendAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
+    tabGroup->addAction(recurringSendAction);
 
     historyAction = new QAction(QIcon(":/icons/history"), tr("&Transactions"), this);
     historyAction->setToolTip(tr("Browse transaction history"));
@@ -384,8 +385,8 @@ void BitcoinGUI::createToolBars()
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolbar->addAction(overviewAction);
     toolbar->addAction(sendCoinsAction);
-    toolbar->addAction(recurringSendAction);
     toolbar->addAction(receiveCoinsAction);
+    toolbar->addAction(recurringSendAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
     toolbar->addAction(merchantAction);
