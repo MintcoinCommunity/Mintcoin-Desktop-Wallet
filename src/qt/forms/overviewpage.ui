@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1116</width>
-    <height>561</height>
+    <width>910</width>
+    <height>539</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -341,13 +341,14 @@
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;• Newsroom / Press Releases &lt;a href=&quot;http://mintcoin.cc/category/mintcoin-news/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://mintcoin.cc/category/mintcoin-news/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;• Marketing Reports &lt;a href=&quot;http://mintcoin.cc/category/marketing-reports/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://mintcoin.cc/category/marketing-reports/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;• Learning Center &lt;a href=&quot;http://mintcoin.cc/category/learning-center/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://mintcoin.cc/category/learning-center/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;• Developers Resources &lt;a href=&quot;http://mintcoin.cc/category/developer-resources/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://mintcoin.cc/category/developer-resources/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;• Facebook, Reddit, Twitter, Linkedin• Join Our Team! &lt;a href=&quot;https://trello.com/mintcoindevelopment&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://trello.com/mintcoindevelopment&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/images/about&quot; /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot; bgcolor=&quot;#f0f0f0&quot;&gt;
+&lt;p style=&quot; margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Odin Rounded'; font-size:large; font-weight:600;&quot;&gt;Join Our Community&lt;/span&gt;&lt;/p&gt;
+&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoin.cc/category/mintcoin-news/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mintcoin News Room&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoinfund.org/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mintcoin Fund Projects&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoin.cc/category/marketing-reports/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Marketing Reports&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://www.youtube.com/playlist?list=PLs12F4R6722zu1nOkXh1qn6MVvz3TgJfX&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Learning Center&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoin.cc/category/developer-resources/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Developer Resources&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:16px;&quot;&gt; &lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/images/about&quot; width=&quot;-2&quot; /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="openExternalLinks">
         <bool>true</bool>
