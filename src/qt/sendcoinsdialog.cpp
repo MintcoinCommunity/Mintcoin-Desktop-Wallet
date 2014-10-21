@@ -13,6 +13,8 @@
 #include "askpassphrasedialog.h"
 #include "coincontrol.h"
 #include "coincontroldialog.h"
+#include "bitcoingui.h"
+#include "guiconstants.h"
 
 #include <QMessageBox>
 #include <QLocale>
@@ -26,6 +28,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
     model(0)
 {
     ui->setupUi(this);
+    bitcoinGui=(BitcoinGUI*) parent;
 
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->addButton->setIcon(QIcon());
@@ -42,6 +45,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
 
     connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
+    connect(ui->sendRecurring, SIGNAL(clicked()), this, SLOT(addRecurring()));
 	
 	    // Coin Control
      ui->lineEditCoinControlChange->setFont(GUIUtil::bitcoinAddressFont());
@@ -103,6 +107,8 @@ void SendCoinsDialog::setModel(WalletModel *model)
         connect(model->getOptionsModel(), SIGNAL(transactionFeeChanged(qint64)), this, SLOT(coinControlUpdateLabels()));
         ui->frameCoinControl->setVisible(model->getOptionsModel()->getCoinControlFeatures());
         ui->payFromFrame->setVisible(!model->getOptionsModel()->getCoinControlFeatures());
+        ui->sendRecurring->setEnabled(!model->getOptionsModel()->getCoinControlFeatures());
+        ui->recurringDays->setEnabled(!model->getOptionsModel()->getCoinControlFeatures());
         coinControlUpdateLabels();
     }
 
@@ -187,7 +193,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
         {
             QString sWalletAddress = coins.first;
-            if(ui->payFrom->itemText(ui->payFrom->currentIndex()).contains(sWalletAddress,Qt::CaseSensitive))
+            if(ui->payFrom->itemData(ui->payFrom->currentIndex()).toString() == sWalletAddress)
             {
                 BOOST_FOREACH(const COutput& out, coins.second)
                 {
@@ -250,6 +256,51 @@ void SendCoinsDialog::on_sendButton_clicked()
     }
     fNewRecipientAllowed = true;
 }
+
+void SendCoinsDialog::addRecurring()
+{
+  QString from=ui->payFrom->itemData(ui->payFrom->currentIndex()).toString();
+  int repeatDays= ui->recurringDays->text().split(" ")[0].toInt();
+  if(repeatDays==0)
+  {
+    ui->recurringDays->setStyleSheet(STYLE_INVALID);
+    return;
+  }
+  ui->recurringDays->setStyleSheet("");
+
+  if(from!=QString("Any Address"))
+  {
+    if(!model->validateAddress(from))
+    {
+      ui->payFrom->setStyleSheet(STYLE_INVALID);
+      return;
+    }
+  }
+  ui->payFrom->setStyleSheet("");
+  bool valid = true;
+  for(int i = 0; i < ui->entries->count(); ++i)
+  {
+      SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
+      if(entry)
+      {
+          if(!entry->validate())
+          {
+              valid = false;
+          }
+      }
+  }
+  if(valid)
+  {
+      bitcoinGui->recurringSendPage->addRecurringEntry(from , repeatDays);
+      for(int i = 0; i < ui->entries->count(); ++i)
+      {
+          SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
+          bitcoinGui->recurringSendPage->addRecurringRecipient(entry->getValue());
+      }
+      accept();
+  }
+}
+
 
 void SendCoinsDialog::clear()
 {
@@ -382,7 +433,7 @@ void SendCoinsDialog::updateBalance(qint64 balance)
     // Update the pay from combo box
     int currentIndex = ui->payFrom->currentIndex();
     ui->payFrom->clear();
-    ui->payFrom->addItem("Any Address");
+    ui->payFrom->addItem("Any Address","Any Address");
     AddressTableModel* addressTableModel = model->getAddressTableModel();
     int numRows = 0;
     if(addressTableModel)
@@ -399,7 +450,7 @@ void SendCoinsDialog::updateBalance(qint64 balance)
         QVariant amount = addressTableModel->index(j, AddressTableModel::Amount, QModelIndex()).data(Qt::DisplayRole);
         QString amountTextUnits = BitcoinUnits::name(model->getOptionsModel()->getDisplayUnit());
         ui->payFrom->addItem(label.toString() + "   " + address.toString() + "  " +
-                             amount.toString() + " " + amountTextUnits);
+                             amount.toString() + " " + amountTextUnits, address.toString());
       }
     }
     ui->payFrom->setCurrentIndex(currentIndex);
@@ -474,6 +525,8 @@ void SendCoinsDialog::updateDisplayUnit()
  {
      ui->frameCoinControl->setVisible(checked);
      ui->payFromFrame->setVisible(!checked);
+     ui->sendRecurring->setEnabled(!checked);
+     ui->recurringDays->setEnabled(!checked);
  
      if (!checked && model) // coin control features disabled
          CoinControlDialog::coinControl->SetNull();

@@ -6,19 +6,20 @@ DEPSDIR:=/usr/i586-mingw32msvc
 
 USE_UPNP:=0
 USE_IPV6:=1
+USE_LEVELDB:=1
 
 INCLUDEPATHS= \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj \
  -I"$(DEPSDIR)/boost_1_50_0" \
  -I"$(DEPSDIR)/db-4.8.30.NC/build_unix" \
- -I"$(DEPSDIR)/openssl-1.0.1c/include" \
+ -I"$(DEPSDIR)/openssl-1.0.1h/include" \
  -I"$(DEPSDIR)"
 
 LIBPATHS= \
  -L"$(DEPSDIR)/boost_1_50_0/stage/lib" \
  -L"$(DEPSDIR)/db-4.8.30.NC/build_unix" \
- -L"$(DEPSDIR)/openssl-1.0.1c"
+ -L"$(DEPSDIR)/openssl-1.0.1h"
 
 LIBS= \
  -l boost_system-mt-s \
@@ -90,6 +91,21 @@ OBJS= \
     obj/scrypt-x86_64.o
 
 all: mintcoind.exe
+
+#
+# LevelDB support
+#
+ifeq (${USE_LEVELDB}, 1)
+LIBS += $(CURDIR)/leveldb/libleveldb.lib $(CURDIR)/leveldb/libmemenv.lib
+DEFS += -I"$(CURDIR)/leveldb/include" -DUSE_LEVELDB
+DEFS += -I"$(CURDIR)/leveldb/helpers"
+OBJS += obj/txdb-leveldb.o
+leveldb/libleveldb.lib:
+	@echo "Building LevelDB ..."; cd leveldb; TARGET_OS=OS_WINDOWS_CROSSCOMPILE make; cd ..
+obj/txdb-leveldb.o: leveldb/libleveldb.lib
+else
+OBJS += obj/txdb-bdb.o
+endif
 
 obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h

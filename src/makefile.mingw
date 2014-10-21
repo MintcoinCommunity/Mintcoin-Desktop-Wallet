@@ -4,16 +4,17 @@
 
 USE_UPNP:=0
 USE_IPV6:=0
+USE_LEVELDB:=1
 
 INCLUDEPATHS= \
  -I"C:/deps/boost_1_53_0" \
  -I"C:/deps/db-4.8.30.NC/build_unix" \
- -I"C:/deps/openssl-1.0.1g/include"
+ -I"C:/deps/openssl-1.0.1h/include"
  
 LIBPATHS= \
  -L"C:/deps/boost_1_53_0/stage/lib" \
  -L"C:/deps/db-4.8.30.NC/build_unix" \
- -L"C:/deps/openssl-1.0.1g" 
+ -L"C:/deps/openssl-1.0.1h" 
 
 
 LIBS= \
@@ -86,6 +87,22 @@ OBJS= \
     obj/scrypt-x86_64.o
 
 all: mintcoind.exe
+
+#
+# LevelDB support
+#
+ifdef USE_LEVELDB
+LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/include) -DUSE_LEVELDB
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
+OBJS += obj/txdb-leveldb.o
+leveldb/libleveldb.a:
+	cd leveldb; make; cd ..
+obj/txdb-leveldb.o: leveldb/libleveldb.lib
+else
+OBJS += obj/txdb-bdb.o
+endif
+
 
 test check: test_mintcoin.exe FORCE
 	test_mintcoin.exe

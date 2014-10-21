@@ -18,6 +18,7 @@ public:
     explicit MerchantPage(QWidget *parent = 0);
     ~MerchantPage();
     void setWebView(QTextBrowser webViewIn);
+    void loadPage();
 
 private:
   Ui::MerchantPage *ui;

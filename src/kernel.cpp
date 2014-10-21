@@ -5,7 +5,7 @@
 #include <boost/assign/list_of.hpp>
 
 #include "kernel.h"
-#include "db.h"
+#include "txdb.h"
 
 using namespace std;
 
@@ -28,7 +28,8 @@ static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     (400001, 0x795b3517u )
     (500001, 0x586ebc02u )
     (600001, 0x2eda09d3u )
-    (632156, 0xef92b8b9u )
+    (700001, 0xc43f7ccdu )
+    (800001, 0x4639902bu )
 	;
 
 // Get time weight
@@ -377,7 +378,9 @@ bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, uint256& hash
     CTxIndex txindex;
     if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
         return tx.DoS(1, error("CheckProofOfStake() : INFO: read txPrev failed"));  // previous transaction not in main chain, may occur during initial download
+#ifndef USE_LEVELDB
     txdb.Close();
+#endif
 
     // Verify signature
     if (!VerifySignature(txPrev, tx, 0, true, 0))

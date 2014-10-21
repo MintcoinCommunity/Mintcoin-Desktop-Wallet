@@ -5,6 +5,7 @@
 #include <QSystemTrayIcon>
 
 #include "util.h" // for uint64
+#include "recurringsendpage.h"
 
 class TransactionTableModel;
 class ClientModel;
@@ -49,6 +50,7 @@ public:
         functionality.
     */
     void setWalletModel(WalletModel *walletModel);
+    RecurringSendPage *recurringSendPage;
 
 protected:
     void changeEvent(QEvent *e);
@@ -84,8 +86,10 @@ private:
     QAction *sendCoinsAction;
     QAction *addressBookAction;
     QAction *merchantAction;
+    QAction *recurringSendAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
+    QAction *checkWalletAction;
     QAction *aboutAction;
     QAction *receiveCoinsAction;
     QAction *optionsAction;
@@ -153,6 +157,8 @@ private slots:
     void gotoMerchantPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
+    /** Switch to recurring send page */
+    void gotoRecurringSendPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
 
@@ -163,6 +169,8 @@ private slots:
 
     /** Show configuration dialog */
     void optionsClicked();
+    /** Check wallet */
+    void checkWallet();
     /** Show about dialog */
     void aboutClicked();
 #ifndef Q_OS_MAC
@@ -194,6 +202,8 @@ private slots:
     void updateMintingIcon();
     /** Update minting weight info */
     void updateMintingWeights();
+
+    void noMessage();
 };
 
 #endif

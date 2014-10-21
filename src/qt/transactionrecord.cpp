@@ -59,7 +59,11 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 if (wtx.IsCoinStake())
                 {
                     // Stake generation
+                    sub.credit = wtx.GetValueOut();
+                    sub.debit=-nDebit;
                     sub.type = TransactionRecord::StakeMint;
+                    parts.append(sub);
+                    break;
                 }
                 if (wtx.IsCoinBase())
                 {
