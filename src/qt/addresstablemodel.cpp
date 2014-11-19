@@ -23,6 +23,7 @@ struct AddressTableEntry
     };
 
     Type type;
+    bool updated;
     QString label;
     QString address;
     int64 amount;
@@ -63,7 +64,11 @@ public:
 
     void refreshAddressTable()
     {
-        cachedAddressTable.clear();
+        for(int i=0;i<cachedAddressTable.size();i++)
+        {
+          cachedAddressTable[i].updated=false;
+        }
+
         {
             LOCK(wallet->cs_wallet);
             std::map<QString, std::vector<COutput> > mapCoins;
@@ -87,11 +92,37 @@ public:
                       }
                     }
                 }
-                cachedAddressTable.append(AddressTableEntry(fMine ? AddressTableEntry::Receiving : AddressTableEntry::Sending,
+                //update existing entries
+                bool found=false;
+                for(int i=0;i<cachedAddressTable.size();i++)
+                {
+                  if(cachedAddressTable.at(i).address==QString::fromStdString(address.ToString()))
+                  {
+                    cachedAddressTable[i].label=QString::fromStdString(strName);
+                    cachedAddressTable[i].amount=amount;
+                    cachedAddressTable[i].updated=true;
+                    found=true;
+                    break;
+                  }
+                }
+                //add new entries
+                if(!found)
+                {
+                  cachedAddressTable.append(AddressTableEntry(fMine ? AddressTableEntry::Receiving : AddressTableEntry::Sending,
                                   QString::fromStdString(strName),
                                   QString::fromStdString(address.ToString()),
                                   amount));
+                  cachedAddressTable.last().updated=true;
+                }
             }
+        }
+        //remove deleted entries
+        for(int i=cachedAddressTable.size()-1;i>0;i--)
+        {
+          if(!cachedAddressTable.at(i).updated)
+          {
+            cachedAddressTable.removeAt(i);
+          }
         }
     }
 
