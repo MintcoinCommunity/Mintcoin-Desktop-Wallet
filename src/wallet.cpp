@@ -1011,6 +1011,21 @@ int64 CWallet::GetImmatureBalance() const
     return nTotal;
 }
 
+int64 CWallet::GetMintedBalance() const
+{
+    int64 nTotal = 0;
+    {
+        LOCK(cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        {
+            const CWalletTx& pcoin = (*it).second;
+            if (pcoin.IsCoinStake())
+                nTotal += pcoin.GetValueOut()-GetDebit(pcoin);
+        }
+    }
+    return nTotal;
+}
+
 // populate vCoins with vector of spendable COutputs
 void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const CCoinControl *coinControl) const
 {

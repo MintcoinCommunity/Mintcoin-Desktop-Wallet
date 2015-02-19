@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>331</height>
+    <height>335</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -109,7 +109,7 @@ Copyright © 2014 MintCoin Developers
        </property>
        <property name="text">
         <string>
-This is experimental software. If you don't treat it as such, you're likely to put an eye out!
+This is experimental software. Use at your own risk.  We are not responsible for lost or stolen mintcoins.
 
 Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
