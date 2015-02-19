@@ -40,7 +40,7 @@
         <x>0</x>
         <y>0</y>
         <width>449</width>
-        <height>141</height>
+        <height>161</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -206,8 +206,8 @@
           <widget class="QLabel" name="labelImmature">
            <property name="font">
             <font>
-             <weight>75</weight>
-             <bold>true</bold>
+             <weight>50</weight>
+             <bold>false</bold>
             </font>
            </property>
            <property name="toolTip">
@@ -238,6 +238,26 @@
            </property>
           </widget>
          </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Total ever minted:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="labelMinted">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>0 MINT</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -246,7 +266,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>150</y>
+        <y>170</y>
         <width>449</width>
         <height>431</height>
        </rect>
