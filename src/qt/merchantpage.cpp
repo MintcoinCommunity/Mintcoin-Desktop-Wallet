@@ -14,7 +14,7 @@ MerchantPage::MerchantPage( QWidget *parent) :
 
 void MerchantPage::loadPage()
 {
-  webViewHandler.setWebView(ui->webView,"http://mintcoin.cc/download-wallet/merchant-and-donations/");
+  webViewHandler.setWebView(ui->webView,"http://mintcoinofficial.com/download-wallet/merchant-and-donations/");
 }
 
 MerchantPage::~MerchantPage()

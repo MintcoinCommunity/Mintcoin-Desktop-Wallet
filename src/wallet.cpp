@@ -1019,7 +1019,7 @@ int64 CWallet::GetMintedBalance() const
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         {
             const CWalletTx& pcoin = (*it).second;
-            if (pcoin.IsCoinStake())
+            if (pcoin.IsCoinStake() && pcoin.IsFinal() && pcoin.IsConfirmed())
                 nTotal += pcoin.GetValueOut()-GetDebit(pcoin);
         }
     }

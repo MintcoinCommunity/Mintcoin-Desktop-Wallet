@@ -182,7 +182,7 @@ void OverviewPage::setModel(WalletModel *model)
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
         if(model->getOptionsModel()->getShowOverviewNews()==true)
         {
-          webViewHandler.setWebView(ui->webView,"http://mintcoin.cc/download-wallet/mintcoin-news/");
+          webViewHandler.setWebView(ui->webView,"http://mintcoinofficial.com/download-wallet/mintcoin-news/");
         }
     }
 

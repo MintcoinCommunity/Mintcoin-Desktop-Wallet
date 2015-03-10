@@ -18,7 +18,7 @@ Build-Depends: debhelper,
  libqt4-dev,
  libqrencode-dev
 Standards-Version: 3.9.2
-Homepage: http://mintcoin.cc/
+Homepage: http://mintcoinOfficial.com/
 Vcs-Git: git://github.com/mintcoinproject/mintcoin.git
 Vcs-Browser: http://github.com/mintcoinproject/mintcoin
 
