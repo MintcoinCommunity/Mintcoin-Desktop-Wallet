@@ -44,6 +44,8 @@ inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONE
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
+static const unsigned int FORK_TIME = 1438444800; // Sat, 01 Aug 2015 16:00:00 GMT
+
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
 #else
@@ -53,7 +55,13 @@ static const int fHaveUPnP = false;
 static const uint256 hashGenesisBlockOfficial("0xaf4ac34e7ef10a08fe2ba692eb9a9c08cf7e89fcf352f9ea6f0fd73ba3e5d03c");
 static const uint256 hashGenesisBlockTestNet ("0xaf4ac34e7ef10a08fe2ba692eb9a9c08cf7e89fcf352f9ea6f0fd73ba3e5d03c");
 
-static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
+inline int64 GetClockDrift(int64 nTime)
+{
+	if(nTime < FORK_TIME)
+		return 2 * 60 * 60;
+	else
+		return 30;
+}
 
 extern CScript COINBASE_FLAGS;
 
@@ -1411,7 +1419,7 @@ public:
 
     uint256 GetBlockHash() const
     {
-		if (fUseFastIndex && (nTime < GetAdjustedTime() - 12 * nMaxClockDrift) && blockHash != 0)
+		if (fUseFastIndex && (nTime < GetAdjustedTime() - 12 * GetClockDrift(GetAdjustedTime())) && blockHash != 0)
 			return blockHash;
 			
         CBlock block;
