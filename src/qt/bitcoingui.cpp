@@ -13,6 +13,7 @@
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
 #include "aboutdialog.h"
+#include "repairwalletdialog.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "editaddressdialog.h"
@@ -317,6 +318,8 @@ void BitcoinGUI::createActions()
     encryptWalletAction->setCheckable(true);
     backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
     backupWalletAction->setToolTip(tr("Backup wallet to another location"));
+    repairWalletAction = new QAction(QIcon("icons/bitcoin"),tr("Repair &Wallet"),this);
+    repairWalletAction->setToolTip(tr("Repair an inacurate wallet"));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setToolTip(tr("Change the passphrase used for wallet encryption"));
     lockWalletToggleAction = new QAction(this);
@@ -336,6 +339,7 @@ void BitcoinGUI::createActions()
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
     connect(encryptWalletAction, SIGNAL(triggered(bool)), this, SLOT(encryptWallet(bool)));
     connect(backupWalletAction, SIGNAL(triggered()), this, SLOT(backupWallet()));
+    connect(repairWalletAction,SIGNAL(triggered()),this,SLOT(repairWallet()));
     connect(changePassphraseAction, SIGNAL(triggered()), this, SLOT(changePassphrase()));
     connect(lockWalletToggleAction, SIGNAL(triggered()), this, SLOT(lockWalletToggle()));
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
@@ -371,6 +375,7 @@ void BitcoinGUI::createMenuBar()
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
     help->addAction(openRPCConsoleAction);
     help->addAction(checkWalletAction);
+    help->addAction(repairWalletAction);
     help->addSeparator();
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
@@ -965,6 +970,51 @@ void BitcoinGUI::backupWallet()
             QMessageBox::warning(this, tr("Backup Failed"), tr("There was an error trying to save the wallet data to the new location."));
         }
     }
+}
+
+void BitcoinGUI::repairWallet()
+{
+    QString rwResult;
+    std::vector<std::string> args;
+    std::string strPrint;
+    args.push_back("repairwallet");
+    try
+    {
+
+        json_spirit::Value result = tableRPC.execute(
+            args[0],
+            RPCConvertValues(args[0], std::vector<std::string>(args.begin() + 1, args.end())));
+
+        if (result.type() == json_spirit::null_type)
+            strPrint = "";
+        else if (result.type() == json_spirit::str_type)
+            strPrint = result.get_str();
+        else
+            strPrint = write_string(result, true);
+    }
+    catch (json_spirit::Object& objError)
+    {
+        try
+        {
+            strPrint = find_value(objError, "message").get_str();
+        }
+        catch(std::runtime_error &) // raised when converting to invalid type, i.e. missing code or message
+        {   // Show raw JSON object
+            strPrint = write_string(json_spirit::Value(objError), false);
+        }
+    }
+    catch (std::exception& e)
+    {
+        rwResult = QString("Error: ") + QString::fromStdString(e.what());
+    }
+
+    rwResult= QString::fromStdString(strPrint);
+    rwResult.remove(0,1);
+    rwResult.remove(rwResult.size()-1,1);
+    RepairWalletDialog dlg;
+    dlg.setResultLabel(rwResult);
+    dlg.exec();
+
 }
 
 void BitcoinGUI::changePassphrase()
