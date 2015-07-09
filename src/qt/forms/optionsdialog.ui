@@ -334,6 +334,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QCheckBox" name="passwordOnSend">
+         <property name="text">
+          <string>Prompt for &amp;Password before sending transactions</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="displayAddresses">
          <property name="toolTip">
           <string>Whether to show MintCoin addresses in the transaction list or not.</string>

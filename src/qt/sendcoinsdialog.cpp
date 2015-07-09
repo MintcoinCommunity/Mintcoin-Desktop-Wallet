@@ -122,11 +122,20 @@ SendCoinsDialog::~SendCoinsDialog()
 void SendCoinsDialog::on_sendButton_clicked()
 {
     QList<SendCoinsRecipient> recipients;
+
     bool valid = true;
 
     if(!model)
         return;
 	
+    if(model->getEncryptionStatus() != WalletModel::Unencrypted && model->getOptionsModel()->getPasswordOnSend())
+    {
+        AskPassphraseDialog dlg(AskPassphraseDialog::PassToSend,this);
+        dlg.setModel(model);
+        if(!dlg.exec())
+          return;
+    }
+
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());

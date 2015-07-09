@@ -51,6 +51,8 @@ void OptionsModel::Init()
     bShowShopDonate = settings.value("bShowShopDonate", true).toBool();
     bShowOverviewNews = settings.value("bShowOverviewNews", true).toBool();
     sRecurringSendEntries = settings.value("sRecurringSendEntries","").toString();
+    bPasswordOnSend = settings.value("bPasswordOnSend", false).toBool();
+
 
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
@@ -180,6 +182,8 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return QVariant(bShowShopDonate);
         case ShowOverviewNews:
             return QVariant(bShowOverviewNews);
+        case PasswordOnSend:
+            return QVariant(bPasswordOnSend);
         case recurringSendEntries:
             return QVariant(sRecurringSendEntries);
         default:
@@ -289,6 +293,10 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             sRecurringSendEntries = value.toString();
             settings.setValue("sRecurringSendEntries", sRecurringSendEntries);
             }
+        case PasswordOnSend:
+            bPasswordOnSend = value.toBool();
+            settings.setValue("bPasswordOnSend",bPasswordOnSend);
+
         default:
             break;
         }
@@ -341,6 +349,11 @@ bool OptionsModel::getDisplayAddresses()
 QString OptionsModel::getRecurringSendEntries()
 {
     return sRecurringSendEntries;
+}
+
+bool OptionsModel::getPasswordOnSend()
+{
+    return bPasswordOnSend;
 }
 
 void OptionsModel::setRecurringSendEntries(QString recurringSendEntries)

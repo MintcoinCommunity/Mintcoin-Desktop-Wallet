@@ -23,7 +23,7 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     fProxyIpValid(true)
 {
     ui->setupUi(this);
-
+    
     /* Network elements init */
 #ifndef USE_UPNP
     ui->mapPortUpnp->setEnabled(false);
@@ -103,6 +103,10 @@ OptionsDialog::~OptionsDialog()
 void OptionsDialog::setModel(OptionsModel *model)
 {
     this->model = model;
+    if(model->isLocked==false)
+        ui->passwordOnSend->setEnabled(false);
+    else
+        ui->passwordOnSend->setEnabled(true);
 
     if(model)
     {
@@ -151,6 +155,7 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
     mapper->addMapping(ui->showShopDonate, OptionsModel::ShowShopDonate);
     mapper->addMapping(ui->showOverviewNews, OptionsModel::ShowOverviewNews);
+    mapper->addMapping(ui->passwordOnSend,OptionsModel::PasswordOnSend);
 }
 
 void OptionsDialog::enableApplyButton()

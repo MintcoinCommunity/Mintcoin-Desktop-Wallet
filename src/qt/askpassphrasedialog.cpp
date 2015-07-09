@@ -59,6 +59,14 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
             setWindowTitle(tr("Change passphrase"));
             ui->warningLabel->setText(tr("Enter the old and new passphrase to the wallet."));
             break;
+        case PassToSend:
+            ui->warningLabel->setText(tr("This operation needs your wallet passphrase to send the transaction."));
+            ui->passLabel2->hide();
+            ui->passEdit2->hide();
+            ui->passLabel3->hide();
+            ui->passEdit3->hide();
+            setWindowTitle(tr("Unlock wallet"));
+            break;
     }
 
     textChanged();
@@ -144,6 +152,7 @@ void AskPassphraseDialog::accept()
             QDialog::reject(); // Cancelled
         }
         } break;
+    case PassToSend:
     case UnlockMinting:
     case Unlock:
         if(!model->setWalletLocked(false, oldpass))
@@ -201,6 +210,7 @@ void AskPassphraseDialog::textChanged()
     case Encrypt: // New passphrase x2
         acceptable = !ui->passEdit2->text().isEmpty() && !ui->passEdit3->text().isEmpty();
         break;
+    case PassToSend:
     case UnlockMinting:
     case Unlock: // Old passphrase x1
     case Decrypt:

@@ -51,7 +51,7 @@ public:
     */
     void setWalletModel(WalletModel *walletModel);
     RecurringSendPage *recurringSendPage;
-
+    
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *event);

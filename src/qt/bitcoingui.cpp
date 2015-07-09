@@ -921,6 +921,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setEnabled(true);
         changePassphraseAction->setEnabled(false);
         lockWalletToggleAction->setVisible(false);
+        clientModel->getOptionsModel()->isLocked = false;
         break;
     case WalletModel::Unlocked:
         labelEncryptionIcon->show();
@@ -933,6 +934,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         lockWalletToggleAction->setIcon(QIcon(":/icons/lock_closed"));
         lockWalletToggleAction->setText(tr("&Lock Wallet"));
         lockWalletToggleAction->setToolTip(tr("Lock wallet"));
+        clientModel->getOptionsModel()->isLocked = true;
         break;
     case WalletModel::Locked:
         labelEncryptionIcon->show();
@@ -945,6 +947,8 @@ void BitcoinGUI::setEncryptionStatus(int status)
         lockWalletToggleAction->setIcon(QIcon(":/icons/lock_open"));
         lockWalletToggleAction->setText(tr("&Unlock Wallet..."));
         lockWalletToggleAction->setToolTip(tr("Unlock wallet"));
+        clientModel->getOptionsModel()->isLocked = true;
+        
         break;
     }
 }
