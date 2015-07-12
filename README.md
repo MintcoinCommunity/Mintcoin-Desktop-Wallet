@@ -1,31 +1,54 @@
-**MintCoin (MNT)**
+Mintcoin is a community owned and operated pure PoS coin. 
+Send your coins to your wallet and earn high yielding interest for saving your coins while securing the Mintcoin network. 
 
-MintCoin is an innovative, secure and energy efficient PoW/PoS coin. It uses a faster PoW distribution mechanism to distribute the initial coins, then after 5 weeks the coin is basically transferred to a pure PoS coin, where the generation of the coin is mainly through the PoS interests.
 
-MintCoin also adopt a variable PoS rate, which gives the highest payout at 20% the first year, then decrease 5% per year until the 4th year it reaches annual interest rate of 5%, then it will remain at this rate.
+Mintcoin Specifications
 
-Because after 5 weeks it is basically a pure PoS coin, it does not need to be intensively mined, as the PoW payout will remain the minimum. Most coins will be generated through PoS, thus it is a coin that will save a lot of energy compared to other coins.
+   - Pure PoS
+    - 30 seconds block target
+    - Difficulty retargets every block
+    - PoS Min/Max Age: 20/40 days
+    - PoS variable interests:
+        - 1st year: 20%
+        - 2nd year: 15%
+        - 3rd year: 10%
+        - 4th and subsequent years: 5%
+    - 4 confirmations for transaction, thus fast 2 mins confirmation for transactions
+    - 50 confirmations for minted blocks
+    - Ports: 12788 (connection) and 12789 (RPC)
 
-MintCoin will have a total of 70 billion coins. Initially each block will deliver 100000 to 900000 coins randomly. The PoW payout will be halved each week (7 days). After 5 weeks, the PoW payout will be fixed at 1 coin per block.
+Mintcoin: Year 1 Minting Statistics
 
-PoS will start after at least 20 days of holding of the coins in the wallet. With PoS, the coin is more resilient to 51% attack. 
+The following stats are based on the most current information as of March 9, 2015:
 
-**Other Specifications:**
+~Total coins in existence currently 20.79 billion
 
-- 30 seconds block target
-- 100000 - 900000 coins per block initially
-- PoW payout will be halved every week for the first 5 weeks
-- ~~After 5 weeks, the PoW payout will be fixed at 1 coin per block~~ PoW completely remvoed from block 220000
-- Difficulty retargets every block 
-- PoS variable interests:
-	- 1st year: 20%
-	- 2nd year: 15%
-	- 3rd year: 10%
-	- 4th and subsequent years: 5%
-- Total coins will be 70 billions
-- 4 confirmations for transaction, thus fast 2 mins confirmation for transdactions
-- 50 confirmations for minted blocks
-- 1% premine for bounties, giveaways, development, support and maintenance, new feature developments etc.
+~Total coins minted in the last year (365 days) 2.18 billion
 
-- Ports: 12788 (connection) and 12789 (RPC)
+~Current minting block reward rate is 15% annually
 
+~210,881,430 coins have been minted in the last 31 days
+
+~This is an average of 6,802,627 new coins per day being minted currently
+
+~This means that the minting participation rate is currently at 80.43%
+
+~This would result in an annual increase in the money supply of 12.06% currently
+
+~Based on last year, we know the timing until the reward reduction was about 287 days, (not a full year)
+
+~Based on this, we have about 7 more months until next block reduction - rate change to 10% annually (October 9th estimate)
+
+~This means we are currently now 27% complete with the 15% annual rate reward phase, which started around December 21, 2014
+
+~After October 9th, 2015: Assuming a similar minting participation rate, this will drop the increase in the money supply to an annual rate of about 8%
+
+~This will be a decrease of 33.33%
+
+~And in approximately 16 and a half months, (July 2016 estimate) we will see the rate change to 5% annually
+
+~After July 2016: Assuming a similar minting participation rate, this will drop the increase in the money supply to annual rate of about 4%
+
+~This will be a decrease of 50.00%
+
+~Keep in mind, minters also get an additional transaction fees bonus!
