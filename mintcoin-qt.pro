@@ -284,7 +284,6 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/merchantpage.cpp \
     src/qt/recurringsendpage.cpp \
     src/qt/recurringsendentry.cpp \
-    src/qt/rpcmodel.cpp \
     src/qt/repairwalletdialog.cpp
 
 RESOURCES += \
