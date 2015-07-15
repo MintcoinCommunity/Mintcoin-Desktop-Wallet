@@ -16,10 +16,11 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <openssl/crypto.h>
+#ifdef QT_GUI
 #include <QMessageBox>
 #include <QPushButton>
 #include <QFileDialog>
-
+#endif
 
 #ifndef WIN32
 #include <signal.h>
@@ -725,6 +726,7 @@ bool AppInit2()
     // ********************************************************* Step 8: load wallet
 
     uiInterface.InitMessage(_("Loading wallet..."));
+    #ifdef QT_GUI
 
     if(!filesystem::exists(GetDataDir() / "wallet.dat"))
     {
@@ -751,7 +753,7 @@ bool AppInit2()
         }
 
     }
-
+    #endif
     printf("Loading wallet...\n");
     nStart = GetTimeMillis();
     bool fFirstRun = true;
