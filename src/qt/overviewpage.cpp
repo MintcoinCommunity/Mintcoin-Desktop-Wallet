@@ -49,7 +49,7 @@ public:
             #if QT_VERSION < 0x050000
         if(qVariantCanConvert<QColor>(value))
             #else
-        if(value.CanConvert<QColor>(value))
+        if(value.canConvert<QColor>())
             #endif
         {
             foreground = qvariant_cast<QColor>(value);
