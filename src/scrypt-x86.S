@@ -345,7 +345,7 @@
 
 
 	.text
-	.align 32
+    .align 16
 gen_salsa8_core:
 	gen_salsa8_core_quadround()
 	gen_salsa8_core_quadround()
@@ -353,7 +353,7 @@ gen_salsa8_core:
 	
 	
 	.text
-	.align 32
+    .align 16
 	.globl scrypt_core
 	.globl _scrypt_core
 scrypt_core:
@@ -629,7 +629,7 @@ gen_scrypt_core_loop2:
 	xmm_salsa8_core_doubleround(); \
 
 	
-	.align 32
+    .align 16
 xmm_scrypt_core:
 	movl	20(%esp), %edi
 	movl	24(%esp), %esi

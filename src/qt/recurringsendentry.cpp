@@ -19,9 +19,15 @@ RecurringSendEntry::RecurringSendEntry(QWidget *parent, QString from, int repeat
     ui->tableWidget->setColumnCount(3);
     ui->tableWidget->setRowCount(0);
     QHeaderView *headerView = ui->tableWidget->horizontalHeader();
+        #if QT_VERSION < 0x050000
     headerView->setResizeMode(QHeaderView::Stretch);
     headerView->setResizeMode(1, QHeaderView::Interactive);
     headerView->setResizeMode(2, QHeaderView::Interactive);
+        #else
+    headerView->setSectionResizeMode(QHeaderView::Stretch);
+    headerView->setSectionResizeMode(1, QHeaderView::Interactive);
+    headerView->setSectionResizeMode(2, QHeaderView::Interactive);
+        #endif
     ui->tableWidget->setColumnWidth(1,320);
     ui->tableWidget->setColumnWidth(2,120);
 
