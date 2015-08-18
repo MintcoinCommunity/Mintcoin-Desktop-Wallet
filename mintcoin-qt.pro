@@ -219,6 +219,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/merchantpage.h \
     src/qt/recurringsendentry.h \
     src/qt/recurringsendpage.h \
+    src/qt/splashscreen.h \
     src/qt/repairwalletdialog.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
@@ -290,6 +291,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/merchantpage.cpp \
     src/qt/recurringsendpage.cpp \
     src/qt/recurringsendentry.cpp \
+    src/qt/splashscreen.cpp \
     src/qt/repairwalletdialog.cpp
 
 RESOURCES += \
