@@ -1,6 +1,23 @@
 <RCC>
     <qresource prefix="/icons">
         <file alias="bitcoin">res/icons/MintCoin-128.png</file>
+        <file alias="arrow-down.png">res/icons/arrow-down.png</file>
+        <file alias="calendar-disabled.png">res/icons/calendar-disabled.png</file>
+        <file alias="calendar.png">res/icons/calendar.png</file>
+        <file alias="cb-checked-hover.png">res/icons/cb-checked-hover.png</file>
+        <file alias="cb-checked.png">res/icons/cb-checked.png</file>
+        <file alias="cb-hover.png">res/icons/cb-hover.png</file>
+        <file alias="cb.png">res/icons/cb.png</file>
+        <file alias="down-arrow-disabled.png">res/icons/down-arrow-disabled.png</file>
+        <file alias="down-arrow.png">res/icons/down-arrow.png</file>
+        <file alias="r-checked-hover.png">res/icons/r-checked-hover.png</file>
+        <file alias="r-checked.png">res/icons/r-checked.png</file>
+        <file alias="r-hover.png">res/icons/r-hover.png</file>
+        <file alias="r.png">res/icons/r.png</file>
+        <file alias="sizegrip.png">res/icons/sizegrip.png</file>
+        <file alias="toolbar-handle.png">res/icons/toolbar-handle.png</file>
+        <file alias="up-arrow-disabled.png">res/icons/up-arrow-disabled.png</file>
+        <file alias="up-arrow.png">res/icons/up-arrow.png</file>
         <file alias="address-book">res/icons/address-book.png</file>
         <file alias="quit">res/icons/quit.png</file>
         <file alias="send">res/icons/send.png</file>
@@ -53,5 +70,8 @@
     <qresource prefix="/translations">
         <file alias="en">locale/bitcoin_en.qm</file>
         <file alias="ru">locale/bitcoin_ru.qm</file>
+    </qresource>
+    <qresource prefix="/style">
+    	<file alias="styles.qss">res/style/styles.qss</file>
     </qresource>
 </RCC>
