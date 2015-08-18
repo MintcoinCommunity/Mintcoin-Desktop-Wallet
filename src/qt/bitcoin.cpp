@@ -210,14 +210,15 @@ int main(int argc, char *argv[])
     }
 
     app.processEvents();
-
     app.setQuitOnLastWindowClosed(false);
 
     try
     {
+#ifndef Q_OS_MAC
         // Regenerate startup link, to fix links to old versions
         if (GUIUtil::GetStartOnSystemStartup())
             GUIUtil::SetStartOnSystemStartup(true);
+#endif
 
         BitcoinGUI window;
         guiref = &window;
