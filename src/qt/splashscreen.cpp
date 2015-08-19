@@ -40,14 +40,23 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
 
     int versionWidth = fm.width(versionText);
     pixPaint.setFont(QFont(font, 14*fontFactor));
+#ifdef Q_OS_MAC
+    pixPaint.drawText(newPixmap.width()-paddingRight,paddingTop,versionText);
+#else
     pixPaint.drawText(532-(versionWidth*1.5),paddingTop,versionText);
+#endif
 
     // draw copyright stuff
     pixPaint.setFont(QFont(font, 10*fontFactor));
     int copy1width = fm.width(copyrightText1);
     int copy2width = fm.width(copyrightText2);
+#ifdef Q_OS_MAC
+    pixPaint.drawText(newPixmap.width()-(copy1width*2)+(copy1width/2),newPixmap.height()-line2,copyrightText1);
+    pixPaint.drawText(newPixmap.width()-(copy2width*2)+(copy2width/2)+15,newPixmap.height()-line1,copyrightText2);
+#else
     pixPaint.drawText((532/2)-(copy1width/2),newPixmap.height()-line2,copyrightText1);
     pixPaint.drawText((532/2)-(copy2width/2),newPixmap.height()-line1,copyrightText2);
+#endif
 
     pixPaint.end();
 
