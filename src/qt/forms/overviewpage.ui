@@ -54,15 +54,11 @@
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QLabel" name="label_13">
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
            <property name="text">
-            <string>Wallet</string>
+            <string>&lt;b&gt;Wallet&lt;/b&gt;</string>
+           </property>
+	   <property name="alignment">
+            <set>Qt::AlignLeft|Qt::AlignTop</set>
            </property>
           </widget>
          </item>
@@ -78,7 +74,7 @@
             <string notr="true">(out of sync)</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
            </property>
           </widget>
          </item>
@@ -253,6 +249,9 @@
              <bold>true</bold>
             </font>
            </property>
+	   <property name="toolTip">
+	     <string>Total amount of coins gained via minting</string>
+	   </property>
            <property name="text">
             <string>0 MINT</string>
            </property>
@@ -268,13 +267,13 @@
         <x>460</x>
         <y>0</y>
         <width>461</width>
-        <height>451</height>
+        <height>440</height>
        </rect>
       </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
       <property name="frameShape">
@@ -295,7 +294,7 @@
          <item>
           <widget class="QLabel" name="label_18">
            <property name="text">
-            <string>&lt;b&gt;Recent transactions&lt;/b&gt;</string>
+            <string>&lt;b&gt;Recent Transactions&lt;/b&gt;</string>
            </property>
           </widget>
          </item>
@@ -357,7 +356,7 @@
         <x>10</x>
         <y>170</y>
         <width>431</width>
-        <height>281</height>
+        <height>280</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -366,17 +365,11 @@
         <verstretch>1</verstretch>
        </sizepolicy>
       </property>
-      <property name="styleSheet">
-       <string notr="true">position:absolute; bottom:10px;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
       <property name="pixmap">
        <pixmap resource="../bitcoin.qrc">:/images/about</pixmap>
       </property>
       <property name="alignment">
-       <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+       <set>Qt::AlignVCenter|Qt::AlignHCenter</set>
       </property>
      </widget>
     </widget>

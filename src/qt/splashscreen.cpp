@@ -35,16 +35,19 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
 
     QPainter pixPaint(&newPixmap);
     pixPaint.setPen(QColor(70,70,70));
+    
     QFontMetrics fm = pixPaint.fontMetrics();
 
+    int versionWidth = fm.width(versionText);
     pixPaint.setFont(QFont(font, 14*fontFactor));
-    pixPaint.drawText(newPixmap.width()-paddingRight,paddingTop,versionText);
+    pixPaint.drawText(532-(versionWidth*1.5),paddingTop,versionText);
 
     // draw copyright stuff
     pixPaint.setFont(QFont(font, 10*fontFactor));
     int copy1width = fm.width(copyrightText1);
-    pixPaint.drawText(newPixmap.width()-(copy1width*2)+(copy1width/2),newPixmap.height()-line2,copyrightText1);
-    pixPaint.drawText(newPixmap.width()-(copy1width*2)+(copy1width/2)-3,newPixmap.height()-line1,copyrightText2);
+    int copy2width = fm.width(copyrightText2);
+    pixPaint.drawText((532/2)-(copy1width/2),newPixmap.height()-line2,copyrightText1);
+    pixPaint.drawText((532/2)-(copy2width/2),newPixmap.height()-line1,copyrightText2);
 
     pixPaint.end();
 
