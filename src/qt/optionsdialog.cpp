@@ -154,7 +154,6 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->displayAddresses, OptionsModel::DisplayAddresses);
     mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
     mapper->addMapping(ui->showShopDonate, OptionsModel::ShowShopDonate);
-    mapper->addMapping(ui->showOverviewNews, OptionsModel::ShowOverviewNews);
     mapper->addMapping(ui->passwordOnSend,OptionsModel::PasswordOnSend);
 }
 

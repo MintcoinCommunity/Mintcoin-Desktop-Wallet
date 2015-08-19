@@ -61,6 +61,10 @@
 #include <QUrl>
 #endif
 #include <QStyle>
+#include <QFile>
+#include <QTextStream>
+#include <QSignalMapper>
+#include <QSettings>
 #include <QMimeData>
 
 #include <iostream>
@@ -82,7 +86,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     notificator(0),
     rpcConsole(0)
 {
-    resize(940, 550);
+    resize(950, 550);
     setWindowTitle(tr("MintCoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
@@ -198,11 +202,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     syncIconMovie = new QMovie(":/movies/update_spinner", "mng", this);
     qApp->setStyleSheet("background-color: #effbef;");
-    //load stylesheet if present
-    QFile File("style/stylesheet.qss");
-    File.open(QFile::ReadOnly);
-    QString StyleSheet = QLatin1String(File.readAll());
-    qApp->setStyleSheet(StyleSheet);
+        //load stylesheet if present
+        QFile File(":/style/styles.qss");
+        File.open(QFile::ReadOnly);
+        QString StyleSheet = QLatin1String(File.readAll());
+        qApp->setStyleSheet(StyleSheet);
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
