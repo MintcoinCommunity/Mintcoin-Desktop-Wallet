@@ -184,7 +184,10 @@ void OverviewPage::setModel(WalletModel *model)
         connect(model, SIGNAL(numTransactionsChanged(int)), this, SLOT(setNumTransactions(int)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
-
+        if(model->getOptionsModel()->getShowOverviewNews()==true)
+        {
+          webViewHandler.setWebView(ui->webView,"http://mintcoinofficial.com/download-wallet/mintcoin-news/");
+        }
     }
 
     // update the display unit, to not use the default ("MINT")

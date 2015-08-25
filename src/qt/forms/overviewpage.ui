@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>945</width>
-    <height>550</height>
+    <width>910</width>
+    <height>539</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -265,10 +265,10 @@
      <widget class="QFrame" name="frame_5">
       <property name="geometry">
        <rect>
-        <x>460</x>
-        <y>0</y>
-        <width>461</width>
-        <height>451</height>
+        <x>0</x>
+        <y>170</y>
+        <width>449</width>
+        <height>431</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -351,40 +351,34 @@
        </item>
       </layout>
      </widget>
-     <widget class="QLabel" name="label_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>170</y>
-        <width>431</width>
-        <height>281</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">position:absolute; bottom:10px;</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap resource="../bitcoin.qrc">:/images/about</pixmap>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-      </property>
-     </widget>
     </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+     <item>
+      <widget class="QTextBrowser" name="webView">
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot; bgcolor=&quot;#f0f0f0&quot;&gt;
+&lt;p style=&quot; margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Odin Rounded'; font-size:large; font-weight:600;&quot;&gt;Join Our Community&lt;/span&gt;&lt;/p&gt;
+&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoinofficial.com/category/mintcoin-news/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mintcoin News Room&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoinfund.org/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Mintcoin Fund Projects&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoinofficial.com/category/marketing-reports/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Marketing Reports&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://www.youtube.com/playlist?list=PLs12F4R6722zu1nOkXh1qn6MVvz3TgJfX&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Learning Center&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px; font-weight:600;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:16px;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://mintcoinofficial.com/category/developer-resources/&quot;&gt;&lt;span style=&quot; font-size:14px; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Developer Resources&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:16px;&quot;&gt; &lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/images/about&quot; width=&quot;-2&quot; /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../bitcoin.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
