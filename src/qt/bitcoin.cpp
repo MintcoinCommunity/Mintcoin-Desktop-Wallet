@@ -7,7 +7,6 @@
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
-#include "splashscreen.h"
 
 #include "init.h"
 #include "ui_interface.h"
@@ -36,7 +35,7 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 
 // Need a global reference for the notifications to find the GUI
 static BitcoinGUI *guiref;
-static SplashScreen *splashref;
+static QSplashScreen *splashref;
 
 static void ThreadSafeMessageBox(const std::string& message, const std::string& caption, int style)
 {
@@ -201,7 +200,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    SplashScreen splash(QPixmap(), 0);
+    QSplashScreen splash(QPixmap(":/images/splash"), 0);
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
     {
         splash.show();
