@@ -449,7 +449,7 @@ QMenuBar {
 
 QMenuBar::item {
 	background: transparent;
-	color: #bae9ba;
+	color: #364636;
 }
 
 QMenuBar::item:selected { /* when selected using mouse or keyboard */
@@ -577,7 +577,7 @@ QTextEdit {
 QTabBar::tab {
 	/*background-color: #003700;*/
 	background-color: transparent;
-	min-width: 15ex;
+	min-width: 26ex;
 	padding: 6px 4px 8px 4px;
 	color: #364636;
 	margin-right: 2ex;
