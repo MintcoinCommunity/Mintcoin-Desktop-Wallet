@@ -30,6 +30,9 @@ static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
+static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
+static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
+static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const int64 MIN_TX_FEE = 10 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 10 * CENT;
 static const int64 MAX_MONEY = 70000000000ull * COIN;			// 70 bil
@@ -102,14 +105,15 @@ static const uint64 nMinDiskSpace = 52428800;
 class CReserveKey;
 class CTxDB;
 class CTxIndex;
+class CDiskBlockPos;
 
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
 bool ProcessBlock(CNode* pfrom, CBlock* pblock);
 bool CheckDiskSpace(uint64 nAdditionalBytes=0);
-FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
-FILE* AppendBlockFile(unsigned int& nFileRet);
+FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
+FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 bool LoadBlockIndex(bool fAllowNew=true);
 void PrintBlockTree();
 CBlockIndex* FindBlockByHeight(int nHeight);
@@ -146,55 +150,27 @@ void ResendWalletTransactions();
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
-/** Position on disk for a particular transaction. */
-class CDiskTxPos
+class CDiskBlockPos
 {
 public:
-    unsigned int nFile;
-    unsigned int nBlockPos;
-    unsigned int nTxPos;
+    int nFile;
+    unsigned int nPos;
 
-    CDiskTxPos()
-    {
-        SetNull();
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(nFile));
+        READWRITE(VARINT(nPos));
+    )
+
+    friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
+        return (a.nFile == b.nFile && a.nPos == b.nPos);
     }
 
-    CDiskTxPos(unsigned int nFileIn, unsigned int nBlockPosIn, unsigned int nTxPosIn)
-    {
-        nFile = nFileIn;
-        nBlockPos = nBlockPosIn;
-        nTxPos = nTxPosIn;
-    }
-
-    IMPLEMENT_SERIALIZE( READWRITE(FLATDATA(*this)); )
-    void SetNull() { nFile = (unsigned int) -1; nBlockPos = 0; nTxPos = 0; }
-    bool IsNull() const { return (nFile == (unsigned int) -1); }
-
-    friend bool operator==(const CDiskTxPos& a, const CDiskTxPos& b)
-    {
-        return (a.nFile     == b.nFile &&
-                a.nBlockPos == b.nBlockPos &&
-                a.nTxPos    == b.nTxPos);
-    }
-
-    friend bool operator!=(const CDiskTxPos& a, const CDiskTxPos& b)
-    {
+    friend bool operator!=(const CDiskBlockPos &a, const CDiskBlockPos &b) {
         return !(a == b);
     }
 
-
-    std::string ToString() const
-    {
-        if (IsNull())
-            return "null";
-        else
-            return strprintf("(nFile=%u, nBlockPos=%u, nTxPos=%u)", nFile, nBlockPos, nTxPos);
-    }
-
-    void print() const
-    {
-        printf("%s", ToString().c_str());
-    }
+    void SetNull() { nFile = -1; nPos = 0; }
+    bool IsNull() const { return (nFile == -1); }
 };
 
 
@@ -805,6 +781,44 @@ public:
     )
 };
 
+/** Undo information for a CBlock */
+class CBlockUndo
+{
+public:
+    std::vector<CTxUndo> vtxundo; // for all but the coinbase
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(vtxundo);
+    )
+
+    bool WriteToDisk(CDiskBlockPos &pos)
+    {
+        // Open history file to append
+        CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
+        if (!fileout)
+            return error("CBlockUndo::WriteToDisk() : OpenUndoFile failed");
+
+        // Write index header
+        unsigned int nSize = fileout.GetSerializeSize(*this);
+        fileout << FLATDATA(pchMessageStart) << nSize;
+
+        // Write undo data
+        long fileOutPos = ftell(fileout);
+        if (fileOutPos < 0)
+            return error("CBlock::WriteToDisk() : ftell failed");
+        pos.nPos = (unsigned int)fileOutPos;
+        fileout << *this;
+
+        // Flush stdio buffers and commit to disk before returning
+        fflush(fileout);
+        if (!IsInitialBlockDownload())
+            FileCommit(fileout);
+
+        return true;
+    }
+
+};
+
 /** pruned version of CTransaction: only retains metadata and unspent transaction outputs
  *
  * Serialized format:
@@ -1342,12 +1356,12 @@ public:
     }
 
 
-    bool WriteToDisk(unsigned int& nFileRet, unsigned int& nBlockPosRet)
+    bool WriteToDisk(CDiskBlockPos &pos)
     {
         // Open history file to append
-        CAutoFile fileout = CAutoFile(AppendBlockFile(nFileRet), SER_DISK, CLIENT_VERSION);
+        CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
         if (!fileout)
-            return error("CBlock::WriteToDisk() : AppendBlockFile failed");
+            return error("CBlock::WriteToDisk() : OpenBlockFile failed");
 
         // Write index header
         unsigned int nSize = fileout.GetSerializeSize(*this);
@@ -1368,12 +1382,12 @@ public:
         return true;
     }
 
-    bool ReadFromDisk(unsigned int nFile, unsigned int nBlockPos, bool fReadTransactions=true)
+    bool ReadFromDisk(const CDiskBlockPos &pos, bool fReadTransactions=true)
     {
         SetNull();
 
         // Open history file to read
-        CAutoFile filein = CAutoFile(OpenBlockFile(nFile, nBlockPos, "rb"), SER_DISK, CLIENT_VERSION);
+        CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
         if (!filein)
             return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
         if (!fReadTransactions)
@@ -1423,6 +1437,7 @@ public:
     bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
     bool SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew);
     bool AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos);
+    bool AddToBlockIndex(const CDiskBlockPos &pos);
     bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true) const;
     bool AcceptBlock();
     bool GetCoinAge(uint64& nCoinAge) const; // ppcoin: calculate total coin age spent in block
@@ -1436,7 +1451,62 @@ private:
 
 
 
+class CBlockFileInfo
+{
+public:
+    unsigned int nBlocks;      // number of blocks stored in file
+    unsigned int nSize;        // number of used bytes of block file
+    unsigned int nUndoSize;    // number of used bytes in the undo file
+    unsigned int nHeightFirst; // lowest height of block in file
+    unsigned int nHeightLast;  // highest height of block in file
+    uint64 nTimeFirst;         // earliest time of block in file
+    uint64 nTimeLast;          // latest time of block in file
 
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(nBlocks));
+        READWRITE(VARINT(nSize));
+        READWRITE(VARINT(nUndoSize));
+        READWRITE(VARINT(nHeightFirst));
+        READWRITE(VARINT(nHeightLast));
+        READWRITE(VARINT(nTimeFirst));
+        READWRITE(VARINT(nTimeLast));
+     )
+
+     void SetNull() {
+         nBlocks = 0;
+         nSize = 0;
+         nUndoSize = 0;
+         nHeightFirst = 0;
+         nHeightLast = 0;
+         nTimeFirst = 0;
+         nTimeLast = 0;
+     }
+
+     CBlockFileInfo() {
+         SetNull();
+     }
+
+     std::string ToString() const {
+         return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u..%u, time=%s..%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst).c_str(), DateTimeStrFormat("%Y-%m-%d", nTimeLast).c_str());
+     }
+
+     // update statistics (does not update nSize)
+     void AddBlock(unsigned int nHeightIn, uint64 nTimeIn) {
+         if (nBlocks==0 || nHeightFirst > nHeightIn)
+             nHeightFirst = nHeightIn;
+         if (nBlocks==0 || nTimeFirst > nTimeIn)
+             nTimeFirst = nTimeIn;
+         nBlocks++;
+         if (nHeightIn > nHeightFirst)
+             nHeightLast = nHeightIn;
+         if (nTimeIn > nTimeLast)
+             nTimeLast = nTimeIn;
+     }
+};
+
+extern CCriticalSection cs_LastBlockFile;
+extern CBlockFileInfo infoLastBlockFile;
+extern int nLastBlockFile;
 
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
@@ -1452,10 +1522,11 @@ public:
     CBlockIndex* pprev;
     CBlockIndex* pnext;
     unsigned int nFile;
-    unsigned int nBlockPos;
     uint256 nChainTrust; // ppcoin: trust score of block chain
     int nHeight;
 
+    unsigned int nDataPos;
+    unsigned int nUndoPos;
     int64 nMint;
     int64 nMoneySupply;
 
@@ -1488,9 +1559,10 @@ public:
         pprev = NULL;
         pnext = NULL;
         nFile = 0;
-        nBlockPos = 0;
+        nDataPos = 0;
         nHeight = 0;
         nChainTrust = 0;
+        nUndoPos = 0;
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
@@ -1514,6 +1586,8 @@ public:
         pnext = NULL;
         nFile = nFileIn;
         nBlockPos = nBlockPosIn;
+        nFile = 0;
+        nDataPos = 0;
         nHeight = 0;
         nChainTrust = 0;
         nMint = 0;
@@ -1700,11 +1774,8 @@ public:
     (
         if (!(nType & SER_GETHASH))
             READWRITE(nVersion);
+        READWRITE(VARINT(nHeight));
 
-        READWRITE(hashNext);
-        READWRITE(nFile);
-        READWRITE(nBlockPos);
-        READWRITE(nHeight);
         READWRITE(nMint);
         READWRITE(nMoneySupply);
         READWRITE(nFlags);
