@@ -661,7 +661,7 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!tx.ConnectInputs(txdb, mapInputs, mapUnused, CDiskTxPos(1,1,1), pindexBest, false, false))
+        if (!tx.CheckInputs(view, CS_ALWAYS, false, false))
         {
             return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().substr(0,10).c_str());
         }
@@ -870,6 +870,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock)
             return true;
         }
     }
+
     return false;
 }
 
@@ -905,7 +906,7 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
         *this = pindex->GetBlockHeader();
         return true;
     }
-    if (!ReadFromDisk(pindex->nFile, pindex->nBlockPos, fReadTransactions))
+    if (!ReadFromDisk(pindex->GetBlockPos(), fReadTransactions))
         return false;
     if (GetHash() != pindex->GetBlockHash())
         return error("CBlock::ReadFromDisk() : GetHash() doesn't match index");
@@ -1494,6 +1495,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 }
 
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
+bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 {
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(!fJustCheck, !fJustCheck))
@@ -1522,6 +1524,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         nTxPos = 1;
     else
         nTxPos = pindex->nBlockPos + ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(vtx.size());
+    CBlockUndo blockundo;
 
     map<uint256, CTxIndex> mapQueuedChanges;
     int64 nFees = 0;
@@ -1598,6 +1601,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
     // Write queued txindex changes
     for (map<uint256, CTxIndex>::iterator mi = mapQueuedChanges.begin(); mi != mapQueuedChanges.end(); ++mi)
+    // Write undo information to disk
+    if (pindex->GetUndoPos().IsNull())
     {
         if (!txdb.UpdateTxIndex((*mi).first, (*mi).second))
             return error("ConnectBlock() : UpdateTxIndex failed");
@@ -1609,6 +1614,15 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 		prevHash = pindex->pprev->GetBlockHash();
 		// printf("==> Got prevHash = %s\n", prevHash.ToString().c_str());
 	}
+        if (pindex->GetUndoPos().IsNull())
+        {
+            CDiskBlockPos pos;
+            if (!FindUndoPos(pindex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 8))
+                return error("ConnectBlock() : FindUndoPos failed");
+            if (!blockundo.WriteToDisk(pos))
+                return error("ConnectBlock() : CBlockUndo::WriteToDisk failed");
+            pindex->nUndoPos = pos.nPos;
+        }
 
 	if (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees, prevHash))
 		return false;
@@ -1945,7 +1959,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
         return error("AddToBlockIndex() : %s already exists", hash.ToString().substr(0,20).c_str());
 
     // Construct new block index object
-    CBlockIndex* pindexNew = new CBlockIndex(nFile, nBlockPos, *this);
+    CBlockIndex* pindexNew = new CBlockIndex(*this);
     if (!pindexNew)
         return error("AddToBlockIndex() : new CBlockIndex failed");
     pindexNew->phashBlock = &hash;
@@ -1958,6 +1972,8 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 
     // ppcoin: compute chain trust score
     pindexNew->nChainTrust = (pindexNew->pprev ? pindexNew->pprev->nChainTrust : 0) + pindexNew->GetBlockTrust();
+    pindexNew->nDataPos = pos.nPos;
+    pindexNew->nUndoPos = 0;
 
     // ppcoin: compute stake entropy bit for stake modifier
     if (!pindexNew->SetStakeEntropyBit(GetStakeEntropyBit(pindexNew->nHeight)))
@@ -2012,6 +2028,80 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
     return true;
 }
 
+bool FindBlockPos(CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64 nTime)
+{
+    bool fUpdatedLast = false;
+
+    LOCK(cs_LastBlockFile);
+
+    while (infoLastBlockFile.nSize + nAddSize >= MAX_BLOCKFILE_SIZE) {
+        printf("Leaving block file %i: %s\n", nLastBlockFile, infoLastBlockFile.ToString().c_str());
+        FlushBlockFile();
+        nLastBlockFile++;
+        infoLastBlockFile.SetNull();
+        pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile); // check whether data for the new file somehow already exist; can fail just fine
+        fUpdatedLast = true;
+    }
+
+    pos.nFile = nLastBlockFile;
+    pos.nPos = infoLastBlockFile.nSize;
+    infoLastBlockFile.nSize += nAddSize;
+    infoLastBlockFile.AddBlock(nHeight, nTime);
+
+    unsigned int nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
+    unsigned int nNewChunks = (infoLastBlockFile.nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
+    if (nNewChunks > nOldChunks) {
+        FILE *file = OpenBlockFile(pos);
+        if (file) {
+            printf("Pre-allocating up to position 0x%x in blk%05u.dat\n", nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
+            AllocateFileRange(file, pos.nPos, nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos);
+        }
+        fclose(file);
+    }
+
+    if (!pblocktree->WriteBlockFileInfo(nLastBlockFile, infoLastBlockFile))
+        return error("FindBlockPos() : cannot write updated block info");
+    if (fUpdatedLast)
+        pblocktree->WriteLastBlockFile(nLastBlockFile);
+
+    return true;
+}
+
+bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize)
+{
+    pos.nFile = nFile;
+
+    LOCK(cs_LastBlockFile);
+
+    unsigned int nNewSize;
+    if (nFile == nLastBlockFile) {
+        pos.nPos = infoLastBlockFile.nUndoSize;
+        nNewSize = (infoLastBlockFile.nUndoSize += nAddSize);
+        if (!pblocktree->WriteBlockFileInfo(nLastBlockFile, infoLastBlockFile))
+            return error("FindUndoPos() : cannot write updated block info");
+    } else {
+        CBlockFileInfo info;
+        if (!pblocktree->ReadBlockFileInfo(nFile, info))
+            return error("FindUndoPos() : cannot read block info");
+        pos.nPos = info.nUndoSize;
+        nNewSize = (info.nUndoSize += nAddSize);
+        if (!pblocktree->WriteBlockFileInfo(nFile, info))
+            return error("FindUndoPos() : cannot write updated block info");
+    }
+
+    unsigned int nOldChunks = (pos.nPos + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
+    unsigned int nNewChunks = (nNewSize + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
+    if (nNewChunks > nOldChunks) {
+        FILE *file = OpenUndoFile(pos);
+        if (file) {
+            printf("Pre-allocating up to position 0x%x in rev%05u.dat\n", nNewChunks * UNDOFILE_CHUNK_SIZE, pos.nFile);
+            AllocateFileRange(file, pos.nPos, nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos);
+        }
+        fclose(file);
+     }
+
+    return true;
+}
 
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
 {
@@ -2153,13 +2243,15 @@ bool CBlock::AcceptBlock()
         return DoS(100, error("AcceptBlock() : block height mismatch in coinbase"));
 
     // Write block to history file
+    unsigned int nBlockSize = ::GetSerializeSize(*this, SER_DISK, CLIENT_VERSION);
     if (!CheckDiskSpace(::GetSerializeSize(*this, SER_DISK, CLIENT_VERSION)))
         return error("AcceptBlock() : out of disk space");
-    unsigned int nFile = -1;
-    unsigned int nBlockPos = 0;
-    if (!WriteToDisk(nFile, nBlockPos))
+    CDiskBlockPos blockPos;
+    if (!FindBlockPos(blockPos, nBlockSize+8, nHeight, nTime))
+        return error("AcceptBlock() : FindBlockPos failed");
+    if (!WriteToDisk(blockPos))
         return error("AcceptBlock() : WriteToDisk failed");
-    if (!AddToBlockIndex(nFile, nBlockPos))
+    if (!AddToBlockIndex(blockPos))
         return error("AcceptBlock() : AddToBlockIndex failed");
 
     // Relay inventory, but don't relay old inventory during initial block download
@@ -2470,24 +2562,28 @@ bool CheckDiskSpace(uint64 nAdditionalBytes)
 }
 
 
-static filesystem::path BlockFilePath(unsigned int nFile)
-{
-    string strBlockFn = strprintf("blk%04u.dat", nFile);
-    return GetDataDir() / strBlockFn;
-}
+CCriticalSection cs_LastBlockFile;
+CBlockFileInfo infoLastBlockFile;
+int nLastBlockFile = 0;
 
-
-FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode)
+FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 {
-    if ((nFile < 1) || (nFile == (unsigned int) -1))
+    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
+    boost::filesystem::create_directories(path.parent_path());
+    if (pos.IsNull())
         return NULL;
-    FILE* file = fopen(BlockFilePath(nFile).string().c_str(), pszMode);
+    FILE* file = fopen(path.string().c_str(), "rb+");
+    if (!file && !fReadOnly)
+        file = fopen(path.string().c_str(), "wb+");
     if (!file)
-        return NULL;
-    if (nBlockPos != 0 && !strchr(pszMode, 'a') && !strchr(pszMode, 'w'))
     {
-        if (fseek(file, nBlockPos, SEEK_SET) != 0)
+        printf("Unable to open file %s\n", path.string().c_str());
+        return NULL;
+    }
+    if (pos.nPos) {
+        if (fseek(file, pos.nPos, SEEK_SET))
         {
+            printf("Unable to seek to position %u of %s\n", pos.nPos, path.string().c_str());
             fclose(file);
             return NULL;
         }
@@ -2495,29 +2591,22 @@ FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszM
     return file;
 }
 
-
-static unsigned int nCurrentBlockFile = 1;
-
-FILE* AppendBlockFile(unsigned int& nFileRet)
+FILE* OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly)
 {
-    nFileRet = 0;
-    for (;;)
-    {
-        FILE* file = OpenBlockFile(nCurrentBlockFile, 0, "ab");
-        if (!file)
-            return NULL;
-        if (fseek(file, 0, SEEK_END) != 0)
-            return NULL;
-        // FAT32 file size max 4GB, fseek and ftell max 2GB, so we must stay under 2GB
-        if (ftell(file) < (long)(0x7F000000 - MAX_SIZE))
-        {
-            nFileRet = nCurrentBlockFile;
-            return file;
-        }
-        fclose(file);
-        nCurrentBlockFile++;
-    }
+    return OpenDiskFile(pos, "blk", fReadOnly);
 }
+
+FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly)
+{
+    return OpenDiskFile(pos, "rev", fReadOnly);
+}
+
+
+{
+    {
+        {
+        }
+    }
 
 
 bool LoadBlockIndex(bool fAllowNew)
@@ -2574,20 +2663,23 @@ bool LoadBlockIndex(bool fAllowNew)
 
         //// debug print
         block.print();
-        printf("block.GetHash() == %s\n", block.GetHash().ToString().c_str());
+        uint256 hash = block.GetHash();
+        printf("block.GetHash() == %s\n", hash.ToString().c_str());
         printf("block.hashMerkleRoot == %s\n", block.hashMerkleRoot.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("block.nNonce = %u \n", block.nNonce);
 
         assert(block.hashMerkleRoot == uint256("cf174ca43b1b30e9a27f7fdc20ff9caf626499d023f1f033198fdbadf73ca747"));
-		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
+		assert(hash == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
-        unsigned int nFile;
-        unsigned int nBlockPos;
-        if (!block.WriteToDisk(nFile, nBlockPos))
+        unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+        CDiskBlockPos blockPos;
+        if (!FindBlockPos(blockPos, nBlockSize+8, 0, block.nTime))
+            return error("AcceptBlock() : FindBlockPos failed");
+        if (!block.WriteToDisk(blockPos))
             return error("LoadBlockIndex() : writing genesis block to disk failed");
-        if (!block.AddToBlockIndex(nFile, nBlockPos))
+        if (!block.AddToBlockIndex(blockPos))
             return error("LoadBlockIndex() : genesis block not accepted");
 
         // ppcoin: initialize synchronized checkpoint
@@ -2666,11 +2758,9 @@ void PrintBlockTree()
         // print item
         CBlock block;
         block.ReadFromDisk(pindex);
-        printf("%d (%u,%u) %s  %08x  %s  mint %7s  tx %"PRIszu"",
+        printf("%d (blk%05u.dat:0x%x) %s %08x  %s  mint %7s  tx %"PRIszu"",
             pindex->nHeight,
-            pindex->nFile,
-            pindex->nBlockPos,
-            block.GetHash().ToString().c_str(),
+            pindex->GetBlockPos().nFile, pindex->GetBlockPos().nPos,
             block.nBits,
             DateTimeStrFormat("%x %H:%M:%S", block.GetBlockTime()).c_str(),
             FormatMoney(pindex->nMint).c_str(),
@@ -4069,6 +4159,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
             std::pop_heap(vecPriority.begin(), vecPriority.end(), comparer);
             vecPriority.pop_back();
+
 
             // Size limits
             unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
