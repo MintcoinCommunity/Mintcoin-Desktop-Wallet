@@ -54,6 +54,7 @@ uint256 nBestChainTrust = 0;
 uint256 nBestInvalidTrust = 0;
 uint256 hashBestChain = 0;
 CBlockIndex* pindexBest = NULL;
+set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid; // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
 int64 nTimeBestReceived = 0;
 
 CMedianFilter<int> cPeerBlockCounts(5, 0); // Amount of blocks that other nodes claim to have
@@ -298,6 +299,10 @@ bool CCoinsViewMemPool::HaveCoins(uint256 txid) {
 }
 
 CCoinsViewCache *pcoinsTip = NULL;
+CBlockTreeDB *pblocktree = NULL;
+
+//////////////////////////////////////////////////////////////////////////////
+//
 // mapOrphanTransactions
 //
 
@@ -1247,15 +1252,59 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
     nTime = max(GetBlockTime(), GetAdjustedTime());
 }
 
+void static InvalidBlockFound(CBlockIndex *pindex) {
+    pindex->nStatus |= BLOCK_FAILED_VALID;
+    pblocktree->WriteBlockIndex(CDiskBlockIndex(pindex));
+    setBlockIndexValid.erase(pindex);
+    InvalidChainFound(pindex);
+    if (pindex->pnext)
+        ConnectBestBlock(); // reorganise away from the failed block
 }
 
+bool ConnectBestBlock() {
+    do {
+        CBlockIndex *pindexNewBest;
 
         {
+            std::set<CBlockIndex*,CBlockIndexTrustComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
+            if (it == setBlockIndexValid.rend())
+                return true;
+            pindexNewBest = *it;
         }
 
+        if (pindexNewBest == pindexBest)
+            return true; // nothing to do
+
+        // check ancestry
+        CBlockIndex *pindexTest = pindexNewBest;
+        std::vector<CBlockIndex*> vAttach;
+        do {
+            if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
+                // mark descendants failed
+                CBlockIndex *pindexFailed = pindexNewBest;
+                while (pindexTest != pindexFailed) {
+                    pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
+                    setBlockIndexValid.erase(pindexFailed);
+                    pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexFailed));
+                    pindexFailed = pindexFailed->pprev;
+                }
+                InvalidChainFound(pindexNewBest);
+                break;
             }
 
+            if (pindexBest == NULL || pindexTest->nChainTrust > pindexBest->nChainTrust)
+                vAttach.push_back(pindexTest);
 
+            if (pindexTest->pprev == NULL || pindexTest->pnext != NULL) {
+                reverse(vAttach.begin(), vAttach.end());
+                BOOST_FOREACH(CBlockIndex *pindexSwitch, vAttach)
+                    if (!SetBestChain(pindexSwitch))
+                        return false;
+                return true;
+            }
+            pindexTest = pindexTest->pprev;
+        } while(true);
+    } while(true);
 }
 
 {
@@ -1690,8 +1739,10 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
 
             // update nUndoPos in block index
             pindex->nUndoPos = pos.nPos;
+            pindex->nStatus |= BLOCK_HAVE_UNDO;
         }
 
+        pindex->nStatus = (pindex->nStatus & ~BLOCK_VALID_MASK) | BLOCK_VALID_SCRIPTS;
 
         CDiskBlockIndex blockindex(pindex);
         if (!pblocktree->WriteBlockIndex(blockindex))
@@ -1787,6 +1838,7 @@ bool SetBestChain(CBlockIndex* pindexNew)
         CCoinsViewCache viewTemp(view, true);
         if (!block.ConnectBlock(pindex, viewTemp)) {
             InvalidChainFound(pindexNew);
+            InvalidBlockFound(pindex);
             return error("SetBestBlock() : ConnectBlock %s failed", pindex->GetBlockHash().ToString().substr(0,20).c_str());
         }
         if(!viewTemp.Flush())
@@ -1843,8 +1895,8 @@ bool SetBestChain(CBlockIndex* pindexNew)
     nBestChainTrust = pindexNew->nChainTrust;
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
-    printf("SetBestChain: new best=%s  height=%d  trust=%s  date=%s\n",
-      hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),
+    printf("SetBestChain: new best=%s  height=%d  trust=%s  tx=%lu  date=%s\n",
+      hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(), (unsigned long)pindexNew->nChainTx,
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 
 	printf("Stake checkpoint: %x\n", pindexBest->nStakeModifierChecksum);
@@ -1965,10 +2017,15 @@ bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
         pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
     }
 
+    pindexNew->nTx = vtx.size();
     // ppcoin: compute chain trust score
     pindexNew->nChainTrust = (pindexNew->pprev ? pindexNew->pprev->nChainTrust : 0) + pindexNew->GetBlockTrust();
+    pindexNew->nChainTx = (pindexNew->pprev ? pindexNew->pprev->nChainTx : 0) + pindexNew->nTx;
+    pindexNew->nFile =pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
+    pindexNew->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
+    setBlockIndexValid.insert(pindexNew);
 
     // ppcoin: compute stake entropy bit for stake modifier
     if (!pindexNew->SetStakeEntropyBit(GetStakeEntropyBit(pindexNew->nHeight)))
@@ -1998,9 +2055,11 @@ bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
         setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
     pindexNew->phashBlock = &((*mi).first);
 
-    // Write to disk block index
     
     pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew));
+    
+    // New best ?
+    if (!ConnectBestBlock())
         return false;
 
     if (pindexNew == pindexBest)
@@ -2010,6 +2069,7 @@ bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
         UpdatedTransaction(hashPrevBestCoinBase);
         hashPrevBestCoinBase = GetTxHash(0);
     }
+    pblocktree->Flush();
 
     uiInterface.NotifyBlocksChanged();
     return true;

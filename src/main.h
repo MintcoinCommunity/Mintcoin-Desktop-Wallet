@@ -25,6 +25,8 @@ class CInv;
 class CRequestTracker;
 class CNode;
 
+class CBlockIndexTrustComparator;
+
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
@@ -73,6 +75,7 @@ extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
+extern std::set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid;
 extern uint256 hashGenesisBlock;
 extern CBlockIndex* pindexGenesisBlock;
 extern unsigned int nStakeMinAge;
@@ -139,6 +142,8 @@ int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, bool fAllowSlow = false);
+bool SetBestChain(CBlockIndex* pindexNew);
+bool ConnectBestBlock();
 uint256 WantedByOrphan(const CBlock* pblockOrphan);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 void BitcoinMiner(CWallet *pwallet, bool fProofOfStake);
@@ -1432,6 +1437,24 @@ extern CCriticalSection cs_LastBlockFile;
 extern CBlockFileInfo infoLastBlockFile;
 extern int nLastBlockFile;
 
+enum BlockStatus {
+    BLOCK_VALID_UNKNOWN      =    0,
+    BLOCK_VALID_HEADER       =    1, // parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
+    BLOCK_VALID_TREE         =    2, // parent found, difficulty matches, timestamp >= median previous, checkpoint
+    BLOCK_VALID_TRANSACTIONS =    3, // only first tx is coinbase, 2 <= coinbase input script length <= 100, transactions valid, no duplicate txids, sigops, size, merkle root
+    BLOCK_VALID_CHAIN        =    4, // outputs do not overspend inputs, no double spends, coinbase output ok, immature coinbase spends, BIP30
+    BLOCK_VALID_SCRIPTS      =    5, // scripts/signatures ok
+    BLOCK_VALID_MASK         =    7,
+
+    BLOCK_HAVE_DATA          =    8, // full block available in blk*.dat
+    BLOCK_HAVE_UNDO          =   16, // undo data available in rev*.dat
+    BLOCK_HAVE_MASK          =   24,
+
+    BLOCK_FAILED_VALID       =   32, // stage after last reached validness failed
+    BLOCK_FAILED_CHILD       =   64, // descends from failed block
+    BLOCK_FAILED_MASK        =   96
+};
+
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
  * candidates to be the next block.  pprev and pnext link a path through the
@@ -1442,15 +1465,41 @@ extern int nLastBlockFile;
 class CBlockIndex
 {
 public:
+    // pointer to the hash of the block, if any. memory is owned by this CBlockIndex
     const uint256* phashBlock;
+
+    // pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
+
+    // (memory only) pointer to the index of the *active* successor of this block
     CBlockIndex* pnext;
+
+    // Which # file this block is stored in (blk?????.dat)
     unsigned int nFile;
-    uint256 nChainTrust; // ppcoin: trust score of block chain
+
+    // ppcoin: trust score of block chain
+    uint256 nChainTrust;
+
+    // height of the entry in the chain. The genesis block has height 0
     int nHeight;
 
+    // Byte offset within blk?????.dat where this block's data is stored
     unsigned int nDataPos;
+
+    // Byte offset within rev?????.dat where this block's undo data is stored
     unsigned int nUndoPos;
+
+    // Number of transactions in this block.
+    // Note: in a potential headers-first mode, this number cannot be relied upon
+    unsigned int nTx;
+
+    // (memory only) Number of transactions in the chain up to and including this block
+    unsigned int nChainTx; // change to 64-bit type when necessary; won't happen before 2030
+
+    // Verification status of this block. See enum BlockStatus
+    unsigned int nStatus;
+
+
     int64 nMint;
     int64 nMoneySupply;
 
@@ -1495,6 +1544,9 @@ public:
         hashProofOfStake = 0;
         prevoutStake.SetNull();
         nStakeTime = 0;
+        nTx = 0;
+        nChainTx = 0;
+        nStatus = 0;
 
         nVersion       = 0;
         hashMerkleRoot = 0;
@@ -1503,13 +1555,11 @@ public:
         nNonce         = 0;
     }
 
-    CBlockIndex(unsigned int nFileIn, unsigned int nBlockPosIn, CBlock& block)
+    CBlockIndex(CBlock& block)
     {
         phashBlock = NULL;
         pprev = NULL;
         pnext = NULL;
-        nFile = nFileIn;
-        nBlockPos = nBlockPosIn;
         nFile = 0;
         nDataPos = 0;
         nHeight = 0;
@@ -1520,6 +1570,9 @@ public:
         nStakeModifier = 0;
         nStakeModifierChecksum = 0;
         hashProofOfStake = 0;
+        nTx = 0;
+        nChainTx = 0;
+        nStatus = 0;
         if (block.IsProofOfStake())
         {
             SetProofOfStake();
@@ -1669,7 +1722,18 @@ public:
     }
 };
 
+struct CBlockIndexTrustComparator
+{
+    bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
+        if (pa->nChainTrust > pb->nChainTrust) return false;
+        if (pa->nChainTrust < pb->nChainTrust) return true;
 
+        if (pa->GetBlockHash() < pb->GetBlockHash()) return false;
+        if (pa->GetBlockHash() > pb->GetBlockHash()) return true;
+
+        return false; // identical blocks
+    }
+};
 
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex
@@ -1694,8 +1758,17 @@ public:
     IMPLEMENT_SERIALIZE
     (
         if (!(nType & SER_GETHASH))
-            READWRITE(nVersion);
+            READWRITE(VARINT(nVersion));
+
         READWRITE(VARINT(nHeight));
+        READWRITE(VARINT(nStatus));
+        READWRITE(VARINT(nTx));
+        if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
+            READWRITE(VARINT(nFile));
+        if (nStatus & BLOCK_HAVE_DATA)
+            READWRITE(VARINT(nDataPos));
+        if (nStatus & BLOCK_HAVE_UNDO)
+            READWRITE(VARINT(nUndoPos));
 
         READWRITE(nMint);
         READWRITE(nMoneySupply);
@@ -1721,7 +1794,6 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-		READWRITE(blockHash);
     )
 
     uint256 GetBlockHash() const
@@ -2006,7 +2078,12 @@ public:
 };
 
 
+
+/** Global variable that points to the active CCoinsView (protected by cs_main) */
 extern CCoinsViewCache *pcoinsTip;
+
+/** Global variable that points to the active block tree (protected by cs_main) */
+extern CBlockTreeDB *pblocktree;
 
 #endif
 bool LoadExternalBlockFile(FILE* fileIn);
