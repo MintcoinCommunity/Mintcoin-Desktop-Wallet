@@ -58,6 +58,8 @@ void StartShutdown()
 #endif
 }
 
+static CCoinsViewDB *pcoinsdbview;
+
 void Shutdown(void* parg)
 {
     static CCriticalSection cs_Shutdown;
@@ -80,7 +82,6 @@ void Shutdown(void* parg)
     {
         fShutdown = true;
         nTransactionsUpdated++;
-//        CTxDB().Close();
         bitdb.Flush(false);
         StopNode();
         bitdb.Flush(true);
@@ -665,17 +666,13 @@ bool AppInit2()
         return InitError(msg);
     }
 
-    if (GetBoolArg("-loadblockindextest"))
-    {
-        CTxDB txdb("r");
-        txdb.LoadBlockIndex();
-        PrintBlockTree();
-        return false;
-    }
-
     uiInterface.InitMessage(_("Loading block index..."));
     printf("Loading block index...\n");
     nStart = GetTimeMillis();
+    pcoinsdbview = new CCoinsViewDB();
+    pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
+
+
     if (!LoadBlockIndex())
         return InitError(_("Error loading blkindex.dat"));
 
