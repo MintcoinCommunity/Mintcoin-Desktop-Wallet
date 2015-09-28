@@ -1623,6 +1623,22 @@ bool CBlock::DisconnectBlock(CBlockIndex* pindex, CCoinsViewCache &view)
 
     return true;
 }
+void static FlushBlockFile()
+{
+    LOCK(cs_LastBlockFile);
+
+    CDiskBlockPos posOld;
+    posOld.nFile = nLastBlockFile;
+    posOld.nPos = 0;
+
+    FILE *fileOld = OpenBlockFile(posOld);
+    FileCommit(fileOld);
+    fclose(fileOld);
+
+    fileOld = OpenUndoFile(posOld);
+    FileCommit(fileOld);
+    fclose(fileOld);
+}
 
 bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
@@ -1853,6 +1869,7 @@ bool SetBestChain(CBlockIndex* pindexNew)
     bool fIsInitialDownload = IsInitialBlockDownload();
     if (!fIsInitialDownload || view.GetCacheSize()>5000)
     {
+        FlushBlockFile();
         if (!view.Flush())
             return false;
     }
