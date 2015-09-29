@@ -668,6 +668,7 @@ public:
     bool CheckTransaction() const;
     // Try to accept this transaction into the memory pool
     bool AcceptToMemoryPool(bool fCheckInputs=true, bool* pfMissingInputs=NULL);
+    bool GetCoinAge(uint64& nCoinAge) const;  // ppcoin: get transaction coin age
 
 protected:
     static const CTxOut& GetOutputFor(const CTxIn& input, CCoinsViewCache& view);
@@ -1355,6 +1356,21 @@ public:
         printf("\n");
     }
 
+    unsigned int GetTxOffset(CTransaction &tx)
+    {
+        unsigned int txOffset = ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(vtx.size());
+        int i=0;
+        uint256 hash = tx.GetHash();
+        if(hash == vtx[i].GetHash())
+            return txOffset;
+        do
+        {
+            txOffset += ::GetSerializeSize(vtx[i], SER_DISK, CLIENT_VERSION);
+            i++;
+        }while(hash != vtx[i].GetHash());
+        return txOffset;
+    }
+
 
     // Undo the effects of this block (with given index) on the UTXO set represented by coins
     bool DisconnectBlock(CBlockIndex *pindex, CCoinsViewCache &coins);
@@ -1706,8 +1722,8 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016"PRI64x", nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-            pprev, pnext, nFile, nBlockPos, nHeight,
+        return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016"PRI64x", nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+            pprev, pnext, nFile, nHeight,
             FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
             GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
             nStakeModifier, nStakeModifierChecksum, 
