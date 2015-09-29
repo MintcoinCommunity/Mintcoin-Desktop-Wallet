@@ -793,7 +793,7 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs,
     // If updated, erase old tx from wallet
     if (ptxOld)
         EraseFromWallets(ptxOld->GetHash());
-    SyncWithWallets(tx, NULL, true); // fix this
+    SyncWithWallets(hash, tx, NULL, true);
 
     printf("CTxMemPool::accept() : accepted %s (poolsz %"PRIszu")\n",
            hash.ToString().substr(0,10).c_str(),
@@ -1249,11 +1249,6 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 }
 
-void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
-{
-    nTime = max(GetBlockTime(), GetAdjustedTime());
-}
-
 void static InvalidBlockFound(CBlockIndex *pindex) {
     pindex->nStatus |= BLOCK_FAILED_VALID;
     pblocktree->WriteBlockIndex(CDiskBlockIndex(pindex));
@@ -1309,7 +1304,10 @@ bool ConnectBestBlock() {
     } while(true);
 }
 
+void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
 {
+    nTime = max(GetBlockTime(), GetAdjustedTime());
+}
 
 
 const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, CCoinsViewCache& view)
@@ -1455,7 +1453,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
                 const CCoins& coins = inputs.GetCoins(prevout.hash);
 
                 // Verify signature
-                if (!VerifySignature(coins, *this, i, fStrictPayToScriptHash/*, fStrictEncodings,*/ 0))
+                if (!VerifySignature(coins, *this, i, fStrictPayToScriptHash/*, fStrictEncodings*/, 0))
                 {
                     // only during transition phase for P2SH: do not invoke anti-DoS code for
                     // potentially old clients relaying bad P2SH transactions
@@ -1772,8 +1770,8 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
         return false;
 
     // Watch for transactions paying to me
-    BOOST_FOREACH(CTransaction& tx, vtx)
-        SyncWithWallets(tx, this, true);
+    for (unsigned int i=0; i<vtx.size(); i++)
+        SyncWithWallets(GetTxHash(i), vtx[i], this, true);
 
     return true;
 }
@@ -2800,7 +2798,7 @@ bool LoadBlockIndex(bool fAllowNew)
         bnProofOfStakeLimit = bnProofOfStakeLimitTestNet; // 0x00000fff PoS base target is fixed in testnet
         bnProofOfWorkLimit = bnProofOfWorkLimitTestNet; // 0x0000ffff PoW base target is fixed in testnet
         nStakeMinAge = 20 * 60; // test net min age is 20 min
-        nStakeMaxAge = 60 * 60; // test net min age is 60 min
+        nStakeMaxAge = 60 * 60; // test net max age is 60 min
 		nModifierInterval = 60; // test modifier interval is 2 minutes
         nCoinbaseMaturity = 10; // test maturity is 10 blocks
         nStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes

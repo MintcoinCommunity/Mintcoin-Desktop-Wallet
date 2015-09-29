@@ -97,6 +97,7 @@ extern CCriticalSection cs_setpwalletRegistered;
 extern std::set<CWallet*> setpwalletRegistered;
 extern unsigned char pchMessageStart[4];
 extern std::map<uint256, CBlock*> mapOrphanBlocks;
+extern std::map<uint256, uint256> mapProofOfStake;
 
 // Settings
 extern int64 nTransactionFee;
@@ -1296,7 +1297,7 @@ public:
         long fileOutPos = ftell(fileout);
         if (fileOutPos < 0)
             return error("CBlock::WriteToDisk() : ftell failed");
-        nBlockPosRet = fileOutPos;
+        pos.nPos = (unsigned int)fileOutPos;
         fileout << *this;
 
         // Flush stdio buffers and commit to disk before returning
@@ -1607,6 +1608,28 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
+    }
+
+    CDiskBlockPos GetBlockPos() const
+    {
+       CDiskBlockPos ret;
+        if (nStatus & BLOCK_HAVE_DATA) {
+            ret.nFile = nFile;
+            ret.nPos  = nDataPos;
+        } else
+            ret.SetNull();
+        return ret;
+    }
+
+    CDiskBlockPos GetUndoPos() const 
+    {
+       CDiskBlockPos ret;
+        if (nStatus & BLOCK_HAVE_UNDO) {
+            ret.nFile = nFile;
+            ret.nPos  = nUndoPos;
+        } else
+            ret.SetNull();
+        return ret;
     }
 
     CBlock GetBlockHeader() const
@@ -2084,10 +2107,12 @@ public:
     bool GetCoins(uint256 txid, CCoins &coins);
     bool SetCoins(uint256 txid, const CCoins &coins);
     bool HaveCoins(uint256 txid);
+    CCoins &GetCoins(uint256 txid);
     CBlockIndex *GetBestBlock();
     bool SetBestBlock(CBlockIndex *pindex);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
     bool Flush();
+    unsigned int GetCacheSize();
 
 private:
     std::map<uint256,CCoins>::iterator FetchCoins(uint256 txid);
