@@ -29,6 +29,7 @@ public:
     bool SetBestBlock(CBlockIndex *pindex);
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
+    bool GetStats(CCoinsStats &stats);
 };*/
 
 /** CCoinsView backed by the LevelDB coin database (coins/) */
@@ -68,6 +69,7 @@ public:
     bool WriteSyncCheckpoint(uint256 hashCheckpoint);
     bool ReadCheckpointPubKey(std::string& strPubKey);
     bool WriteCheckpointPubKey(const std::string& strPubKey);
+    bool GetStats(CCoinsStats &stats);
     bool LoadBlockIndexGuts();
 };
 

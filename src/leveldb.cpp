@@ -8,19 +8,21 @@
 #include <leveldb/env.h>
 #include <leveldb/cache.h>
 #include <leveldb/filter_policy.h>
+#include <memenv/memenv.h>
 
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 
-static leveldb::Options GetOptions() {
+leveldb::Options GetOptions(bool old) {
     leveldb::Options options;
     int nCacheSizeMB = GetArg("-dbcache", 25);
     options.block_cache = leveldb::NewLRUCache(nCacheSizeMB * 1048576);
     options.filter_policy = leveldb::NewBloomFilterPolicy(10);
-    options.compression = leveldb::kNoCompression;
+    if(!old)
+        options.compression = leveldb::kNoCompression;
     return options;
 }
 
-CLevelDB::CLevelDB(const boost::filesystem::path &path) {
+CLevelDB::CLevelDB(const boost::filesystem::path &path, bool fMemory) {
     penv = NULL;
     readoptions.verify_checksums = true;
     iteroptions.verify_checksums = true;
@@ -28,8 +30,13 @@ CLevelDB::CLevelDB(const boost::filesystem::path &path) {
     syncoptions.sync = true;
     options = GetOptions();
     options.create_if_missing = true;
-    boost::filesystem::create_directory(path);
-    printf("Opening LevelDB in %s\n", path.string().c_str());
+    if (fMemory) {
+        penv = leveldb::NewMemEnv(leveldb::Env::Default());
+        options.env = penv;
+    } else {
+        boost::filesystem::create_directory(path);
+        printf("Opening LevelDB in %s\n", path.string().c_str());
+    }
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
     if (!status.ok())
         throw std::runtime_error(strprintf("CLevelDB(): error opening database environment %s", status.ToString().c_str()));
