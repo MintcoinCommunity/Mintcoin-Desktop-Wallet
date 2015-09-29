@@ -6,19 +6,66 @@
 #ifndef BITCOIN_TXDB_H
 #define BITCOIN_TXDB_H
 
-// Allow switching between LevelDB and BerkelyDB here in case we need to temporarily
-// go back to BDB for any reason. Once we're confident enough with LevelDB to stick
-// with it, this can be deleted.
 
-#ifdef USE_LEVELDB
-#include "txdb-leveldb.h"
-#else
-#include "db.h"
-#include "txdb-bdb.h"
-#endif
+#include "main.h"
+#include "leveldb.h"
 
-// Sets up whatever database layer was chosen for in-memory only access. Used by the
-// the unit test framework.
-extern void MakeMockTXDB();
+#include <string>
+
+
+
+/** CCoinsView backed by another CCoinsView */
+/*class CCoinsViewBacked : public CCoinsView
+{
+protected:
+    CCoinsView *base;
+
+public:
+    CCoinsViewBacked(CCoinsView &viewIn);
+    bool GetCoins(uint256 txid, CCoins &coins);
+    bool SetCoins(uint256 txid, const CCoins &coins);
+    bool HaveCoins(uint256 txid);
+    CBlockIndex *GetBestBlock();
+    bool SetBestBlock(CBlockIndex *pindex);
+    void SetBackend(CCoinsView &viewIn);
+    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
+};*/
+
+/** CCoinsView backed by the LevelDB coin database (coins/) */
+class CCoinsViewDB : public CCoinsView
+{
+protected:
+    CLevelDB db;
+public:
+    CCoinsViewDB(bool fMemory = false);
+
+    bool GetCoins(uint256 txid, CCoins &coins);
+    bool SetCoins(uint256 txid, const CCoins &coins);
+    bool HaveCoins(uint256 txid);
+    CBlockIndex *GetBestBlock();
+    bool SetBestBlock(CBlockIndex *pindex);
+    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
+    bool GetStats(CCoinsStats &stats);
+};
+
+/** Access to the block database (blktree/) */
+class CBlockTreeDB : public CLevelDB
+{
+public:
+    CBlockTreeDB(bool fMemory = false); 
+private:
+    CBlockTreeDB(const CBlockTreeDB&);
+    void operator=(const CBlockTreeDB&);
+public:
+    bool WriteBlockIndex(const CDiskBlockIndex& blockindex);
+    bool ReadBestInvalidTrust(CBigNum& bnBestInvalidWork);
+    bool WriteBestInvalidTrust(const CBigNum& bnBestInvalidWork);
+    bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
+    bool WriteBlockFileInfo(int nFile, const CBlockFileInfo &fileinfo);
+    bool ReadLastBlockFile(int &nFile);
+    bool WriteLastBlockFile(int nFile);
+    bool LoadBlockIndexGuts();
+};
+
 
 #endif  // BITCOIN_TXDB_H

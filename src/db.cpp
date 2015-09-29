@@ -83,8 +83,8 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
     dbenv.set_cachesize(nDbCache / 1024, (nDbCache % 1024)*1048576, 1);
     dbenv.set_lg_bsize(1048576);
     dbenv.set_lg_max(10485760);
-    dbenv.set_lk_max_locks(10000);
-    dbenv.set_lk_max_objects(10000);
+    dbenv.set_lk_max_locks(40000);
+    dbenv.set_lk_max_objects(40000);
     dbenv.set_errfile(fopen(pathErrorFile.string().c_str(), "a")); /// debug
     dbenv.set_flags(DB_AUTO_COMMIT, 1);
     dbenv.set_flags(DB_TXN_WRITE_NOSYNC, 1);
@@ -248,7 +248,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
 
             ret = pdb->open(NULL,      // Txn pointer
                             fMockDb ? NULL : pszFile,   // Filename
-                            "main",    // Logical db name
+                            fMockDb ? pszFile : "main", // Logical db name
                             DB_BTREE,  // Database type
                             nFlags,    // Flags
                             0);
@@ -277,20 +277,16 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
 
 static bool IsChainFile(std::string strFile)
 {
-    if (strFile == "blkindex.dat")
+    if (strFile == "coins.dat" || strFile == "blktree.dat")
         return true;
 
     return false;
 }
 
-void CDB::Close()
+void CDB::Flush()
 {
-    if (!pdb)
-        return;
     if (activeTxn)
-        activeTxn->abort();
-    activeTxn = NULL;
-    pdb = NULL;
+        return;
 
     // Flush database activity from memory pool to disk log
     unsigned int nMinutes = 0;
@@ -302,7 +298,18 @@ void CDB::Close()
         nMinutes = 5;
 
     bitdb.dbenv.txn_checkpoint(nMinutes ? GetArg("-dblogsize", 100)*1024 : 0, nMinutes, 0);
+}
 
+void CDB::Close()
+{
+    if (!pdb)
+        return;
+    if (activeTxn)
+        activeTxn->abort();
+    activeTxn = NULL;
+    pdb = NULL;
+
+    Flush();
     {
         LOCK(bitdb.cs_db);
         --bitdb.mapFileUseCount[strFile];
