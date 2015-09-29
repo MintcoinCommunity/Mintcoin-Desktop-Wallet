@@ -1375,13 +1375,12 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint
     if (setCoins.empty())
         return false;
 
-    CTxDB txdb("r");
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
-        CTxIndex txindex;
+        // TODO: checking to see if TX is stored else skip. needs a gurantee then removal
         {
             LOCK2(cs_main, cs_wallet);
-            if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
+            if (!pcoinsTip->HaveCoins(pcoin.first->GetHash()))
                 continue;
         }
 
@@ -1451,19 +1450,22 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     CScript scriptPubKeyKernel;
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
-        CTxDB txdb("r");
-        CTxIndex txindex;
+        uint256 blockHash;
+        CTransaction tx;
 		{
 		    LOCK2(cs_main, cs_wallet);
-			if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
+			if (!pcoinsTip->HaveCoins(pcoin.first->GetHash()))
 				continue;
+            ::GetTransaction(pcoin.first->GetHash(), tx, blockHash, true);
 		}
+        
 
         // Read block header
         CBlock block;
+
 		{
 		    LOCK2(cs_main, cs_wallet);
-			if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+			if (!block.ReadFromDisk(mapBlockIndex[blockHash]))
 				continue;
 		}
 
@@ -1481,7 +1483,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
             uint256 hashProofOfStake = 0;
             COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
-            if (CheckStakeKernelHash(nBits, block, txindex.pos.nTxPos - txindex.pos.nBlockPos, *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake))
+            if (CheckStakeKernelHash(nBits, block, block.GetTxOffset(tx), *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake))
             {
                // Found a kernel
                 if (fDebug && GetBoolArg("-printcoinstake"))
@@ -1575,10 +1577,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Calculate coin age reward
     {
         uint64 nCoinAge;
-        CTxDB txdb("r");
         const CBlockIndex* pIndex0 = GetLastBlockIndex(pindexBest, true);
 
-        if (!txNew.GetCoinAge(txdb, nCoinAge))
+        if (!txNew.GetCoinAge(nCoinAge))
             return error("CreateCoinStake : failed to calculate coin age");
         nCredit += GetProofOfStakeReward(nCoinAge, nBits, txNew.nTime, pIndex0->nHeight+1);
     }
@@ -2125,16 +2126,15 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool
     for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         vCoins.push_back(&(*it).second);
 
-    CTxDB txdb("r");
     BOOST_FOREACH(CWalletTx* pcoin, vCoins)
     {
         // Find the corresponding transaction index
-        CTxIndex txindex;
-        if (!txdb.ReadTxIndex(pcoin->GetHash(), txindex))
+        if (!pcoinsTip->HaveCoins(pcoin->GetHash()))
             continue;
+        CCoins coins = pcoinsTip->GetCoins(pcoin->GetHash());
         for (unsigned int n=0; n < pcoin->vout.size(); n++)
         {
-            if (IsMine(pcoin->vout[n]) && pcoin->IsSpent(n) && (txindex.vSpent.size() <= n || txindex.vSpent[n].IsNull()))
+            if (IsMine(pcoin->vout[n]) && pcoin->IsSpent(n) && (coins.vout.size() <= n || false))
             {
                 printf("FixSpentCoins found lost coin %sppc %s[%d], %s\n",
                     FormatMoney(pcoin->vout[n].nValue).c_str(), pcoin->GetHash().ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
@@ -2146,7 +2146,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool
                     pcoin->WriteToDisk();
                 }
             }
-            else if (IsMine(pcoin->vout[n]) && !pcoin->IsSpent(n) && (txindex.vSpent.size() > n && !txindex.vSpent[n].IsNull()))
+            else if (IsMine(pcoin->vout[n]) && !pcoin->IsSpent(n) && (coins.vout.size() > n && true))
             {
                 printf("FixSpentCoins found spent coin %sppc %s[%d], %s\n",
                     FormatMoney(pcoin->vout[n].nValue).c_str(), pcoin->GetHash().ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
