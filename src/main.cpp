@@ -488,49 +488,41 @@ CTransaction::GetLegacySigOpCount() const
 
 int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
 {
-    if (fClient)
+    CBlock blockTmp;
+    if (pblock == NULL)
     {
-        if (hashBlock == 0)
-            return 0;
+        CCoins coins;
+        if (pcoinsTip->GetCoins(GetHash(), coins))
+        {
+            CBlockIndex *pindex = FindBlockByHeight(coins.nHeight);
+            if (pindex)
+            {
+                if (!blockTmp.ReadFromDisk(pindex))
+                    return 0;
+                pblock = &blockTmp;
+            }
+        }
     }
-    else
+
+    if (pblock)
     {
-        CBlock blockTmp;
-        if (pblock == NULL)
+        // Update the tx's hashBlock
+        hashBlock = pblock->GetHash();
+
+        // Locate the transaction
+        for (nIndex = 0; nIndex < (int)pblock->vtx.size(); nIndex++)
+            if (pblock->vtx[nIndex] == *(CTransaction*)this)
+                break;
+        if (nIndex == (int)pblock->vtx.size())
         {
-            CCoins coins;
-            if (pcoinsTip->GetCoins(GetHash(), coins))
-            {
-                CBlockIndex *pindex = FindBlockByHeight(coins.nHeight);
-                if (pindex)
-                {
-                    if (!blockTmp.ReadFromDisk(pindex))
-                        return 0;
-                    pblock = &blockTmp;
-                }
-            }
+            vMerkleBranch.clear();
+            nIndex = -1;
+            printf("ERROR: SetMerkleBranch() : couldn't find tx in block\n");
+            return 0;
         }
 
-        if (pblock)
-        {
-            // Update the tx's hashBlock
-            hashBlock = pblock->GetHash();
-
-            // Locate the transaction
-            for (nIndex = 0; nIndex < (int)pblock->vtx.size(); nIndex++)
-                if (pblock->vtx[nIndex] == *(CTransaction*)this)
-                    break;
-            if (nIndex == (int)pblock->vtx.size())
-            {
-                vMerkleBranch.clear();
-                nIndex = -1;
-                printf("ERROR: SetMerkleBranch() : couldn't find tx in block\n");
-                return 0;
-            }
-
-            // Fill in merkle branch
-            vMerkleBranch = pblock->GetMerkleBranch(nIndex);
-        }
+        // Fill in merkle branch
+        vMerkleBranch = pblock->GetMerkleBranch(nIndex);
     }
 
     // Is the tx in a block that's in the main chain
@@ -894,16 +886,7 @@ int CMerkleTx::GetBlocksToMaturity() const
 
 bool CMerkleTx::AcceptToMemoryPool(bool fCheckInputs)
 {
-    if (fClient)
-    {
-        if (!IsInMainChain() && !ClientCheckInputs())
-            return false;
-        return CTransaction::AcceptToMemoryPool(false);
-    }
-    else
-    {
-        return CTransaction::AcceptToMemoryPool(fCheckInputs);
-    }
+    return CTransaction::AcceptToMemoryPool(fCheckInputs);
 }
 
 
