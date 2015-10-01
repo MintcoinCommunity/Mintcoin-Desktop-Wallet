@@ -819,8 +819,8 @@ void CWallet::ReacceptWalletTransactions()
 
             CCoins coins;
             bool fUpdated = false;
-            bool fNotFound = pcoinsTip->GetCoins(wtx.GetHash(), coins);
-            if (!fNotFound || wtx.GetDepthInMainChain() > 0)
+            bool fFound = pcoinsTip->GetCoins(wtx.GetHash(), coins);
+            if (fFound || wtx.GetDepthInMainChain() > 0)
             {
                 // Update fSpent if a tx got spent somewhere else by a copy of wallet.dat
                 for (unsigned int i = 0; i < wtx.vout.size(); i++)
@@ -859,21 +859,19 @@ void CWallet::ReacceptWalletTransactions()
 
 void CWalletTx::RelayWalletTransaction()
 {
-    CCoinsViewCache& coins = *pcoinsTip;
     BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
     {
         if (!(tx.IsCoinBase() || tx.IsCoinStake()))
         {
-            uint256 hash = tx.GetHash();
-            if (!coins.HaveCoins(hash))
-                RelayMessage(CInv(MSG_TX, hash), (CTransaction)tx);
+            if (tx.GetDepthInMainChain() == 0)
+                RelayMessage(CInv(MSG_TX, tx.GetHash()), (CTransaction)tx);
         }
     }
     if (!(IsCoinBase() || IsCoinStake()))
     {
-        uint256 hash = GetHash();
-        if (!coins.HaveCoins(hash))
+        if (GetDepthInMainChain() == 0)
         {
+            uint256 hash = GetHash();
             printf("Relaying wtx %s\n", hash.ToString().substr(0,10).c_str());
             RelayMessage(CInv(MSG_TX, hash), (CTransaction)*this);
         }
