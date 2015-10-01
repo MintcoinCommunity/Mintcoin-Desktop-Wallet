@@ -169,6 +169,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/walletdb.h \
     src/script.h \
     src/init.h \
+    src/bloom.h \
     src/mruset.h \
     src/checkqueue.h \
     src/threadsafety.h \
@@ -242,6 +243,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/main.cpp \
     src/init.cpp \
     src/net.cpp \
+    src/bloom.cpp \
     src/checkpoints.cpp \
     src/addrman.cpp \
     src/db.cpp \
