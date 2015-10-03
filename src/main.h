@@ -849,7 +849,7 @@ public:
  * Blocks are appended to blk0001.dat files on disk.  Their location on disk
  * is indexed by CBlockIndex objects in memory.
  */
-class CBlock
+class CBlockHeader
 {
 public:
     // header
@@ -861,20 +861,7 @@ public:
     unsigned int nBits;
     unsigned int nNonce;
 
-    // network and disk
-    std::vector<CTransaction> vtx;
-
-    // ppcoin: block signature - signed by one of the coin base txout[N]'s owner
-    std::vector<unsigned char> vchBlockSig;
-
-    // memory only
-    mutable std::vector<uint256> vMerkleTree;
-
-    // Denial-of-service detection:
-    mutable int nDoS;
-    bool DoS(int nDoSIn, bool fIn) const { nDoS += nDoSIn; return fIn; }
-
-    CBlock()
+    CBlockHeader()
     {
         SetNull();
     }
@@ -888,32 +875,16 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-
-        // ConnectBlock depends on vtx following header to generate CDiskTxPos
-        if (!(nType & (SER_GETHASH|SER_BLOCKHEADERONLY)))
-        {
-            READWRITE(vtx);
-            READWRITE(vchBlockSig);
-        }
-        else if (fRead)
-        {
-            const_cast<CBlock*>(this)->vtx.clear();
-            const_cast<CBlock*>(this)->vchBlockSig.clear();
-        }
     )
 
     void SetNull()
     {
-        nVersion = CBlock::CURRENT_VERSION;
+        nVersion = CBlockHeader::CURRENT_VERSION;
         hashPrevBlock = 0;
         hashMerkleRoot = 0;
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-        vtx.clear();
-        vchBlockSig.clear();
-        vMerkleTree.clear();
-        nDoS = 0;
     }
 
     bool IsNull() const
@@ -939,6 +910,51 @@ public:
     }
 
     void UpdateTime(const CBlockIndex* pindexPrev);
+
+};
+
+class CBlock : public CBlockHeader
+{
+public:
+    // network and disk
+    std::vector<CTransaction> vtx;
+
+    // ppcoin: block signature - signed by one of the coin base txout[N]'s owner
+    std::vector<unsigned char> vchBlockSig;
+
+    // memory only
+    mutable std::vector<uint256> vMerkleTree;
+
+    // Denial-of-service detection:
+    mutable int nDoS;
+    bool DoS(int nDoSIn, bool fIn) const { nDoS += nDoSIn; return fIn; }
+
+    CBlock()
+    {
+        SetNull();
+    }
+
+    CBlock(const CBlockHeader &header)
+    {
+        SetNull();
+        *((CBlockHeader*)this) = header;
+    }
+
+    IMPLEMENT_SERIALIZE
+    (
+        READWRITE(*(CBlockHeader*)this);
+        READWRITE(vtx);
+        READWRITE(vchBlockSig);
+    )
+
+    void SetNull()
+    {
+        CBlockHeader::SetNull();
+        vtx.clear();
+        vchBlockSig.clear();
+        vMerkleTree.clear();
+        nDoS = 0;
+    }
 
     // ppcoin: entropy bit for stake modifier if chosen by modifier
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const
@@ -1052,7 +1068,7 @@ public:
         return true;
     }
 
-    bool ReadFromDisk(unsigned int nFile, unsigned int nBlockPos, bool fReadTransactions=true)
+    bool ReadFromDisk(unsigned int nFile, unsigned int nBlockPos)
     {
         SetNull();
 
@@ -1060,9 +1076,7 @@ public:
         CAutoFile filein = CAutoFile(OpenBlockFile(nFile, nBlockPos, "rb"), SER_DISK, CLIENT_VERSION);
         if (!filein)
             return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
-        if (!fReadTransactions)
-            filein.nType |= SER_BLOCKHEADERONLY;
-
+        
         // Read block
         try {
             filein >> *this;
@@ -1072,7 +1086,7 @@ public:
         }
 
         // Check the header
-        if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
+        if (IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
             return error("CBlock::ReadFromDisk() : errors in block header");
 
         return true;
@@ -1104,7 +1118,7 @@ public:
 
     bool DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex);
     bool ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck=false);
-    bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
+    bool ReadFromDisk(const CBlockIndex* pindex);
     bool SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew);
     bool AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos);
     bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true) const;
@@ -1225,9 +1239,9 @@ public:
         nNonce         = block.nNonce;
     }
 
-    CBlock GetBlockHeader() const
+    CBlockHeader GetBlockHeader() const
     {
-        CBlock block;
+        CBlockHeader block;
         block.nVersion       = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();

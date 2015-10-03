@@ -204,7 +204,7 @@ Value getblock(const Array& params, bool fHelp)
 
     CBlock block;
     CBlockIndex* pblockindex = mapBlockIndex[hash];
-    block.ReadFromDisk(pblockindex, true);
+    block.ReadFromDisk(pblockindex);
 
     return blockToJSON(block, pblockindex, params.size() > 1 ? params[1].get_bool() : false);
 }
@@ -229,7 +229,7 @@ Value getblockbynumber(const Array& params, bool fHelp)
     uint256 hash = *pblockindex->phashBlock;
 
     pblockindex = mapBlockIndex[hash];
-    block.ReadFromDisk(pblockindex, true);
+    block.ReadFromDisk(pblockindex);
 
     return blockToJSON(block, pblockindex, params.size() > 1 ? params[1].get_bool() : false);
 }

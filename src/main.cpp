@@ -834,7 +834,7 @@ int CTxIndex::GetDepthInMainChain() const
 {
     // Read block header
     CBlock block;
-    if (!block.ReadFromDisk(pos.nFile, pos.nBlockPos, false))
+    if (!block.ReadFromDisk(pos.nFile, pos.nBlockPos))
         return 0;
     // Find the block in the index
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.GetHash());
@@ -864,7 +864,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock)
         if (tx.ReadFromDisk(txdb, COutPoint(hash, 0), txindex))
         {
             CBlock block;
-            if (block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+            if (block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos))
                 hashBlock = block.GetHash();
             return true;
         }
@@ -897,14 +897,9 @@ CBlockIndex* FindBlockByHeight(int nHeight)
 }
 
 
-bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
+bool CBlock::ReadFromDisk(const CBlockIndex* pindex)
 {
-    if (!fReadTransactions)
-    {
-        *this = pindex->GetBlockHeader();
-        return true;
-    }
-    if (!ReadFromDisk(pindex->nFile, pindex->nBlockPos, fReadTransactions))
+    if (!ReadFromDisk(pindex->nFile, pindex->nBlockPos))
         return false;
     if (GetHash() != pindex->GetBlockHash())
         return error("CBlock::ReadFromDisk() : GetHash() doesn't match index");
@@ -912,7 +907,7 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
 }
 
 
-uint256 static GetOrphanRoot(const CBlock* pblock)
+uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 {
     // Work back to the first block in the orphan chain
     while (mapOrphanBlocks.count(pblock->hashPrevBlock))
@@ -1150,7 +1145,7 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 }
 
-void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
+void CBlockHeader::UpdateTime(const CBlockIndex* pindexPrev)
 {
     nTime = max(GetBlockTime(), GetAdjustedTime());
 }
@@ -1895,7 +1890,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, uint64& nCoinAge) const
 
         // Read block header
         CBlock block;
-        if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
+        if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos))
             return false; // unable to read block of previous transaction
         if (block.GetBlockTime() + nStakeMinAge > nTime)
             continue; // only count coins meeting min age requirement
@@ -3310,6 +3305,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 pindex = pindex->pnext;
         }
 
+        // we must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
         vector<CBlock> vHeaders;
         int nLimit = 2000;
         printf("getheaders %d to %s\n", (pindex ? pindex->nHeight : -1), hashStop.ToString().substr(0,20).c_str());
