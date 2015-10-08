@@ -8,7 +8,7 @@
 #include "db.h"
 #include "txdb.h"
 #include "net.h"
-#include "init.h" 
+#include "init.h"
 #include "ui_interface.h"
 #include "kernel.h"
 #include "scrypt_mine.h"
@@ -26,7 +26,7 @@ using namespace boost;
 //
 
 CCriticalSection cs_setpwalletRegistered;
-set<CWallet*> setpwalletRegistered; 
+set<CWallet*> setpwalletRegistered;
 
 CCriticalSection cs_main;
 
@@ -188,6 +188,10 @@ void ResendWalletTransactions()
 
 
 
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // CCoinsView implementations
@@ -201,6 +205,7 @@ bool CCoinsView::SetBestBlock(CBlockIndex *pindex) { return false; }
 bool CCoinsView::BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex) { return false; }
 bool CCoinsView::GetStats(CCoinsStats &stats) { return false; }
 
+
 CCoinsViewBacked::CCoinsViewBacked(CCoinsView &viewIn) : base(&viewIn) { }
 bool CCoinsViewBacked::GetCoins(uint256 txid, CCoins &coins) { return base->GetCoins(txid, coins); }
 bool CCoinsViewBacked::SetCoins(uint256 txid, const CCoins &coins) { return base->SetCoins(txid, coins); }
@@ -210,7 +215,7 @@ bool CCoinsViewBacked::SetBestBlock(CBlockIndex *pindex) { return base->SetBestB
 void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) { base = &viewIn; }
 bool CCoinsViewBacked::BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex) { return base->BatchWrite(mapCoins, pindex); }
 bool CCoinsViewBacked::GetStats(CCoinsStats &stats) { return base->GetStats(stats); }
- 
+
 CCoinsViewCache::CCoinsViewCache(CCoinsView &baseIn, bool fDummy) : CCoinsViewBacked(baseIn), pindexTip(NULL) { }
 
 bool CCoinsViewCache::GetCoins(uint256 txid, CCoins &coins) {
@@ -279,7 +284,6 @@ bool CCoinsViewCache::Flush() {
 unsigned int CCoinsViewCache::GetCacheSize() {
     return cacheCoins.size();
 }
-
 
 /** CCoinsView that brings transactions from a memorypool into view.
     It does not check for spendings by memory pool transactions. */
@@ -373,6 +377,10 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
     }
     return nEvicted;
 }
+
+
+
+
 
 
 
@@ -547,6 +555,9 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
 
 
 
+
+
+
 bool CTransaction::CheckTransaction() const
 {
     // Basic checks that don't depend on any context
@@ -632,7 +643,6 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
     return nMinFee;
 }
 
-
 void CTxMemPool::pruneSpent(const uint256 &hashTx, CCoins &coins)
 {
     LOCK(cs);
@@ -709,13 +719,21 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs,
 
     if (fCheckInputs)
     {
-        CCoinsViewCache &view = *pcoinsTip;
+        CCoinsView dummy;
+        CCoinsViewCache view(dummy);
+
+        {
+        LOCK(cs);
+        CCoinsViewMemPool viewMemPool(*pcoinsTip, *this);
+        view.SetBackend(viewMemPool);
 
         // do we already have it?
         if (view.HaveCoins(hash))
             return false;
 
         // do all inputs exist?
+        // Note that this does not check for the presence of actual outputs (see the next check for that),
+        // only helps filling in pfMissingInputs (to determine missing vs spent).
         BOOST_FOREACH(const CTxIn txin, tx.vin) {
             if (!view.HaveCoins(txin.prevout.hash)) {
                 if (pfMissingInputs)
@@ -724,8 +742,16 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs,
             }
         }
 
+        // are the actual inputs available?
         if (!tx.HaveInputs(view))
             return error("CTxMemPool::accept() : inputs already spent");
+ 
+        // Bring the best block into scope
+        view.GetBestBlock();
+
+        // we have all inputs cached now, so switch back to dummy, so we don't need to keep lock on mempool
+        view.SetBackend(dummy);
+        }
 
         // Check for non-standard pay-to-script-hash in inputs
         if (!tx.AreInputsStandard(view) && !fTestNet)
@@ -756,7 +782,6 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs,
             int64 nNow = GetTime();
 
             {
-                LOCK(cs);
                 // Use an exponentially decaying ~10-minute window:
                 dFreeCount *= pow(1.0 - 1.0/600.0, (double)(nNow - nLastTime));
                 nLastTime = nNow;
@@ -907,9 +932,9 @@ bool CMerkleTx::AcceptToMemoryPool(bool fCheckInputs)
 }
 
 
+
 bool CWalletTx::AcceptWalletTransaction(bool fCheckInputs)
 {
-
     {
         LOCK(mempool.cs);
         // Add previous supporting transactions first
@@ -927,6 +952,7 @@ bool CWalletTx::AcceptWalletTransaction(bool fCheckInputs)
     return false;
 }
 
+
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
 bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock, bool fAllowSlow)
 {
@@ -941,7 +967,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
                 return true;
             }
         }
-       
+
         if (fAllowSlow) { // use coin database to locate block that contains transaction, and scan it
             int nHeight = -1;
             {
@@ -954,7 +980,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
                 pindexSlow = FindBlockByHeight(nHeight);
         }
     }
-    
+
     if (pindexSlow) {
         CBlock block;
         if (block.ReadFromDisk(pindexSlow)) {
@@ -970,6 +996,10 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 
     return false;
 }
+
+
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -995,7 +1025,6 @@ CBlockIndex* FindBlockByHeight(int nHeight)
     return pblockindex;
 }
 
-
 bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
 {
     if (!fReadTransactions)
@@ -1009,7 +1038,6 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
         return error("CBlock::ReadFromDisk() : GetHash() doesn't match index");
     return true;
 }
-
 
 uint256 static GetOrphanRoot(const CBlock* pblock)
 {
@@ -1400,6 +1428,9 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
             return error("CheckInputs() : %s inputs unavailable", GetHash().ToString().substr(0,10).c_str());
 
         CBlockIndex *pindexBlock = inputs.GetBestBlock();
+        // While checking, GetBestBlock() refers to the parent block.
+        // This is also true for mempool checks.
+        int nSpendHeight = pindexBlock->nHeight + 1;
         int64 nValueIn = 0;
         int64 nFees = 0;
 
@@ -1425,8 +1456,8 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
             // If prev is coinbase or coinstake, check that it's matured
             if (coins.IsCoinBase() || coins.IsCoinStake(prevout.hash))
             {
-                if (pindexBlock->nHeight - coins.nHeight < nMinConfirmations)
-                    return error("CheckInputs() : tried to spend coinbase at depth %d", pindexBlock->nHeight - coins.nHeight);
+                if (nSpendHeight - coins.nHeight < nMinConfirmations)
+                    return error("CheckInputs() : tried to spend coinbase at depth %d", nSpendHeight - coins.nHeight);
             }
             // ppcoin: check transaction timestamp
             if (block && txPrev.nTime > nTime)
@@ -2211,10 +2242,13 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
         if (GetBlockTime() < (int64)tx.nTime)
             return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
     }
+    // Build the merkle tree already. We need it anyway later, and it makes the
+    // block cache the transaction hashes, which means they don't need to be
+    // recalculated many times during this block's validation.
+    BuildMerkleTree();
 
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
-    BuildMerkleTree();
     set<uint256> uniqueTx;
     for (unsigned int i=0; i<vtx.size(); i++)
         uniqueTx.insert(GetTxHash(i));
@@ -4279,7 +4313,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 int64 nValueIn = coins.vout[txin.prevout.n].nValue;
                 nTotalIn += nValueIn;
 
-                int nConf = pindexPrev->nHeight - coins.nHeight;
+                int nConf = pindexPrev->nHeight - coins.nHeight + 1;
                 dPriority += (double)nValueIn * nConf;
             }
             if (fMissingInputs) continue;
