@@ -12,23 +12,22 @@
 
 //#include <boost/filesystem.hpp>
 
-leveldb::Options GetOptions(bool old) {
+static leveldb::Options GetOptions(size_t nCacheSize) {
     leveldb::Options options;
-    int nCacheSizeMB = GetArg("-dbcache", 25);
-    options.block_cache = leveldb::NewLRUCache(nCacheSizeMB * 1048576);
+    options.block_cache = leveldb::NewLRUCache(nCacheSize / 2);
+    options.write_buffer_size = nCacheSize / 4; // up to two write buffers may be held in memory simultaneously
     options.filter_policy = leveldb::NewBloomFilterPolicy(10);
-    if(!old)
-        options.compression = leveldb::kNoCompression;
+    options.compression = leveldb::kNoCompression;
     return options;
 }
 
-CLevelDB::CLevelDB(const boost::filesystem::path &path, bool fMemory) {
+CLevelDB::CLevelDB(const boost::filesystem::path &path, size_t nCacheSize, bool fMemory) {
     penv = NULL;
     readoptions.verify_checksums = true;
     iteroptions.verify_checksums = true;
     iteroptions.fill_cache = false;
     syncoptions.sync = true;
-    options = GetOptions();
+    options = GetOptions(nCacheSize);
     options.create_if_missing = true;
     if (fMemory) {
         penv = leveldb::NewMemEnv(leveldb::Env::Default());

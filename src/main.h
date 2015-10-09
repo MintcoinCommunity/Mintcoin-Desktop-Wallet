@@ -98,6 +98,7 @@ extern unsigned char pchMessageStart[4];
 extern std::map<uint256, CBlock*> mapOrphanBlocks;
 extern std::map<uint256, uint256> mapProofOfStake;
 extern bool fImporting;
+extern unsigned int nCoinCacheSize;
 
 // Settings
 extern int64 nTransactionFee;

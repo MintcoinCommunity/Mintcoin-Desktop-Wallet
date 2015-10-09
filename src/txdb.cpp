@@ -29,7 +29,8 @@ void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
     batch.Write('B', hash);
 }
 
-CCoinsViewDB::CCoinsViewDB(bool fMemory) : db(GetDataDir() / "coins", fMemory) {}
+CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory) : db(GetDataDir() / "coins", nCacheSize, fMemory) {
+}
 
 bool CCoinsViewDB::GetCoins(uint256 txid, CCoins &coins) { 
     return db.Read(make_pair('c', txid), coins); 
@@ -73,7 +74,8 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockI
     return db.WriteBatch(batch);
 }
 
-CBlockTreeDB::CBlockTreeDB(bool fMemory) : CLevelDB(GetDataDir() / "blktree", fMemory) {}
+CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory) : CLevelDB(GetDataDir() / "blktree", nCacheSize, fMemory) {
+}
 
 bool CBlockTreeDB::WriteBlockIndex(const CDiskBlockIndex& blockindex)
 {

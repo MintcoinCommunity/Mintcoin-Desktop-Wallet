@@ -11,8 +11,6 @@
 
 #include <boost/filesystem/path.hpp>
 
-leveldb::Options GetOptions(bool old = false);
-
 // Batch of changes queued to be written to a CLevelDB
 class CLevelDBBatch
 {
@@ -71,7 +69,7 @@ private:
     leveldb::DB *pdb;
 
 public:
-    CLevelDB(const boost::filesystem::path &path, bool fMemory = false);
+    CLevelDB(const boost::filesystem::path &path, size_t nCacheSize, bool fMemory = false);
     ~CLevelDB();
 
     template<typename K, typename V> bool Read(const K& key, V& value) {
