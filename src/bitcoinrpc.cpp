@@ -176,14 +176,12 @@ Value help(const Array& params, bool fHelp)
 
 Value stop(const Array& params, bool fHelp)
 {
+    // Accept the deprecated and ignored 'detach´ boolean argument
     if (fHelp || params.size() > 1)
         throw runtime_error(
-            "stop <detach>\n"
-            "<detach> is true or false to detach the database or not for this stop only\n"
-            "Stop MintCoin server (and possibly override the detachdb config value).");
+            "stop\n"
+            "Stop MintCoin server.");
     // Shutdown will take long enough that the response should get back
-    if (params.size() > 0)
-        bitdb.SetDetach(params[0].get_bool());
     StartShutdown();
     return "MintCoin server stopping";
 }

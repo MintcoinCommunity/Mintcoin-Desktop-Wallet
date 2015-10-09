@@ -275,14 +275,6 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
     }
 }
 
-static bool IsChainFile(std::string strFile)
-{
-    if (strFile == "coins.dat" || strFile == "blktree.dat")
-        return true;
-
-    return false;
-}
-
 void CDB::Flush()
 {
     if (activeTxn)
@@ -292,10 +284,6 @@ void CDB::Flush()
     unsigned int nMinutes = 0;
     if (fReadOnly)
         nMinutes = 1;
-    if (IsChainFile(strFile))
-        nMinutes = 2;
-    if (IsChainFile(strFile) && IsInitialBlockDownload())
-        nMinutes = 5;
 
     bitdb.dbenv.txn_checkpoint(nMinutes ? GetArg("-dblogsize", 100)*1024 : 0, nMinutes, 0);
 }
@@ -310,6 +298,7 @@ void CDB::Close()
     pdb = NULL;
 
     Flush();
+
     {
         LOCK(bitdb.cs_db);
         --bitdb.mapFileUseCount[strFile];
@@ -456,11 +445,9 @@ void CDBEnv::Flush(bool fShutdown)
                 CloseDb(strFile);
                 printf("%s checkpoint\n", strFile.c_str());
                 dbenv.txn_checkpoint(0, 0, 0);
-                if (!IsChainFile(strFile) || fDetachDB) {
-                    printf("%s detach\n", strFile.c_str());
-                    if (!fMockDb)
-                        dbenv.lsn_reset(strFile.c_str(), 0);
-                }
+                printf("%s detach\n", strFile.c_str());
+                if (!fMockDb)
+                    dbenv.lsn_reset(strFile.c_str(), 0);
                 printf("%s closed\n", strFile.c_str());
                 mapFileUseCount.erase(mi++);
             }
@@ -479,6 +466,15 @@ void CDBEnv::Flush(bool fShutdown)
         }
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 //
