@@ -88,9 +88,7 @@ void ClientModel::updateAlert(const QString &hash, int status)
         }
     }
 
-    // Emit a numBlocksChanged when the status message changes,
-    // so that the view recomputes and updates the status bar.
-    emit numBlocksChanged(getNumBlocks(), getNumBlocksOfPeers());
+    emit alertsChanged(getStatusBarWarnings());
 }
 
 
@@ -159,6 +157,11 @@ QString ClientModel::formatFullVersion() const
 QString ClientModel::formatBuildDate() const
 {
     return QString::fromStdString(CLIENT_DATE);
+}
+
+bool ClientModel::isReleaseVersion() const
+{
+    return CLIENT_VERSION_IS_RELEASE;
 }
 
 QString ClientModel::clientName() const
