@@ -33,8 +33,6 @@ class CDBEnv
 private:
     bool fDbEnvInit;
     bool fMockDb;
-    boost::filesystem::path pathEnv;
-    std::string strPath;
 
     void EnvShutdown();
 
@@ -47,7 +45,7 @@ public:
     CDBEnv();
     ~CDBEnv();
     void MakeMock();
-    bool IsMock() { return fMockDb; };
+    bool IsMock() { return fMockDb; }
 
     /*
      * Verify that database file strFile is OK. If it is not,
@@ -67,7 +65,7 @@ public:
     typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char> > KeyValPair;
     bool Salvage(std::string strFile, bool fAggressive, std::vector<KeyValPair>& vResult);
 
-    bool Open(boost::filesystem::path pathEnv_);
+    bool Open(const boost::filesystem::path &path);
     void Close();
     void Flush(bool fShutdown);
     void CheckpointLSN(std::string strFile);
