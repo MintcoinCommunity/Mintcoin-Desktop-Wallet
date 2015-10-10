@@ -317,7 +317,8 @@ public:
 
 
 
-    void BeginMessage(const char* pszCommand)
+    // TODO: Document the postcondition of this function.  Is cs_vSend locked?
+    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend)
     {
         ENTER_CRITICAL_SECTION(cs_vSend);
         if (nHeaderStart != -1)
@@ -329,7 +330,8 @@ public:
             printf("sending: %s ", pszCommand);
     }
 
-    void AbortMessage()
+    // TODO: Document the precondition of this function.  Is cs_vSend locked?
+    void AbortMessage() UNLOCK_FUNCTION(cs_vSend)
     {
         if (nHeaderStart < 0)
             return;
@@ -342,7 +344,8 @@ public:
             printf("(aborted)\n");
     }
 
-    void EndMessage()
+    // TODO: Document the precondition of this function.  Is cs_vSend locked?
+    void EndMessage() UNLOCK_FUNCTION(cs_vSend)
     {
         if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
         {
@@ -373,19 +376,6 @@ public:
         nMessageStart = -1;
         LEAVE_CRITICAL_SECTION(cs_vSend);
     }
-
-    void EndMessageAbortIfEmpty()
-    {
-        if (nHeaderStart < 0)
-            return;
-        int nSize = vSend.size() - nMessageStart;
-        if (nSize > 0)
-            EndMessage();
-        else
-            AbortMessage();
-    }
-
-
 
     void PushVersion();
 
