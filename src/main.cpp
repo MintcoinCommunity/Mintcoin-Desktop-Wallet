@@ -614,7 +614,6 @@ bool CTransaction::CheckTransaction() const
     return true;
 }
 
-
 int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
                               enum GetMinFee_mode mode, unsigned int nBytes) const
 {
@@ -747,7 +746,7 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs,
         // are the actual inputs available?
         if (!tx.HaveInputs(view))
             return error("CTxMemPool::accept() : inputs already spent");
- 
+
         // Bring the best block into scope
         view.GetBestBlock();
 
@@ -1299,7 +1298,7 @@ bool ConnectBestBlock() {
             pindexNewBest = *it;
         }
 
-        if (pindexNewBest == pindexBest)
+        if (pindexNewBest == pindexBest || (pindexBest && pindexNewBest->nChainTrust == pindexBest->nChainTrust))
             return true; // nothing to do
 
         // check ancestry
@@ -1340,13 +1339,21 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
 }
 
 
-const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, CCoinsViewCache& view)
+
+
+
+
+
+
+
+
+
+const CTxOut &CTransaction::GetOutputFor(const CTxIn& input, CCoinsViewCache& view)
 {
     const CCoins &coins = view.GetCoins(input.prevout.hash);
     assert(coins.IsAvailable(input.prevout.n));
     return coins.vout[input.prevout.n];
 }
-
 
 int64 CTransaction::GetValueIn(CCoinsViewCache& inputs) const
 {
@@ -1356,10 +1363,9 @@ int64 CTransaction::GetValueIn(CCoinsViewCache& inputs) const
     int64 nResult = 0;
     for (unsigned int i = 0; i < vin.size(); i++)
         nResult += GetOutputFor(vin[i], inputs).nValue;
+
     return nResult;
-
 }
-
 
 unsigned int CTransaction::GetP2SHSigOpCount(CCoinsViewCache& inputs) const
 {
@@ -1376,10 +1382,8 @@ unsigned int CTransaction::GetP2SHSigOpCount(CCoinsViewCache& inputs) const
     return nSigOps;
 }
 
-
 bool CTransaction::UpdateCoins(CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight, const uint256 &txhash) const
 {
-
     // mark inputs spent
     if (!IsCoinBase()) {
         BOOST_FOREACH(const CTxIn &txin, vin) {
@@ -1477,7 +1481,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
         // Helps prevent CPU exhaustion attacks.
 
         // Skip ECDSA signature verification when connecting blocks
-        // before the last blockchain checkpoint. This is safe because block merkle hashes are
+        // before the last block chain checkpoint. This is safe because block merkle hashes are
         // still computed and checked, and any change will be caught at the next checkpoint.
         if (csmode == CS_ALWAYS ||
             (csmode == CS_AFTER_CHECKPOINT && inputs.GetBestBlock()->nHeight >= Checkpoints::GetTotalBlocksEstimate())) {
@@ -1571,7 +1575,9 @@ bool CTransaction::ClientCheckInputs() const
 }
 
 
-bool CBlock::DisconnectBlock(CBlockIndex* pindex, CCoinsViewCache &view)
+
+
+bool CBlock::DisconnectBlock(CBlockIndex *pindex, CCoinsViewCache &view)
 {
     assert(pindex == view.GetBestBlock());
 
@@ -1590,8 +1596,7 @@ bool CBlock::DisconnectBlock(CBlockIndex* pindex, CCoinsViewCache &view)
     assert(blockUndo.vtxundo.size() + 1 == vtx.size());
 
     // undo transactions in reverse order
-    for (int i = vtx.size() - 1; i >= 0; i--)
-    {
+    for (int i = vtx.size() - 1; i >= 0; i--) {
         const CTransaction &tx = vtx[i];
         uint256 hash = tx.GetHash();
 
@@ -1649,6 +1654,7 @@ bool CBlock::DisconnectBlock(CBlockIndex* pindex, CCoinsViewCache &view)
 
     return true;
 }
+
 void static FlushBlockFile()
 {
     LOCK(cs_LastBlockFile);
@@ -1791,7 +1797,7 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
             return error("ConnectBlock() : WriteBlockIndex failed");
     }
 
-    // add this block to the view's blockchain
+    // add this block to the view's block chain
     if (!view.SetBestBlock(pindex))
         return false;
 
@@ -2099,8 +2105,8 @@ bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
 
     
     pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew));
-    
-    // New best ?
+
+    // New best?
     if (!ConnectBestBlock())
         return false;
 
@@ -2111,6 +2117,7 @@ bool CBlock::AddToBlockIndex(const CDiskBlockPos &pos)
         UpdatedTransaction(hashPrevBestCoinBase);
         hashPrevBestCoinBase = GetTxHash(0);
     }
+
     pblocktree->Flush();
 
     uiInterface.NotifyBlocksChanged();
@@ -2144,8 +2151,8 @@ bool FindBlockPos(CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeigh
         if (file) {
             printf("Pre-allocating up to position 0x%x in blk%05u.dat\n", nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
             AllocateFileRange(file, pos.nPos, nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos);
+                fclose(file);
         }
-        fclose(file);
     }
 
     if (!pblocktree->WriteBlockFileInfo(nLastBlockFile, infoLastBlockFile))
@@ -2185,12 +2192,13 @@ bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize)
         if (file) {
             printf("Pre-allocating up to position 0x%x in rev%05u.dat\n", nNewChunks * UNDOFILE_CHUNK_SIZE, pos.nFile);
             AllocateFileRange(file, pos.nPos, nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos);
+            fclose(file);
         }
-        fclose(file);
-     }
+    }
 
     return true;
 }
+
 
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
 {

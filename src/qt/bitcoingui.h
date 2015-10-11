@@ -210,4 +210,4 @@ private slots:
     void noMessage();
 };
 
-#endif
+#endif // BITCOINGUI_H

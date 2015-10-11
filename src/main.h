@@ -161,6 +161,7 @@ void ResendWalletTransactions();
 
 
 
+
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
 class CDiskBlockPos
@@ -185,6 +186,7 @@ public:
     void SetNull() { nFile = -1; nPos = 0; }
     bool IsNull() const { return (nFile == -1); }
 };
+
 
 
 
@@ -436,7 +438,6 @@ class CTransaction
 {
 public:
     static const int CURRENT_VERSION=1;
-
     int nVersion;
     unsigned int nTime;
     std::vector<CTxIn> vin;
@@ -460,7 +461,7 @@ public:
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
-	)
+    )
 
     void SetNull()
     {
@@ -668,6 +669,7 @@ public:
 
     // Context-independent validity checks
     bool CheckTransaction() const;
+
     // Try to accept this transaction into the memory pool
     bool AcceptToMemoryPool(bool fCheckInputs=true, bool* pfMissingInputs=NULL);
     bool GetCoinAge(uint64& nCoinAge) const;  // ppcoin: get transaction coin age
@@ -749,7 +751,7 @@ class CTxUndo
 {
 public:
     // undo information for all txins
-    std::vector<CTxInUndo> vprevout; 
+    std::vector<CTxInUndo> vprevout;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(vprevout);
@@ -780,7 +782,7 @@ public:
         // Write undo data
         long fileOutPos = ftell(fileout);
         if (fileOutPos < 0)
-            return error("CBlock::WriteToDisk() : ftell failed");
+            return error("CBlockUndo::WriteToDisk() : ftell failed");
         pos.nPos = (unsigned int)fileOutPos;
         fileout << *this;
 
@@ -791,7 +793,6 @@ public:
 
         return true;
     }
-
 };
 
 /** pruned version of CTransaction: only retains metadata and unspent transaction outputs
@@ -875,7 +876,7 @@ public:
 
     // equality test
     friend bool operator==(const CCoins &a, const CCoins &b) {
-         return a.fCoinBase == b.fCoinBase && 
+         return a.fCoinBase == b.fCoinBase &&
                 a.nHeight == b.nHeight &&
                 a.nVersion == b.nVersion &&
                 a.vout == b.vout;
@@ -1042,6 +1043,8 @@ public:
     }
 };
 
+
+
 /** A transaction with a merkle branch linking it to the block chain. */
 class CMerkleTx : public CTransaction
 {
@@ -1089,6 +1092,14 @@ public:
     int GetBlocksToMaturity() const;
     bool AcceptToMemoryPool(bool fCheckInputs=true);
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -1399,6 +1410,7 @@ public:
 
 
 
+
 class CBlockFileInfo
 {
 public:
@@ -1544,6 +1556,7 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+
 
     CBlockIndex()
     {
@@ -1775,6 +1788,8 @@ struct CBlockIndexTrustComparator
         return false; // identical blocks
     }
 };
+
+
 
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex
@@ -2080,6 +2095,9 @@ public:
 
     // Calculate statistics about the unspent transaction output set
     virtual bool GetStats(CCoinsStats &stats);
+
+    // As we use CCoinsViews polymorphically, have a virtual destructor
+    virtual ~CCoinsView() {}
 };
 
 /** CCoinsView backed by another CCoinsView */
@@ -2146,8 +2164,6 @@ public:
     bool GetCoins(uint256 txid, CCoins &coins);
     bool HaveCoins(uint256 txid);
 };
-
-
 
 /** Global variable that points to the active CCoinsView (protected by cs_main) */
 extern CCoinsViewCache *pcoinsTip;
