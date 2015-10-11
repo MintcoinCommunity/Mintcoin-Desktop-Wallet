@@ -214,6 +214,15 @@ public:
         READWRITE(VARINT(nPos));
     )
 
+    CDiskBlockPos() {
+        SetNull();
+    }
+
+    CDiskBlockPos(int nFileIn, unsigned int nPosIn) {
+        nFile = nFileIn;
+        nPos = nPosIn;
+    }
+
     friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
         return (a.nFile == b.nFile && a.nPos == b.nPos);
     }
@@ -1683,8 +1692,7 @@ public:
         if (nStatus & BLOCK_HAVE_DATA) {
             ret.nFile = nFile;
             ret.nPos  = nDataPos;
-        } else
-            ret.SetNull();
+        }
         return ret;
     }
 
@@ -1694,8 +1702,7 @@ public:
         if (nStatus & BLOCK_HAVE_UNDO) {
             ret.nFile = nFile;
             ret.nPos  = nUndoPos;
-        } else
-            ret.SetNull();
+        }
         return ret;
     }
 
