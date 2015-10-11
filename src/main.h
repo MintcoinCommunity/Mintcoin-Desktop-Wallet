@@ -2090,7 +2090,8 @@ public:
     bool accept(CTransaction &tx, bool fCheckInputs, bool* pfMissingInputs);
     void pruneSpent(const uint256 &hashTx, CCoins &coins);
     bool addUnchecked(const uint256& hash, CTransaction &tx);
-    bool remove(CTransaction &tx);
+    bool remove(const CTransaction &tx, bool fRecursive = false);
+    bool removeConflicts(const CTransaction &tx);
     void clear();
     void queryHashes(std::vector<uint256>& vtxid);
 
