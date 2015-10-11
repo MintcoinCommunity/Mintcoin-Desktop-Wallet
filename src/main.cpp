@@ -4292,6 +4292,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         // Priority order to process transactions
         list<COrphan> vOrphan; // list memory doesn't move
         map<uint256, vector<COrphan*> > mapDependers;
+        bool fPrintPriority = GetBoolArg("-printpriority");
 
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vecPriority;
@@ -4430,12 +4431,12 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
             if (!tx.CheckInputs(viewTemp, CS_ALWAYS, SCRIPT_VERIFY_P2SH, pblock.get()))
                 continue;
-            
+
             CTxUndo txundo;
             uint256 hash = tx.GetHash();
             if (!tx.UpdateCoins(viewTemp, txundo, pindexPrev->nHeight+1, hash))
                 continue;
-            
+
             // push changes from the second layer cache to the first one
             viewTemp.Flush();
 
@@ -4446,7 +4447,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
 
-            if (fDebug && GetBoolArg("-printpriority"))
+            if (fPrintPriority)
             {
                 printf("priority %.1f feeperkb %.1f txid %s\n",
                        dPriority, dFeePerKb, tx.GetHash().ToString().c_str());
