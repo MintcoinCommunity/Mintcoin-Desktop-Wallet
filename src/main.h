@@ -71,6 +71,10 @@ inline int64 GetClockDrift(int64 nTime)
 extern CScript COINBASE_FLAGS;
 
 
+
+
+
+
 extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
@@ -99,6 +103,7 @@ extern std::map<uint256, CBlock*> mapOrphanBlocks;
 extern std::map<uint256, uint256> mapProofOfStake;
 extern bool fImporting;
 extern bool fReindex;
+extern bool fBenchmark;
 extern unsigned int nCoinCacheSize;
 
 // Settings

@@ -486,6 +486,7 @@ bool AppInit2()
     // ********************************************************* Step 3: parameter-to-internal-flags
 
     fDebug = GetBoolArg("-debug");
+    fBenchmark = GetBoolArg("-benchmark");
 
     // -debug implies fDebug*
     if (fDebug)
