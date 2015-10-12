@@ -1861,7 +1861,7 @@ bool SetBestChain(CBlockIndex* pindexNew)
     // Find the fork (typically, there is none)
     CBlockIndex* pfork = view.GetBestBlock();
     CBlockIndex* plonger = pindexNew;
-    while (pfork != plonger)
+    while (pfork && pfork != plonger)
     {
         while (plonger->nHeight > pfork->nHeight)
             if (!(plonger = plonger->pprev))
@@ -2820,16 +2820,20 @@ bool LoadBlockIndexDB()
     printf("LoadBlockIndex(): last block file = %i\n", nLastBlockFile);
     if (pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile))
         printf("LoadBlockIndex(): last block file: %s\n", infoLastBlockFile.ToString().c_str());
- 
+    
+    // Load bnBestInvalidTrust, OK if it doesn't exist
+    CBigNum bnBestInvalidTrust;
+    pblocktree->ReadBestInvalidTrust(bnBestInvalidTrust);
+    nBestInvalidTrust = bnBestInvalidTrust.getuint256();
+    // Check whether we need to continue reindexing
+    bool fReindexing = false;
+    pblocktree->ReadReindexing(fReindexing);
+    fReindex |= fReindexing;    
 
     // Load hashBestChain pointer to end of best chain
     pindexBest = pcoinsTip->GetBestBlock();
     if (pindexBest == NULL)
-    {
-        if (pindexGenesisBlock == NULL)
-            return true;
-    }
-    
+        return true;
     hashBestChain = pindexBest->GetBlockHash();
     nBestHeight = pindexBest->nHeight;
     nBestChainTrust = pindexBest->nChainTrust;
@@ -2849,15 +2853,6 @@ bool LoadBlockIndexDB()
     if (!pblocktree->ReadSyncCheckpoint(Checkpoints::hashSyncCheckpoint))
         return error("LoadBlockIndexDB() : hashSyncCheckpoint not loaded");
     printf("LoadBlockIndex(): synchronized checkpoint %s\n", Checkpoints::hashSyncCheckpoint.ToString().c_str());
-
-    // Load bnBestInvalidTrust, OK if it doesn't exist
-    CBigNum bnBestInvalidTrust;
-    pblocktree->ReadBestInvalidTrust(bnBestInvalidTrust);
-    nBestInvalidTrust = bnBestInvalidTrust.getuint256();
-    // Check whether we need to continue reindexing
-    bool fReindexing = false;
-    pblocktree->ReadReindexing(fReindexing);
-    fReindex |= fReindexing;
 
     // Verify blocks in the best chain
     int nCheckLevel = GetArg("-checklevel", 1);
