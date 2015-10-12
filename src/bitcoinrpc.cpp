@@ -1244,6 +1244,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "sendalert"              && n > 6) ConvertTo<boost::int64_t>(params[6]);
     if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "importprivkey"          && n > 2) ConvertTo<bool>(params[2]);
 
     return params;
 }
