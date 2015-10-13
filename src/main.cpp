@@ -1776,6 +1776,9 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
                 return error("ConnectBlock() : tried to overwrite transaction");
         }
     
+    unsigned int flags = SCRIPT_VERIFY_NOCACHE |
+                         (fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE);
+
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
 
     int64 nStart = GetTimeMicros();
@@ -1819,7 +1822,7 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
                 nFees += nTxValueIn - nTxValueOut;
 
             std::vector<CScriptCheck> vChecks;
-            if (!tx.CheckInputs(view, fScriptChecks, fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE, nScriptCheckThreads ? &vChecks : NULL))
+            if (!tx.CheckInputs(view, fScriptChecks, flags, nScriptCheckThreads ? &vChecks : NULL, this))
                 return false;
             control.Add(vChecks);
         }
