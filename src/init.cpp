@@ -812,7 +812,7 @@ bool AppInit2()
     nCoinCacheSize = nTotalCache / 300; // coins in memory require around 300 bytes
 
     uiInterface.InitMessage(_("Loading block index..."));
-    printf("Loading block index...\n");
+
     nStart = GetTimeMillis();
     pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
     pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
@@ -897,7 +897,6 @@ bool AppInit2()
 
     }
     #endif
-    printf("Loading wallet...\n");
     nStart = GetTimeMillis();
     bool fFirstRun = true;
     pwalletMain = new CWallet("wallet.dat");
@@ -995,7 +994,7 @@ bool AppInit2()
     // ********************************************************* Step 10: load peers
 
     uiInterface.InitMessage(_("Loading addresses..."));
-    printf("Loading addresses...\n");
+
     nStart = GetTimeMillis();
 
     {
@@ -1030,7 +1029,6 @@ bool AppInit2()
     // ********************************************************* Step 12: finished
 
     uiInterface.InitMessage(_("Done loading"));
-    printf("Done loading\n");
 
     if (!strErrors.str().empty())
         return InitError(strErrors.str());
