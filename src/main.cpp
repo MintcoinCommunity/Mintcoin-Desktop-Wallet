@@ -12,6 +12,7 @@
 #include "ui_interface.h"
 #include "kernel.h"
 #include "scrypt_mine.h"
+#include "checkqueue.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -56,6 +57,7 @@ uint256 hashBestChain = 0;
 CBlockIndex* pindexBest = NULL;
 set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid; // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
 int64 nTimeBestReceived = 0;
+int nScriptCheckThreads = 0;
 bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
@@ -800,7 +802,7 @@ bool CTxMemPool::accept(CTransaction &tx, bool fCheckInputs,
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!tx.CheckInputs(view, CS_ALWAYS, SCRIPT_VERIFY_P2SH))
+        if (!tx.CheckInputs(view, true, SCRIPT_VERIFY_P2SH))
         {
             return error("CTxMemPool::accept() : CheckInputs failed %s", hash.ToString().substr(0,10).c_str());
         }
@@ -1446,10 +1448,25 @@ bool CTransaction::HaveInputs(CCoinsViewCache &inputs) const
     return true;
 }
 
-bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmode, unsigned int flags, CBlock *block) const
+bool CScriptCheck::operator()() const {
+    const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
+    if (!VerifyScript(scriptSig, scriptPubKey, *ptxTo, nIn, nFlags, nHashType))
+        return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString().substr(0,10).c_str());
+    return true;
+}
+
+bool VerifySignature(const CCoins& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType)
+{
+    return CScriptCheck(txFrom, txTo, nIn, flags, nHashType)();
+}
+
+bool CTransaction::CheckInputs(CCoinsViewCache &inputs, bool fScriptChecks, unsigned int flags, std::vector<CScriptCheck> *pvChecks, CBlock *block) const
 {
     if (!IsCoinBase())
     {
+        if (pvChecks)
+            pvChecks->reserve(vin.size());
+
         // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
         // for an attacker to attempt to split the network.
         if (!HaveInputs(inputs))
@@ -1505,15 +1522,18 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
         // Skip ECDSA signature verification when connecting blocks
         // before the last block chain checkpoint. This is safe because block merkle hashes are
         // still computed and checked, and any change will be caught at the next checkpoint.
-        if (csmode == CS_ALWAYS ||
-            (csmode == CS_AFTER_CHECKPOINT && inputs.GetBestBlock()->nHeight >= Checkpoints::GetTotalBlocksEstimate())) {
+        if (fScriptChecks) {
             for (unsigned int i = 0; i < vin.size(); i++) {
                 const COutPoint &prevout = vin[i].prevout;
                 const CCoins& coins = inputs.GetCoins(prevout.hash);
 
                 // Verify signature
-                if (!VerifySignature(coins, *this, i, flags, 0))
-                    return DoS(100,error("CheckInputs() : %s VerifySignature failed", GetHash().ToString().substr(0,10).c_str()));
+                CScriptCheck check(coins, *this, i, flags, 0);
+                if (pvChecks) {
+                    pvChecks->push_back(CScriptCheck());
+                    check.swap(pvChecks->back());
+                } else if (!check())
+                    return DoS(100,false);
             }
         }
 
@@ -1538,7 +1558,7 @@ bool CTransaction::CheckInputs(CCoinsViewCache &inputs, enum CheckSig_mode csmod
                 return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
             // ppcoin: enforce transaction fees for every block
             if (nTxFee < GetMinFee())
-                return (csmode==CS_AFTER_CHECKPOINT)? DoS(100, error("ConnectInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee()).c_str(), FormatMoney(nTxFee).c_str())) : false;
+                return DoS(100, error("ConnectInputs() : %s not paying required fee=%s, paid=%s", GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee()).c_str(), FormatMoney(nTxFee).c_str()));
 
             nFees += nTxFee;
             if (!MoneyRange(nFees))
@@ -1709,11 +1729,29 @@ void static FlushBlockFile()
 
 bool FindUndoPos(int nFile, CDiskBlockPos &pos, unsigned int nAddSize);
 
+static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
+
+void ThreadScriptCheck(void*) {
+    vnThreadsRunning[THREAD_SCRIPTCHECK]++;
+    RenameThread("bitcoin-scriptch");
+    scriptcheckqueue.Thread();
+    vnThreadsRunning[THREAD_SCRIPTCHECK]--;
+}
+
+void ThreadScriptCheckQuit() {
+    scriptcheckqueue.Quit();
+}
+
 bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJustCheck)
 {
     // Check it again in case a previous version let a bad block in
     if (!CheckBlock(!fJustCheck, !fJustCheck))
         return false;
+
+    // verify that the view's current state corresponds to the previous block
+    assert(pindex->pprev == view.GetBestBlock());
+
+    bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
 
     // Do not allow blocks that contain transactions which 'overwrite' older transactions,
     // unless those are already completely spent.
@@ -1738,6 +1776,8 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
                 return error("ConnectBlock() : tried to overwrite transaction");
         }
     
+    CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
+
     int64 nStart = GetTimeMicros();
     int64 nFees = 0;
     int64 nValueIn = 0;
@@ -1778,8 +1818,10 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
             if (!tx.IsCoinStake())
                 nFees += nTxValueIn - nTxValueOut;
 
-            if (!tx.CheckInputs(view, CS_AFTER_CHECKPOINT, fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE))
+            std::vector<CScriptCheck> vChecks;
+            if (!tx.CheckInputs(view, fScriptChecks, fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE, nScriptCheckThreads ? &vChecks : NULL))
                 return false;
+            control.Add(vChecks);
         }
 
         CTxUndo txundo;
@@ -1803,6 +1845,11 @@ bool CBlock::ConnectBlock(CBlockIndex* pindex, CCoinsViewCache &view, bool fJust
     // ppcoin: fees are destroyed to compensate the entire network
     if (fDebug && GetBoolArg("-printcreation"))
         printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
+    if (!control.Wait())
+        return DoS(100, false);
+    int64 nTime2 = GetTimeMicros() - nStart;
+    if (fBenchmark)
+        printf("- Verify %u txins: %.2fms (%.3fms/txin)\n", nInputs - 1, 0.001 * nTime2, nInputs <= 1 ? 0 : 0.001 * nTime2 / (nInputs-1));
 
     if (fJustCheck)
         return true;
@@ -4510,7 +4557,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
                 continue;
 
-            if (!tx.CheckInputs(viewTemp, CS_ALWAYS, SCRIPT_VERIFY_P2SH, pblock.get()))
+            if (!tx.CheckInputs(viewTemp, true, SCRIPT_VERIFY_P2SH, NULL, pblock.get()))
                 continue;
 
             CTxUndo txundo;
