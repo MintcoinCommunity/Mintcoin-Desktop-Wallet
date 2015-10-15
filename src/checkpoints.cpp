@@ -155,7 +155,7 @@ namespace Checkpoints
         return true;
     }
 
-    bool AcceptPendingSyncCheckpoint()
+    bool AcceptPendingSyncCheckpoint(CValidationState &state)
     {
         LOCK(cs_hashSyncCheckpoint);
         if (hashPendingCheckpoint != 0 && mapBlockIndex.count(hashPendingCheckpoint))
@@ -173,7 +173,7 @@ namespace Checkpoints
                 CBlock block;
                 if (!block.ReadFromDisk(pindexCheckpoint))
                     return error("AcceptPendingSyncCheckpoint: ReadFromDisk failed for sync checkpoint %s", hashPendingCheckpoint.ToString().c_str());
-                if (!SetBestChain(pindexCheckpoint))
+                if (!SetBestChain(state, pindexCheckpoint))
                 {
                     hashInvalidCheckpoint = hashPendingCheckpoint;
                     return error("AcceptPendingSyncCheckpoint: SetBestChain failed for sync checkpoint %s", hashPendingCheckpoint.ToString().c_str());
@@ -253,7 +253,7 @@ namespace Checkpoints
     }
 
     // ppcoin: reset synchronized checkpoint to last hardened checkpoint
-    bool ResetSyncCheckpoint()
+    bool ResetSyncCheckpoint(CValidationState &state)
     {
         LOCK(cs_hashSyncCheckpoint);
         const uint256& hash = mapCheckpoints.rbegin()->second;
@@ -265,7 +265,7 @@ namespace Checkpoints
             CBlock block;
             if (!block.ReadFromDisk(mapBlockIndex[hash]))
                 return error("ResetSyncCheckpoint: ReadFromDisk failed for hardened checkpoint %s", hash.ToString().c_str());
-            if (!SetBestChain(mapBlockIndex[hash]))
+            if (!SetBestChain(state, mapBlockIndex[hash]))
             {
                 return error("ResetSyncCheckpoint: SetBestChain failed for hardened checkpoint %s", hash.ToString().c_str());
             }
@@ -426,9 +426,10 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
     {
         // checkpoint chain received but not yet main chain
         CBlock block;
+        CValidationState state;
         if (!block.ReadFromDisk(pindexCheckpoint))
             return error("ProcessSyncCheckpoint: ReadFromDisk failed for sync checkpoint %s", hashCheckpoint.ToString().c_str());
-        if (!SetBestChain(pindexCheckpoint))
+        if (!SetBestChain(state, pindexCheckpoint))
         {
             Checkpoints::hashInvalidCheckpoint = hashCheckpoint;
             return error("ProcessSyncCheckpoint: SetBestChain failed for sync checkpoint %s", hashCheckpoint.ToString().c_str());

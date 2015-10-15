@@ -19,6 +19,7 @@
 class uint256;
 class CBlockIndex;
 class CSyncCheckpoint;
+class CValidationState;
 
 /** Block-chain checkpoints are compiled-in sanity checks.
  * They are updated every release or three.
@@ -41,11 +42,11 @@ namespace Checkpoints
 
     CBlockIndex* GetLastSyncCheckpoint();
     bool WriteSyncCheckpoint(const uint256& hashCheckpoint);
-    bool AcceptPendingSyncCheckpoint();
+    bool AcceptPendingSyncCheckpoint(CValidationState &state);
     uint256 AutoSelectSyncCheckpoint();
     bool CheckSync(const uint256& hashBlock, const CBlockIndex* pindexPrev);
     bool WantedByPendingSyncCheckpoint(uint256 hashBlock);
-    bool ResetSyncCheckpoint();
+    bool ResetSyncCheckpoint(CValidationState &state);
     void AskForPendingSyncCheckpoint(CNode* pfrom);
     bool SetCheckpointPrivKey(std::string strPrivKey);
     bool SendSyncCheckpoint(uint256 hashCheckpoint);
