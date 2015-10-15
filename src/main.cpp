@@ -1359,7 +1359,6 @@ bool ConnectBestBlock(CValidationState &state) {
                 BOOST_FOREACH(CBlockIndex *pindexSwitch, vAttach) {
                     if (fRequestShutdown)
                         break;
-                    CValidationState state;
                     try {
                         if (!SetBestChain(state, pindexSwitch))
                             return false;
@@ -2619,7 +2618,9 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
              ++mi)
         {
             CBlock* pblockOrphan = (*mi).second;
-            if (pblockOrphan->AcceptBlock(state))
+            // Use a dummy CValidationState so someone can't setup nodes to counter-DoS based on orphan resolution (that is, feeding people an invalid block based on LegitBlockX in order to get anyone relaying LegitBlockX banned)
+            CValidationState stateDummy;
+            if (pblockOrphan->AcceptBlock(stateDummy))
                 vWorkQueue.push_back(pblockOrphan->GetHash());
             mapOrphanBlocks.erase(pblockOrphan->GetHash());
             setStakeSeenOrphan.erase(pblockOrphan->GetProofOfStake());
@@ -4001,8 +4002,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                     CDataStream(vMsg) >> tx;
                     CInv inv(MSG_TX, tx.GetHash());
                     bool fMissingInputs2 = false;
+                    // Use a dummy CValidationState so someone can't setup nodes to counter-DoS based on orphan resolution (that is, feeding people an invalid transaction based on LegitTxX in order to get anyone relaying LegitTxX banned)
+                    CValidationState stateDummy;
 
-                    if (tx.AcceptToMemoryPool(state, true, true, &fMissingInputs2))
+                    if (tx.AcceptToMemoryPool(stateDummy, true, true, &fMissingInputs2))
                     {
                         printf("   accepted orphan tx %s\n", inv.hash.ToString().substr(0,10).c_str());
                         RelayTransaction(tx, inv.hash, vMsg);
