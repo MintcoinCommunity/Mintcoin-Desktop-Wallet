@@ -2,37 +2,13 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-
 #ifndef BITCOIN_TXDB_H
 #define BITCOIN_TXDB_H
-
 
 #include "main.h"
 #include "leveldb.h"
 
-#include <string>
-
-
-
-/** CCoinsView backed by another CCoinsView */
-/*class CCoinsViewBacked : public CCoinsView
-{
-protected:
-    CCoinsView *base;
-
-public:
-    CCoinsViewBacked(CCoinsView &viewIn);
-    bool GetCoins(uint256 txid, CCoins &coins);
-    bool SetCoins(uint256 txid, const CCoins &coins);
-    bool HaveCoins(uint256 txid);
-    CBlockIndex *GetBestBlock();
-    bool SetBestBlock(CBlockIndex *pindex);
-    void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex);
-    bool GetStats(CCoinsStats &stats);
-};*/
-
-/** CCoinsView backed by the LevelDB coin database (coins/) */
+/** CCoinsView backed by the LevelDB coin database (chainstate/) */
 class CCoinsViewDB : public CCoinsView
 {
 protected:
@@ -49,7 +25,7 @@ public:
     bool GetStats(CCoinsStats &stats);
 };
 
-/** Access to the block database (blktree/) */
+/** Access to the block database (blocks/index/) */
 class CBlockTreeDB : public CLevelDB
 {
 public:
@@ -78,6 +54,5 @@ public:
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts();
 };
-
 
 #endif  // BITCOIN_TXDB_H
