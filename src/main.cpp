@@ -3160,17 +3160,22 @@ bool LoadBlockIndex()
     if (!fReindex && !LoadBlockIndexDB())
         return false;
 
-    //
-    // Init with genesis block
-    //
-    if (mapBlockIndex.empty())
-    {
-        fTxIndex = GetBoolArg("-txindex", false);
-        pblocktree->WriteFlag("txindex", fTxIndex);
-        printf("Initializing databases...\n");
+    return true;
+}
 
-        if (fReindex)
-            return true;
+
+bool InitBlockIndex() {
+    // Check whether we're already initialized
+    if (pindexGenesisBlock != NULL)
+        return true;
+
+    // Use the provided setting for -txindex in the new database
+    fTxIndex = GetBoolArg("-txindex", false);
+    pblocktree->WriteFlag("txindex", fTxIndex);
+    printf("Initializing databases...\n");
+
+    // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
+    if (!fReindex) {
 
         // Genesis block
         const char* pszTimestamp = "Feb 2, 2014: The Denver Broncos finally got on the board with a touchdown in the final seconds of the third quarter. But the Seattle Seahawks are dominating the Broncos 36-8";
@@ -3202,19 +3207,25 @@ bool LoadBlockIndex()
 		assert(hash == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
-        unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
-        CDiskBlockPos blockPos;
-        CValidationState state;
-        if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.nTime))
-            return error("AcceptBlock() : FindBlockPos failed");
-        if (!block.WriteToDisk(blockPos))
-            return error("LoadBlockIndex() : writing genesis block to disk failed");
-        if (!block.AddToBlockIndex(state, blockPos))
-            return error("LoadBlockIndex() : genesis block not accepted");
+        try {
+            unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+            CDiskBlockPos blockPos;
+            CValidationState state;
+            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.nTime))
+                return error("AcceptBlock() : FindBlockPos failed");
+            if (!block.WriteToDisk(blockPos))
+                return error("LoadBlockIndex() : writing genesis block to disk failed");
+            if (!block.AddToBlockIndex(state, blockPos))
+                return error("LoadBlockIndex() : genesis block not accepted");
 
-        // ppcoin: initialize synchronized checkpoint
-        if (!Checkpoints::WriteSyncCheckpoint((!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet)))
-            return error("LoadBlockIndex() : failed to init sync checkpoint");
+            // ppcoin: initialize synchronized checkpoint
+            if (!Checkpoints::WriteSyncCheckpoint((!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet)))
+                return error("LoadBlockIndex() : failed to init sync checkpoint");
+
+        } catch(std::runtime_error &e) {
+            return error("LoadBlockIndex() : failed to initialize block database: %s", e.what());
+        }
+        
     }
 
     // ppcoin: if checkpoint master key changed must reset sync-checkpoint
