@@ -444,3 +444,21 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
     printf("ProcessSyncCheckpoint: sync-checkpoint at %s\n", hashCheckpoint.ToString().c_str());
     return true;
 }
+
+bool Checkpoints::CheckMasterPubKey(bool reindex)
+{
+    if (reindex)
+        return true;
+    std::string strPubKey = "";
+    if (!pblocktree->ReadCheckpointPubKey(strPubKey) || strPubKey != CSyncCheckpoint::strMasterPubKey)
+    {
+        CValidationState state;
+        // write checkpoint master key to db
+        if (!pblocktree->WriteCheckpointPubKey(CSyncCheckpoint::strMasterPubKey))
+            return error("LoadBlockIndexDB() : failed to write new checkpoint master key to db");
+        if ((!fTestNet) && !Checkpoints::ResetSyncCheckpoint(state))
+            return error("LoadBlockIndexDB() : failed to reset sync-checkpoint");
+    }
+    
+    return true;
+}

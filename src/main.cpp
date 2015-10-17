@@ -1256,6 +1256,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
+    if (hash == hashGenesisBlock)
+            return true;
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
 
@@ -2302,6 +2304,8 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 
 bool CBlock::CheckBlock(CValidationState &state, bool fCheckPOW, bool fCheckMerkleRoot) const
 {
+    if (GetHash() == hashGenesisBlock)
+            return true;
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
@@ -2987,10 +2991,10 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
     return pindexNew;
 }
 
-bool LoadBlockIndexDB()
+bool static LoadBlockIndexDB()
 {
     if (!pblocktree->LoadBlockIndexGuts())
-         return false;
+        return false;
 
     if (fRequestShutdown)
         return true;
@@ -3172,7 +3176,8 @@ bool LoadBlockIndex()
     if (!fReindex && !LoadBlockIndexDB())
         return false;
 
-    return true;
+    // ppcoin: if checkpoint master key changed must reset sync-checkpoint
+    return Checkpoints::CheckMasterPubKey(fReindex);
 }
 
 
@@ -3187,7 +3192,7 @@ bool InitBlockIndex() {
     printf("Initializing databases...\n");
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
-    if (!fReindex) {
+    {
 
         // Genesis block
         const char* pszTimestamp = "Feb 2, 2014: The Denver Broncos finally got on the board with a touchdown in the final seconds of the third quarter. But the Seattle Seahawks are dominating the Broncos 36-8";
@@ -3221,9 +3226,9 @@ bool InitBlockIndex() {
         // Start new block file
         try {
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
-            CDiskBlockPos blockPos;
+            CDiskBlockPos blockPos(0,0);
             CValidationState state;
-            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.nTime))
+            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.nTime, fReindex))
                 return error("AcceptBlock() : FindBlockPos failed");
             if (!block.WriteToDisk(blockPos))
                 return error("LoadBlockIndex() : writing genesis block to disk failed");
@@ -3238,20 +3243,6 @@ bool InitBlockIndex() {
             return error("LoadBlockIndex() : failed to initialize block database: %s", e.what());
         }
         
-    }
-
-    // ppcoin: if checkpoint master key changed must reset sync-checkpoint
-    {
-        string strPubKey = "";
-        if (!pblocktree->ReadCheckpointPubKey(strPubKey) || strPubKey != CSyncCheckpoint::strMasterPubKey)
-        {
-            CValidationState state;
-            // write checkpoint master key to db
-            if (!pblocktree->WriteCheckpointPubKey(CSyncCheckpoint::strMasterPubKey))
-                return error("LoadBlockIndexDB() : failed to write new checkpoint master key to db");
-            if ((!fTestNet) && !Checkpoints::ResetSyncCheckpoint(state))
-                return error("LoadBlockIndexDB() : failed to reset sync-checkpoint");
-        }
     }
 
     return true;
