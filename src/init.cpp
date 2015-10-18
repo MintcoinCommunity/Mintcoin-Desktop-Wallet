@@ -17,11 +17,6 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <openssl/crypto.h>
-#ifdef QT_GUI
-#include <QMessageBox>
-#include <QPushButton>
-#include <QFileDialog>
-#endif
 
 #ifndef WIN32
 #include <signal.h>
@@ -924,34 +919,7 @@ bool AppInit2()
     // ********************************************************* Step 8: load wallet
 
     uiInterface.InitMessage(_("Loading wallet..."));
-    #ifdef QT_GUI
-
-    if(!filesystem::exists(GetDataDir() / "wallet.dat"))
-    {
-        QMessageBox msgBox;
-        msgBox.setText(("No Wallet Found."));
-        msgBox.setInformativeText(("Would you like to import one or create a new wallet?"));
-
-        QPushButton* import = msgBox.addButton(("Import Wallet"), QMessageBox::ActionRole);
-        QPushButton* newWallet = msgBox.addButton("Create new wallet", QMessageBox::RejectRole);
-        msgBox.exec();
-
-        if(msgBox.clickedButton()== import)
-        {
-            string wf = QFileDialog::getOpenFileName(0,"Import Wallet","/home","MintCoin Wallet(*.dat)").toStdString();
-            if(filesystem::exists(wf))
-                copy(wf,GetDataDir() / "wallet.dat");
-            else
-            {
-                QMessageBox errMsgBox;
-                errMsgBox.setText("Import failed. Creating new wallet.");
-                errMsgBox.setDefaultButton(QMessageBox::Ok);
-            }
-
-        }
-
-    }
-    #endif
+    
     nStart = GetTimeMillis();
     bool fFirstRun = true;
     pwalletMain = new CWallet("wallet.dat");
