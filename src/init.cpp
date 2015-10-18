@@ -843,7 +843,7 @@ bool AppInit2()
                     break;
                 }
 
-                uiInterface.InitMessage(_("Verifying block database integrity..."));
+                uiInterface.InitMessage(_("Verifying database..."));
                 if (!VerifyDB()) {
                     strLoadError = _("Corrupted block database detected");
                     break;
