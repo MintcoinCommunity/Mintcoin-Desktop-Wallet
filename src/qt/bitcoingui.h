@@ -169,7 +169,7 @@ private slots:
     /** Switch to recurring send page */
     void gotoRecurringSendPage();
     /** Switch to send coins page */
-    void gotoSendCoinsPage();
+    void gotoSendCoinsPage(QString addr = "");
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
