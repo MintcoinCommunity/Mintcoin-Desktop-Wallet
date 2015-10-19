@@ -23,8 +23,8 @@ contains(RELEASE, 1) {
     macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
 
     !win32:!macx {
-        # Linux: static link
-        LIBS += -Wl,-Bstatic
+        # Linux: static link and extra security (see: https://wiki.debian.org/Hardening)
+        LIBS += -Wl,-Bstatic -Wl,-z,relro -Wl,-z,now
     }
 }
 
@@ -35,8 +35,8 @@ QMAKE_LFLAGS *= -fstack-protector-all
 # We need to exclude this for Windows cross compile with MinGW 4.2.x, as it will result in a non-working executable!
 # This can be enabled for Windows, when we switch to MinGW >= 4.4.x.
 }
-# for extra security (see: https://wiki.debian.org/Hardening)
-QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2 -Wl,-z,relro -Wl,-z,now
+# for extra security (see: https://wiki.debian.org/Hardening): this flag is GCC compiler-specific
+QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
 # on Windows: enable GCC large address aware linker flag
