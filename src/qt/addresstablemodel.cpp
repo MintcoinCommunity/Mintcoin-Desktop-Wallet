@@ -1,4 +1,5 @@
 #include "addresstablemodel.h"
+
 #include "guiutil.h"
 #include "walletmodel.h"
 #include "bitcoinunits.h"
@@ -9,7 +10,6 @@
 #include "base58.h"
 
 #include <QFont>
-#include <QColor>
 #include <QTimer>
 
 const QString AddressTableModel::Send = "S";

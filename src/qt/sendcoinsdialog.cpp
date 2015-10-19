@@ -17,7 +17,6 @@
 #include "guiconstants.h"
 
 #include <QMessageBox>
-#include <QLocale>
 #include <QTextDocument>
 #include <QScrollBar>
 #include <QClipboard>

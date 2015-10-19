@@ -6,9 +6,7 @@
 #include "guiutil.h"
 
 #include <QTime>
-#include <QTimer>
 #include <QThread>
-#include <QTextEdit>
 #include <QKeyEvent>
 #if QT_VERSION < 0x050000
 #include <QUrl>
@@ -37,12 +35,14 @@ const struct {
 
 /* Object for executing console RPC commands in a separate thread.
 */
-class RPCExecutor: public QObject
+class RPCExecutor : public QObject
 {
     Q_OBJECT
+
 public slots:
     void start();
     void request(const QString &command);
+
 signals:
     void reply(int category, const QString &command);
 };

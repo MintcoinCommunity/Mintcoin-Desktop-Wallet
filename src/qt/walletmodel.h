@@ -34,6 +34,7 @@ public:
 class WalletModel : public QObject
 {
     Q_OBJECT
+
 public:
     explicit WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent = 0);
     ~WalletModel();

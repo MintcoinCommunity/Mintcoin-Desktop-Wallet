@@ -5,8 +5,8 @@
 #include <QObject>
 
 QT_BEGIN_NAMESPACE
-class QIcon;
 class QMenu;
+class QIcon;
 class QWidget;
 QT_END_NAMESPACE
 

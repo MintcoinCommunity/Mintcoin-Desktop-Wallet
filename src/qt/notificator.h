@@ -36,9 +36,9 @@ public:
     // Message class
     enum Class
     {
-        Information,     /**< Informational message */
-        Warning,         /**< Notify user of potential problem */
-        Critical         /**< An error occurred */
+        Information,    /**< Informational message */
+        Warning,        /**< Notify user of potential problem */
+        Critical        /**< An error occurred */
     };
 
 public slots:
