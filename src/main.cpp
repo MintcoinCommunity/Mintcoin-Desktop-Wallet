@@ -2021,12 +2021,13 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     nBestChainTrust = pindexNew->nChainTrust;
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
-    printf("SetBestChain: new best=%s  height=%d  trust=%s  tx=%lu  date=%s\n",
+    printf("SetBestChain: new best=%s  height=%d  trust=%s  tx=%lu  date=%s  progress=%f\n",
       BlockHashStr(hashBestChain).c_str(), nBestHeight, nBestChainTrust.ToString().c_str(), (unsigned long)pindexNew->nChainTx,
-      DateTimeStrFormat("%Y-%m-%dT%H:%M:%S", pindexBest->GetBlockTime()).c_str());
+      DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexBest->GetBlockTime()).c_str(),
+      Checkpoints::GuessVerificationProgress(pindexBest));
 
 	printf("Stake checkpoint: %x\n", pindexBest->nStakeModifierChecksum);
-
+      
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload)
     {
