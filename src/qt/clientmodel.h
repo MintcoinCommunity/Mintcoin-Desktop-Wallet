@@ -61,6 +61,8 @@ private:
 
     int cachedNumBlocks;
     int cachedNumBlocksOfPeers;
+	bool cachedReindexing;
+	bool cachedImporting;
 
     int numBlocksAtStartup;
 
