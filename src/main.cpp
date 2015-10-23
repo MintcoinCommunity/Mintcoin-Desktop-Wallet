@@ -339,7 +339,7 @@ bool AddOrphanTx(const CDataStream& vMsg)
     // at most 500 megabytes of orphans:
     if (pvMsg->size() > 5000)
     {
-        printf("ignoring large orphan tx (size: %"PRIszu", hash: %s)\n", pvMsg->size(), hash.ToString().substr(0,10).c_str());
+        printf("ignoring large orphan tx (size: %"PRIszu", hash: %s)\n", pvMsg->size(), hash.ToString().c_str());
         delete pvMsg;
         return false;
     }
@@ -348,7 +348,7 @@ bool AddOrphanTx(const CDataStream& vMsg)
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
         mapOrphanTransactionsByPrev[txin.prevout.hash].insert(make_pair(hash, pvMsg));
 
-    printf("stored orphan tx %s (mapsz %"PRIszu")\n", hash.ToString().substr(0,10).c_str(),
+    printf("stored orphan tx %s (mapsz %"PRIszu")\n", hash.ToString().c_str(),
         mapOrphanTransactions.size());
     return true;
 }
@@ -796,7 +796,7 @@ bool CTxMemPool::accept(CValidationState &state, CTransaction &tx, bool fCheckIn
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
         if (!tx.CheckInputs(state, view, true, SCRIPT_VERIFY_P2SH))
         {
-            return error("CTxMemPool::accept() : CheckInputs failed %s", hash.ToString().substr(0,10).c_str());
+            return error("CTxMemPool::accept() : ConnectInputs failed %s", hash.ToString().c_str());
         }
     }
 
@@ -818,7 +818,7 @@ bool CTxMemPool::accept(CValidationState &state, CTransaction &tx, bool fCheckIn
     SyncWithWallets(hash, tx, NULL, true);
 
     printf("CTxMemPool::accept() : accepted %s (poolsz %"PRIszu")\n",
-           hash.ToString().substr(0,10).c_str(),
+           hash.ToString().c_str(),
            mapTx.size());
     return true;
 }
@@ -1300,11 +1300,11 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
     }
 
     printf("InvalidChainFound: invalid block=%s  height=%d  trust=%s  date=%s\n",
-      BlockHashStr(pindexNew->GetBlockHash()).c_str(), pindexNew->nHeight,
+      pindexNew->GetBlockHash().ToString().c_str(), pindexNew->nHeight,
       pindexNew->nChainTrust.ToString().c_str(), DateTimeStrFormat("%Y-%m-%dT%H:%M:%S",
       pindexNew->GetBlockTime()).c_str());
     printf("InvalidChainFound:  current best=%s  height=%d  trust=%s  date=%s\n",
-      BlockHashStr(hashBestChain).c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),
+      hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 }
 
@@ -1462,7 +1462,7 @@ bool CTransaction::HaveInputs(CCoinsViewCache &inputs) const
 bool CScriptCheck::operator()() const {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
     if (!VerifyScript(scriptSig, scriptPubKey, *ptxTo, nIn, nFlags, nHashType))
-        return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString().substr(0,10).c_str());
+        return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString().c_str());
     return true;
 }
 
@@ -1481,7 +1481,7 @@ bool CTransaction::CheckInputs(CValidationState &state, CCoinsViewCache &inputs,
         // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
         // for an attacker to attempt to split the network.
         if (!HaveInputs(inputs))
-            return state.Invalid(error("CheckInputs() : %s inputs unavailable", GetHash().ToString().substr(0,10).c_str()));
+            return state.Invalid(error("CheckInputs() : %s inputs unavailable", GetHash().ToString().c_str()));
 
         CBlockIndex *pindexBlock = inputs.GetBestBlock();
         // While checking, GetBestBlock() refers to the parent block.
@@ -1910,8 +1910,8 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     reverse(vConnect.begin(), vConnect.end());
 
     if (vDisconnect.size() > 0) {
-        printf("REORGANIZE: Disconnect %"PRIszu" blocks; %s..%s\n", vDisconnect.size(), BlockHashStr(pfork->GetBlockHash()).c_str(), BlockHashStr(pindexBest->GetBlockHash()).c_str());
-        printf("REORGANIZE: Connect %"PRIszu" blocks; %s..%s\n", vConnect.size(), BlockHashStr(pfork->GetBlockHash()).c_str(), BlockHashStr(pindexNew->GetBlockHash()).c_str());
+        printf("REORGANIZE: Disconnect %"PRIszu" blocks; %s..\n", vDisconnect.size(), pfork->GetBlockHash().ToString().c_str());
+        printf("REORGANIZE: Connect %"PRIszu" blocks; ..%s\n", vConnect.size(), pindexNew->GetBlockHash().ToString().c_str());
     }
 
     // Disconnect shorter branch
@@ -1922,7 +1922,7 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
             return state.Abort(_("Failed to read block"));
         int64 nStart = GetTimeMicros();
         if (!block.DisconnectBlock(state, pindex, view))
-            return error("SetBestBlock() : DisconnectBlock %s failed", BlockHashStr(pindex->GetBlockHash()).c_str());
+            return error("SetBestBlock() : DisconnectBlock %s failed", pindex->GetBlockHash().ToString().c_str());
         if (fBenchmark)
             printf("- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
 
@@ -1946,7 +1946,7 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
                 InvalidChainFound(pindexNew);
                 InvalidBlockFound(pindex);
             }
-            return error("SetBestBlock() : ConnectBlock %s failed", BlockHashStr(pindex->GetBlockHash()).c_str());
+            return error("SetBestBlock() : ConnectBlock %s failed", pindex->GetBlockHash().ToString().c_str());
         }
         if (fBenchmark)
             printf("- Connect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
@@ -2022,7 +2022,7 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
     printf("SetBestChain: new best=%s  height=%d  trust=%s  tx=%lu  date=%s  progress=%f\n",
-      BlockHashStr(hashBestChain).c_str(), nBestHeight, nBestChainTrust.ToString().c_str(), (unsigned long)pindexNew->nChainTx,
+      hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(), (unsigned long)pindexNew->nChainTx,
       DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexBest->GetBlockTime()).c_str(),
       Checkpoints::GuessVerificationProgress(pindexBest));
 
@@ -2129,7 +2129,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
     // Check for duplicate
     uint256 hash = GetHash();
     if (mapBlockIndex.count(hash))
-        return state.Invalid(error("AddToBlockIndex() : %s already exists", BlockHashStr(hash).c_str()));
+        return state.Invalid(error("AddToBlockIndex() : %s already exists", hash.ToString().c_str()));
 
     // Construct new block index object
     CBlockIndex* pindexNew = new CBlockIndex(*this);
@@ -2516,16 +2516,16 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     // Check for duplicate
     uint256 hash = pblock->GetHash();
     if (mapBlockIndex.count(hash))
-        return state.Invalid(error("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, BlockHashStr(hash).c_str()));
+        return state.Invalid(error("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, hash.ToString().c_str()));
     if (mapOrphanBlocks.count(hash))
-        return state.Invalid(error("ProcessBlock() : already have block (orphan) %s", BlockHashStr(hash).c_str()));
+        return state.Invalid(error("ProcessBlock() : already have block (orphan) %s", hash.ToString().c_str()));
 
     // ppcoin: check proof-of-stake
     // Limited duplicity on stake: prevents block flood attack
     // Duplicate stake allowed only when there is orphan child block
     if (pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
         return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
-
+        
     // Preliminary checks
     if (!pblock->CheckBlock(state))
         return error("ProcessBlock() : CheckBlock FAILED");
@@ -2570,7 +2570,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
     {
-        printf("ProcessBlock: ORPHAN BLOCK, prev=%s\n", BlockHashStr(pblock->hashPrevBlock).c_str());
+        printf("ProcessBlock: ORPHAN BLOCK, prev=%s\n", pblock->hashPrevBlock.ToString().c_str());
         CBlock* pblock2 = new CBlock(*pblock);
         // ppcoin: check proof-of-stake
         if (pblock2->IsProofOfStake())
@@ -2583,7 +2583,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
                 setStakeSeenOrphan.insert(pblock2->GetProofOfStake());
         }
         
-
+        
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom)
         {
@@ -3045,7 +3045,7 @@ bool static LoadBlockIndexDB()
          pindex = pindexPrev;
     }
     printf("LoadBlockIndexDB(): hashBestChain=%s  height=%d  trust=%s  date=%s\n",
-      BlockHashStr(hashBestChain).c_str(), nBestHeight, CBigNum(nBestChainTrust).ToString().c_str(),
+      hashBestChain.ToString().c_str(), nBestHeight, CBigNum(nBestChainTrust).ToString().c_str(),
         DateTimeStrFormat("%Y-%m-%dT%H:%M:%S", pindexBest->GetBlockTime()).c_str());
 
     // NovaCoin: load hashSyncCheckpoint
@@ -3920,12 +3920,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         if (pindex)
             pindex = pindex->pnext;
         int nLimit = 500;
-        printf("getblocks %d to %s limit %d\n", (pindex ? pindex->nHeight : -1), BlockHashStr(hashStop).c_str(), nLimit);
+        printf("getblocks %d to %s limit %d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString().c_str(), nLimit);
         for (; pindex; pindex = pindex->pnext)
         {
             if (pindex->GetBlockHash() == hashStop)
             {
-                printf("  getblocks stopping at %d %s\n", pindex->nHeight, BlockHashStr(pindex->GetBlockHash()).c_str());
+                printf("  getblocks stopping at %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString().c_str());
                 // ppcoin: tell downloading node about the latest block if it's
                 // without risk being rejected due to stake connection check
                 if (hashStop != hashBestChain && pindex->GetBlockTime() + nStakeMinAge > pindexBest->GetBlockTime())
@@ -3937,7 +3937,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             {
                 // When this block is requested, we'll send an inv that'll make them
                 // getblocks the next batch of inventory.
-                printf("  getblocks stopping at limit %d %s\n", pindex->nHeight, BlockHashStr(pindex->GetBlockHash()).c_str());
+                printf("  getblocks stopping at limit %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString().c_str());
                 pfrom->hashContinue = pindex->GetBlockHash();
                 break;
             }
@@ -3984,7 +3984,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         // we must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
         vector<CBlock> vHeaders;
         int nLimit = 2000;
-        printf("getheaders %d to %s\n", (pindex ? pindex->nHeight : -1), BlockHashStr(hashStop).c_str());
+        printf("getheaders %d to %s\n", (pindex ? pindex->nHeight : -1), hashStop.ToString().c_str());
         for (; pindex; pindex = pindex->pnext)
         {
             vHeaders.push_back(pindex->GetBlockHeader());
@@ -4033,7 +4033,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
                     if (tx.AcceptToMemoryPool(stateDummy, true, true, &fMissingInputs2))
                     {
-                        printf("   accepted orphan tx %s\n", inv.hash.ToString().substr(0,10).c_str());
+                        printf("   accepted orphan tx %s\n", inv.hash.ToString().c_str());
                         RelayTransaction(tx, inv.hash, vMsg);
                         mapAlreadyAskedFor.erase(inv);
                         vWorkQueue.push_back(inv.hash);
@@ -4043,7 +4043,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                     {
                         // invalid or too-little-fee orphan
                         vEraseQueue.push_back(inv.hash);
-                        printf("   removed orphan tx %s\n", inv.hash.ToString().substr(0,10).c_str());
+                        printf("   removed orphan tx %s\n", inv.hash.ToString().c_str());
                     }
                 }
             }
@@ -4071,7 +4071,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CBlock block;
         vRecv >> block;
 
-        printf("received block %s\n", BlockHashStr(block.GetHash()).c_str());
+        printf("received block %s\n", block.GetHash().ToString().c_str());
         // block.print();
 
         CInv inv(MSG_BLOCK, block.GetHash());
@@ -4583,9 +4583,9 @@ public:
     void print() const
     {
         printf("COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
-               ptx->GetHash().ToString().substr(0,10).c_str(), dPriority, dFeePerKb);
+               ptx->GetHash().ToString().c_str(), dPriority, dFeePerKb);
         BOOST_FOREACH(uint256 hash, setDependsOn)
-            printf("   setDependsOn %s\n", hash.ToString().substr(0,10).c_str());
+            printf("   setDependsOn %s\n", hash.ToString().c_str());
     }
 };
 
