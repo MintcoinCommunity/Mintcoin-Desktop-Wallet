@@ -35,6 +35,7 @@
 #include "wallet.h"
 #include "bitcoinrpc.h"
 #include "ui_interface.h"
+#include "init.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -1265,4 +1266,10 @@ void BitcoinGUI::updateMintingWeights()
 
         nNetworkWeight = GetPoSKernelPS();
     }
+}
+
+void BitcoinGUI::detectShutdown()
+{
+    if (ShutdownRequested())
+        QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 }

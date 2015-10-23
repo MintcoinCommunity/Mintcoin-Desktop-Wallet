@@ -63,8 +63,7 @@ bool CDBEnv::Open(const boost::filesystem::path& path)
     if (fDbEnvInit)
         return true;
 
-    if (fShutdown)
-        return false;
+    boost::this_thread::interruption_point();
 
     strPath = path.string();
     filesystem::path pathLogDir = path / "database";
@@ -109,8 +108,7 @@ void CDBEnv::MakeMock()
     if (fDbEnvInit)
         throw runtime_error("CDBEnv::MakeMock(): already initialized");
 
-    if (fShutdown)
-        throw runtime_error("CDBEnv::MakeMock(): during shutdown");
+    boost::this_thread::interruption_point();
 
     printf("CDBEnv::MakeMock()\n");
 
@@ -328,7 +326,7 @@ bool CDBEnv::RemoveDb(const string& strFile)
 
 bool CDB::Rewrite(const string& strFile, const char* pszSkip)
 {
-    while (!fShutdown)
+    while (true)
     {
         {
             LOCK(bitdb.cs_db);
@@ -414,7 +412,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                 return fSuccess;
             }
         }
-        Sleep(100);
+        MilliSleep(100);
     }
     return false;
 }

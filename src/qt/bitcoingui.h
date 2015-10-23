@@ -213,6 +213,9 @@ private slots:
     /** Simply calls showNormalIfMinimized(true) for use in SLOT() macro */
     void toggleHidden();
 
+    /** called by a timer to check if fRequestShutdown has been set **/
+    void detectShutdown();
+
     /** Update info about minting */
     void updateMintingIcon();
     /** Update minting weight info */

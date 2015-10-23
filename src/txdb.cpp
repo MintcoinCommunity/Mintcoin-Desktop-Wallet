@@ -146,12 +146,13 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
     pcursor->SeekToFirst();
 
     while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
         try {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
             char chType;
             ssKey >> chType;
-            if (chType == 'c' && !fRequestShutdown) {
+            if (chType == 'c') {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
                 CCoins coins;
@@ -214,6 +215,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
     // Now read each entry.
     while (pcursor->Valid())
     {
+        boost::this_thread::interruption_point();
         // Unpack keys and values.
         leveldb::Slice slKey = pcursor->key();
         CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
@@ -221,7 +223,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
         char chType;
         ssKey >> chType;
 
-        if (fRequestShutdown || chType != 'b')
+        if (chType != 'b')
             break;
         
         leveldb::Slice slValue = pcursor->value();
