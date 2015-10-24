@@ -1299,12 +1299,12 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
         uiInterface.NotifyBlocksChanged();
     }
 
-    printf("InvalidChainFound: invalid block=%s  height=%d  trust=%s  date=%s\n",
+    printf("InvalidChainFound: invalid block=%s  height=%d  trust=%.8g  date=%s\n",
       pindexNew->GetBlockHash().ToString().c_str(), pindexNew->nHeight,
-      pindexNew->nChainTrust.ToString().c_str(), DateTimeStrFormat("%Y-%m-%dT%H:%M:%S",
+      log(pindexNew->nChainTrust.getdouble())/log(2.0), DateTimeStrFormat("%Y-%m-%dT%H:%M:%S",
       pindexNew->GetBlockTime()).c_str());
-    printf("InvalidChainFound:  current best=%s  height=%d  trust=%s  date=%s\n",
-      hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(),
+    printf("InvalidChainFound:  current best=%s  height=%d  trust=%.8g  date=%s\n",
+      hashBestChain.ToString().c_str(), nBestHeight, log(nBestChainTrust.getdouble())/log(2.0),
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 }
 
@@ -2021,8 +2021,8 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     nBestChainTrust = pindexNew->nChainTrust;
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
-    printf("SetBestChain: new best=%s  height=%d  trust=%s  tx=%lu  date=%s  progress=%f\n",
-      hashBestChain.ToString().c_str(), nBestHeight, nBestChainTrust.ToString().c_str(), (unsigned long)pindexNew->nChainTx,
+    printf("SetBestChain: new best=%s  height=%d  trust=%.8g  tx=%lu  date=%s  progress=%f\n",
+      hashBestChain.ToString().c_str(), nBestHeight, log(nBestChainTrust.getdouble())/log(2.0), (unsigned long)pindexNew->nChainTx,
       DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexBest->GetBlockTime()).c_str(),
       Checkpoints::GuessVerificationProgress(pindexBest));
 
@@ -2149,7 +2149,7 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
     // ppcoin: compute chain trust score
     pindexNew->nChainTrust = (pindexNew->pprev ? pindexNew->pprev->nChainTrust : 0) + pindexNew->GetBlockTrust();
     pindexNew->nChainTx = (pindexNew->pprev ? pindexNew->pprev->nChainTx : 0) + pindexNew->nTx;
-    pindexNew->nFile =pos.nFile;
+    pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
     pindexNew->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
