@@ -3719,17 +3719,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
 
-        // Ask the first connected node for block updates
-        static int nAskedForBlocks = 0;
-        if (!pfrom->fClient && !pfrom->fOneShot && !fImporting && !fReindex &&
-            (pfrom->nStartingHeight > (nBestHeight - 144)) &&
-            (pfrom->nVersion < NOBLKS_VERSION_START || pfrom->nVersion > (GetAdjustedTime() > FORK_TIME ? NOBLKS_VERSION_END_FORK : NOBLKS_VERSION_END)) &&
-             (nAskedForBlocks < 1 || vNodes.size() <= 1))
-        {
-            nAskedForBlocks++;
-            pfrom->PushGetBlocks(pindexBest, uint256(0));
-        }
-
         // Relay alerts
         {
             LOCK(cs_mapAlerts);
@@ -4364,6 +4353,12 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 pto->PushMessage("ping", nonce);
             else
                 pto->PushMessage("ping");
+        }
+
+        // Start block sync
+        if (pto->fStartSync && !fImporting && !fReindex) {
+            pto->fStartSync = false;
+            pto->PushGetBlocks(pindexBest, uint256(0));
         }
 
         // Resend wallet transactions that haven't gotten in a block yet

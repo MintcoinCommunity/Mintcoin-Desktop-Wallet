@@ -103,6 +103,9 @@ public:
     bool fInbound;
     int nStartingHeight;
     int nMisbehavior;
+    uint64 nSendBytes;
+    uint64 nRecvBytes;
+    bool fSyncNode;
 };
 
 
@@ -157,12 +160,14 @@ public:
     CDataStream ssSend;
     size_t nSendSize; // total size of all vSendMsg entries
     size_t nSendOffset; // offset inside the first vSendMsg already sent
+    uint64 nSendBytes;
     std::deque<CSerializeData> vSendMsg;
     CCriticalSection cs_vSend;
 
     std::deque<CInv> vRecvGetData;
     std::deque<CNetMessage> vRecvMsg;
     CCriticalSection cs_vRecvMsg;
+    uint64 nRecvBytes;
     int nRecvVersion;
 
     int64 nLastSend;
@@ -202,6 +207,7 @@ public:
     CBlockIndex* pindexLastGetBlocksBegin;
     uint256 hashLastGetBlocksEnd;
     int nStartingHeight;
+    bool fStartSync;
 
     // flood relay
     std::vector<CAddress> vAddrToSend;
@@ -223,6 +229,8 @@ public:
         nRecvVersion = MIN_PROTO_VERSION;
         nLastSend = 0;
         nLastRecv = 0;
+        nSendBytes = 0;
+        nRecvBytes = 0;
         nLastSendEmpty = GetTime();
         nTimeConnected = GetTime();
         addr = addrIn;
@@ -242,6 +250,7 @@ public:
         pindexLastGetBlocksBegin = 0;
         hashLastGetBlocksEnd = 0;
         nStartingHeight = -1;
+        fStartSync = false;
         fGetAddr = false;
         nMisbehavior = 0;
         hashCheckpointKnown = 0;
