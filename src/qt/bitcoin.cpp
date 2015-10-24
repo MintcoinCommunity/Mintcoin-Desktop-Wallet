@@ -14,6 +14,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "paymentserver.h"
+#include "splashscreen.h"
 
 #include <QMessageBox>
 #if QT_VERSION < 0x050000
@@ -22,7 +23,6 @@
 #include <QLocale>
 #include <QTimer>
 #include <QTranslator>
-#include <QSplashScreen>
 #include <QLibraryInfo>
 
 #if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
@@ -41,7 +41,7 @@ Q_DECLARE_METATYPE(bool*)
 
 // Need a global reference for the notifications to find the GUI
 static BitcoinGUI *guiref;
-static QSplashScreen *splashref;
+static SplashScreen *splashref;
 
 static bool ThreadSafeMessageBox(const std::string& message, const std::string& caption, unsigned int style)
 {
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QSplashScreen splash(QPixmap(":/images/splash"), 0);
+    SplashScreen splash(QPixmap(), 0);
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
     {
         splash.show();
