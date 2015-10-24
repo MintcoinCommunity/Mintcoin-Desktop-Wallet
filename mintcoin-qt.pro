@@ -160,7 +160,6 @@ HEADERS += src/qt/bitcoingui.h \
     src/scrypt_mine.h \
     src/pbkdf2.h \
     src/serialize.h \
-    src/strlcpy.h \
     src/main.h \
     src/net.h \
     src/key.h \
