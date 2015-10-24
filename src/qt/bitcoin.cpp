@@ -150,12 +150,12 @@ int main(int argc, char *argv[])
 
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
-    app.setOrganizationName("MintCoin");
-    app.setOrganizationDomain("MintCoin.su");
+    QApplication::setOrganizationName("MintCoin");
+    QApplication::setOrganizationDomain("MintCoinofficial.com");
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
-        app.setApplicationName("MintCoin-Qt-testnet");
+        QApplication::setApplicationName("MintCoin-Qt-testnet");
     else
-        app.setApplicationName("MintCoin-Qt");
+        QApplication::setApplicationName("MintCoin-Qt");
 
     // ... then GUI settings:
     OptionsModel optionsModel;
@@ -211,7 +211,6 @@ int main(int argc, char *argv[])
     }
 
     app.processEvents();
-
     app.setQuitOnLastWindowClosed(false);
 
     try
