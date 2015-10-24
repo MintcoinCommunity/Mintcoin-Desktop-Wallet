@@ -244,6 +244,7 @@ BitcoinGUI::~BitcoinGUI()
         trayIcon->hide();
 #ifdef Q_OS_MAC
     delete appMenuBar;
+    MacDockIconHandler::instance()->setMainWindow(NULL);
 #endif
 }
 
@@ -452,8 +453,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 
         // Create system tray menu (or setup the dock menu) that late to prevent users from calling actions,
         // while the client has not yet fully loaded
-        if(trayIcon)
-            createTrayIconMenu();
+        createTrayIconMenu();
 
         // Keep up to date with client
         setNumConnections(clientModel->getNumConnections());
@@ -529,16 +529,20 @@ void BitcoinGUI::createTrayIconMenu()
 {
     QMenu *trayIconMenu;
 #ifndef Q_OS_MAC
+    // return if trayIcon is unset (only on non-Mac OSes)
+    if (!trayIcon)
+        return;
+
     trayIconMenu = new QMenu(this);
     trayIcon->setContextMenu(trayIconMenu);
 
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-        this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
+            this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
 #else
     // Note: On Mac, the dock icon is used to provide the tray's functionality.
     MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
+    dockIconHandler->setMainWindow((QMainWindow *)this);
     trayIconMenu = dockIconHandler->dockMenu();
-    dockIconHandler->setMainWindow((QMainWindow*)this);
 #endif
 
     // Configuration of the tray icon (or dock icon) icon menu
