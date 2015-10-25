@@ -11,6 +11,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -495,6 +496,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     fTestNet = GetBoolArg("-testnet");
 	fUseFastIndex = GetBoolArg("-fastindex", true);
+    Checkpoints::fEnabled = GetBoolArg("-checkpoints", false);
 
     if (mapArgs.count("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
