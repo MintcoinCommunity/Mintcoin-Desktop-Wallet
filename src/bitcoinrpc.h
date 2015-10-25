@@ -11,6 +11,7 @@
 #include <map>
 
 class CBlockIndex;
+class CReserveKey;
 
 #include "json/json_spirit_reader_template.h"
 #include "json/json_spirit_writer_template.h"
@@ -129,6 +130,7 @@ public:
 };
 
 extern const CRPCTable tableRPC;
+extern CReserveKey* pMiningKey;
 
 extern int64 nWalletUnlockTime;
 extern int64 AmountFromValue(const json_spirit::Value& value);

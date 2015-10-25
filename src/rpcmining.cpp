@@ -270,7 +270,6 @@ Value getwork(const Array& params, bool fHelp)
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
     static vector<CBlock*> vNewBlock;
-    static CReserveKey reservekey(pwalletMain);
 
     if (params.size() == 0)
     {
@@ -360,7 +359,7 @@ Value getwork(const Array& params, bool fHelp)
         if (!pblock->SignBlock(*pwalletMain))
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
-        return CheckWork(pblock, *pwalletMain, reservekey);
+        return CheckWork(pblock, *pwalletMain, *pMiningKey);
     }
 }
 
@@ -411,7 +410,6 @@ Value getblocktemplate(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "MintCoin is downloading blocks...");
 
-    static CReserveKey reservekey(pwalletMain);
 
     // Update block
     static unsigned int nTransactionsUpdatedLast;
@@ -435,6 +433,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
             delete pblock;
             pblock = NULL;
         }
+        // for POW Mining
+        //pblocktemplate = CreateNewBlock(*pMiningKey);
         pblock = CreateNewBlock(pwalletMain);
         if (!pblock)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
