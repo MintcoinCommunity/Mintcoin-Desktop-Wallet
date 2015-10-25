@@ -49,6 +49,7 @@ unsigned int nStakeTargetSpacing = 30;			// 30 sec block spacing
 
 int64 nChainStartTime = 1391393673;
 int nCoinbaseMaturity = 30;
+std::vector<CBlockIndex*> vBlockIndexByHeight;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainTrust = 0;
@@ -1044,19 +1045,9 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 static CBlockIndex* pblockindexFBBHLast;
 CBlockIndex* FindBlockByHeight(int nHeight)
 {
-    CBlockIndex *pblockindex;
-    if (nHeight < nBestHeight / 2)
-        pblockindex = pindexGenesisBlock;
-    else
-        pblockindex = pindexBest;
-    if (pblockindexFBBHLast && abs(nHeight - pblockindex->nHeight) > abs(nHeight - pblockindexFBBHLast->nHeight))
-        pblockindex = pblockindexFBBHLast;
-    while (pblockindex->nHeight > nHeight)
-        pblockindex = pblockindex->pprev;
-    while (pblockindex->nHeight < nHeight)
-        pblockindex = pblockindex->pnext;
-    pblockindexFBBHLast = pblockindex;
-    return pblockindex;
+    if (nHeight >= (int)vBlockIndexByHeight.size())
+        return NULL;
+    return vBlockIndexByHeight[nHeight];
 }
 
 bool CBlock::ReadFromDisk(const CBlockIndex* pindex)
@@ -1313,7 +1304,7 @@ void static InvalidBlockFound(CBlockIndex *pindex) {
     pblocktree->WriteBlockIndex(CDiskBlockIndex(pindex));
     setBlockIndexValid.erase(pindex);
     InvalidChainFound(pindex);
-    if (pindex->pnext) {
+    if (pindex->GetNextInMainChain()) {
         CValidationState stateDummy;
         ConnectBestBlock(stateDummy); // reorganise away from the failed block
     }
@@ -1353,7 +1344,7 @@ bool ConnectBestBlock(CValidationState &state) {
             if (pindexBest == NULL || pindexTest->nChainTrust > pindexBest->nChainTrust)
                 vAttach.push_back(pindexTest);
 
-            if (pindexTest->pprev == NULL || pindexTest->pnext != NULL) {
+            if (pindexTest->pprev == NULL || pindexTest->GetNextInMainChain()) {
                 reverse(vAttach.begin(), vAttach.end());
                 BOOST_FOREACH(CBlockIndex *pindexSwitch, vAttach) {
                     boost::this_thread::interruption_point();
@@ -1991,15 +1982,10 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     // At this point, all changes have been done to the database.
     // Proceed by updating the memory structures.
 
-    // Disconnect shorter branch
-    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
-        if (pindex->pprev)
-            pindex->pprev->pnext = NULL;
-
-    // Connect longer branch
+    // Register new best chain
+    vBlockIndexByHeight.resize(pindexNew->nHeight + 1);
     BOOST_FOREACH(CBlockIndex* pindex, vConnect)
-        if (pindex->pprev)
-            pindex->pprev->pnext = pindex;
+        vBlockIndexByHeight[pindex->nHeight] = pindex;
 
     // Resurrect memory transactions that were in the disconnected branch
     BOOST_FOREACH(CTransaction& tx, vResurrect) {
@@ -3045,12 +3031,12 @@ bool static LoadBlockIndexDB()
     nBestHeight = pindexBest->nHeight;
     nBestChainTrust = pindexBest->nChainTrust;
 
-    // set 'next' pointers in best chain
+    // register best chain
     CBlockIndex *pindex = pindexBest;
-    while(pindex != NULL && pindex->pprev != NULL) {
-         CBlockIndex *pindexPrev = pindex->pprev;
-         pindexPrev->pnext = pindex;
-         pindex = pindexPrev;
+    vBlockIndexByHeight.resize(pindexBest->nHeight + 1);
+    while(pindex != NULL) {
+         vBlockIndexByHeight[pindex->nHeight] = pindex;
+         pindex = pindex->pprev;
     }
     printf("LoadBlockIndexDB(): hashBestChain=%s  height=%d  trust=%s  date=%s\n",
       hashBestChain.ToString().c_str(), nBestHeight, CBigNum(nBestChainTrust).ToString().c_str(),
@@ -3125,12 +3111,12 @@ bool VerifyDB() {
         CBlockIndex *pindex = pindexState;
         while (pindex != pindexBest) {
             boost::this_thread::interruption_point();
-             pindex = pindex->pnext;
-             CBlock block;
-             if (!block.ReadFromDisk(pindex))
-                 return error("VerifyDB() : *** block.ReadFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString().c_str());
-             if (!block.ConnectBlock(state, pindex, coins))
-                 return error("VerifyDB() : *** found unconnectable block at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString().c_str());
+            pindex = pindex->GetNextInMainChain();
+            CBlock block;
+            if (!block.ReadFromDisk(pindex))
+                return error("VerifyDB() : *** block.ReadFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString().c_str());
+            if (!block.ConnectBlock(state, pindex, coins))
+                return error("VerifyDB() : *** found unconnectable block at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString().c_str());
         }
     }
 
@@ -3308,7 +3294,7 @@ void PrintBlockTree()
         vector<CBlockIndex*>& vNext = mapNext[pindex];
         for (unsigned int i = 0; i < vNext.size(); i++)
         {
-            if (vNext[i]->pnext)
+            if (vNext[i]->GetNextInMainChain())
             {
                 swap(vNext[0], vNext[i]);
                 break;
@@ -3915,10 +3901,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         // Send the rest of the chain
         if (pindex)
-            pindex = pindex->pnext;
+            pindex = pindex->GetNextInMainChain();
         int nLimit = 500;
         printf("getblocks %d to %s limit %d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString().c_str(), nLimit);
-        for (; pindex; pindex = pindex->pnext)
+        for (; pindex; pindex = pindex->GetNextInMainChain())
         {
             if (pindex->GetBlockHash() == hashStop)
             {
@@ -3975,14 +3961,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             // Find the last block the caller has in the main chain
             pindex = locator.GetBlockIndex();
             if (pindex)
-                pindex = pindex->pnext;
+                pindex = pindex->GetNextInMainChain();
         }
 
         // we must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
         vector<CBlock> vHeaders;
         int nLimit = 2000;
         printf("getheaders %d to %s\n", (pindex ? pindex->nHeight : -1), hashStop.ToString().c_str());
-        for (; pindex; pindex = pindex->pnext)
+        for (; pindex; pindex = pindex->GetNextInMainChain())
         {
             vHeaders.push_back(pindex->GetBlockHeader());
             if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop)

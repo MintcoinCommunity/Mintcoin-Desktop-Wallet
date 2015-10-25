@@ -81,6 +81,7 @@ extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern std::set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid;
+extern std::vector<CBlockIndex*> vBlockIndexByHeight;
 extern uint256 hashGenesisBlock;
 extern CBlockIndex* pindexGenesisBlock;
 extern unsigned int nStakeMinAge;
@@ -1757,17 +1758,14 @@ public:
     // pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
 
-    // (memory only) pointer to the index of the *active* successor of this block
-    CBlockIndex* pnext;
-
-    // Which # file this block is stored in (blk?????.dat)
-    unsigned int nFile;
-
     // ppcoin: trust score of block chain
     uint256 nChainTrust;
 
     // height of the entry in the chain. The genesis block has height 0
     int nHeight;
+
+    // Which # file this block is stored in (blk?????.dat)
+    int nFile;
 
     // Byte offset within blk?????.dat where this block's data is stored
     unsigned int nDataPos;
@@ -1817,10 +1815,9 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
-        pnext = NULL;
+        nHeight = 0;
         nFile = 0;
         nDataPos = 0;
-        nHeight = 0;
         nChainTrust = 0;
         nUndoPos = 0;
         nMint = 0;
@@ -1846,10 +1843,9 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
-        pnext = NULL;
+        nHeight = 0;
         nFile = 0;
         nDataPos = 0;
-        nHeight = 0;
         nChainTrust = 0;
         nMint = 0;
         nMoneySupply = 0;
@@ -1926,7 +1922,11 @@ public:
 
     bool IsInMainChain() const
     {
-        return (pnext || this == pindexBest);
+        return nHeight < (int)vBlockIndexByHeight.size() && vBlockIndexByHeight[nHeight] == this;
+    }
+
+    CBlockIndex *GetNextInMainChain() const {
+        return nHeight+1 >= (int)vBlockIndexByHeight.size() ? NULL : vBlockIndexByHeight[nHeight+1];
     }
 
     bool CheckIndex() const
@@ -1955,9 +1955,9 @@ public:
         const CBlockIndex* pindex = this;
         for (int i = 0; i < nMedianTimeSpan/2; i++)
         {
-            if (!pindex->pnext)
+            if (!pindex->GetNextInMainChain())
                 return GetBlockTime();
-            pindex = pindex->pnext;
+            pindex = pindex->GetNextInMainChain();
         }
         return pindex->GetMedianTimePast();
     }
@@ -2013,10 +2013,10 @@ public:
     std::string ToString() const
     {
         return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016"PRI64x", nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-            pprev, pnext, nFile, nHeight,
+            pprev, GetNextInMainChain(), nFile, nHeight,
             FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
             GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-            nStakeModifier, nStakeModifierChecksum, 
+            nStakeModifier, nStakeModifierChecksum,
             hashProofOfStake.ToString().c_str(),
             prevoutStake.ToString().c_str(), nStakeTime,
             hashMerkleRoot.ToString().c_str(),
