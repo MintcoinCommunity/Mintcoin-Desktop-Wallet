@@ -13,6 +13,7 @@
 #include "checkpoints.h"
 #include "txdb.h"
 #include "kernel.h"
+#include "hash.h"
 
 using namespace std;
 using namespace boost;
@@ -145,6 +146,10 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
     leveldb::Iterator *pcursor = db.NewIterator();
     pcursor->SeekToFirst();
 
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+    stats.hashBlock = GetBestBlock()->GetBlockHash();
+    ss << stats.hashBlock;
+    int64 nTotalAmount = 0;
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         try {
@@ -159,13 +164,22 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
                 ssValue >> coins;
                 uint256 txhash;
                 ssKey >> txhash;
-
+                ss << txhash;
+                ss << VARINT(coins.nVersion);
+                ss << (coins.fCoinBase ? 'c' : 'n');
+                ss << VARINT(coins.nHeight);
                 stats.nTransactions++;
-                BOOST_FOREACH(const CTxOut &out, coins.vout) {
-                    if (!out.IsNull())
+                for (unsigned int i=0; i<coins.vout.size(); i++) {
+                    const CTxOut &out = coins.vout[i];
+                    if (!out.IsNull()) {
                         stats.nTransactionOutputs++;
+                        ss << VARINT(i+1);
+                        ss << out;
+                        nTotalAmount += out.nValue;
+                    }
                 }
                 stats.nSerializedSize += 32 + slValue.size();
+                ss << VARINT(0);
             }
             pcursor->Next();
         } catch (std::exception &e) {
@@ -174,6 +188,8 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
     }
     delete pcursor;
     stats.nHeight = GetBestBlock()->nHeight;
+    stats.hashSerialized = ss.GetHash();
+    stats.nTotalAmount = nTotalAmount;
     return true;
 }
 
