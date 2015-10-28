@@ -2862,9 +2862,7 @@ bool CBlock::CheckBlockSignature() const
         if (whichType == TX_PUBKEY)
         {
             valtype& vchPubKey = vSolutions[0];
-            CKey key;
-            if (!key.SetPubKey(vchPubKey))
-                return false;
+            CPubKey key(vchPubKey);
             if (vchBlockSig.empty())
                 return false;
             return key.Verify(GetHash(), vchBlockSig);
@@ -2883,9 +2881,7 @@ bool CBlock::CheckBlockSignature() const
             {
                 // Verify
                 valtype& vchPubKey = vSolutions[0];
-                CKey key;
-                if (!key.SetPubKey(vchPubKey))
-                    continue;
+                CPubKey key(vchPubKey);
                 if (vchBlockSig.empty())
                     continue;
                 if(!key.Verify(GetHash(), vchBlockSig))
