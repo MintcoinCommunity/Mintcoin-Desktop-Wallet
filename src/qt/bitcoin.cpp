@@ -116,11 +116,11 @@ int main(int argc, char *argv[])
     // Command-line options take precedence:
     ParseParameters(argc, argv);
 
-        #if QT_VERSION < 0x050000
+#if QT_VERSION < 0x050000
     // Internal string conversion is all UTF-8
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForCStrings(QTextCodec::codecForTr());
-        #endif
+#endif
 
     Q_INIT_RESOURCE(bitcoin);
     QApplication app(argc, argv);
