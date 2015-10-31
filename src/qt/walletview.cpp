@@ -21,8 +21,8 @@
 #include "ui_interface.h"
 #include "wallet.h"
 
+#include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QActionGroup>
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -42,7 +42,7 @@ WalletView::WalletView(QWidget *parent, BitcoinGUI *_gui):
     QHBoxLayout *hbox_buttons = new QHBoxLayout();
     transactionView = new TransactionView(this);
     vbox->addWidget(transactionView);
-    QPushButton *exportButton = new QPushButton("&Export", this);
+    QPushButton *exportButton = new QPushButton(tr("&Export"), this);
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
 #ifndef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     exportButton->setIcon(QIcon(":/icons/export"));
@@ -159,14 +159,10 @@ void WalletView::incomingTransaction(const QModelIndex& parent, int start, int /
 
     TransactionTableModel *ttm = walletModel->getTransactionTableModel();
 
-    QString date = ttm->index(start, TransactionTableModel::Date, parent)
-                     .data().toString();
-    qint64 amount = ttm->index(start, TransactionTableModel::Amount, parent)
-                      .data(Qt::EditRole).toULongLong();
-    QString type = ttm->index(start, TransactionTableModel::Type, parent)
-                     .data().toString();
-    QString address = ttm->index(start, TransactionTableModel::ToAddress, parent)
-                        .data().toString();
+    QString date = ttm->index(start, TransactionTableModel::Date, parent).data().toString();
+    qint64 amount = ttm->index(start, TransactionTableModel::Amount, parent).data(Qt::EditRole).toULongLong();
+    QString type = ttm->index(start, TransactionTableModel::Type, parent).data().toString();
+    QString address = ttm->index(start, TransactionTableModel::ToAddress, parent).data().toString();
 
     gui->incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address);
 }
@@ -260,8 +256,7 @@ void WalletView::encryptWallet(bool status)
 {
     if(!walletModel)
         return;
-    AskPassphraseDialog dlg(status ? AskPassphraseDialog::Encrypt:
-                                     AskPassphraseDialog::Decrypt, this);
+    AskPassphraseDialog dlg(status ? AskPassphraseDialog::Encrypt : AskPassphraseDialog::Decrypt, this);
     dlg.setModel(walletModel);
     dlg.exec();
 
