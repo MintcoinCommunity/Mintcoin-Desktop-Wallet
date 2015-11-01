@@ -5160,6 +5160,12 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     }
 }
 
+// ppcoin: stake minter thread
+void ThreadStakeMinter()
+{
+    BitcoinMiner(pwalletMain, true);
+}
+
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, bool fProofOfStake)
 {
     static boost::thread_group* minerThreads = NULL;

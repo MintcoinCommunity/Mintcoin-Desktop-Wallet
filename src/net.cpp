@@ -5,7 +5,7 @@
 
 #include "db.h"
 #include "net.h"
-#include "init.h"
+#include "main.h"
 #include "addrman.h"
 #include "ui_interface.h"
 #include "script.h"
@@ -67,6 +67,28 @@ vector<std::string> vAddedNodes;
 CCriticalSection cs_vAddedNodes;
 
 static CSemaphore *semOutbound = NULL;
+
+//
+// Handlers that need to be registered
+//
+static ProcessMessagesHandler fnProcessMessages = NULL;
+static SendMessagesHandler fnSendMessages = NULL;
+static StartShutdownHandler fnStartShutdown = NULL;
+
+void SetProcessMessagesHandler(ProcessMessagesHandler handler)
+{
+    fnProcessMessages = handler;
+}
+
+void SetSendMessagesHandler(SendMessagesHandler handler)
+{
+    fnSendMessages = handler;
+}
+
+void SetStartShutdownHandler(StartShutdownHandler handler)
+{
+    fnStartShutdown = handler;
+}
 
 void AddOneShot(string strDest)
 {
@@ -1271,12 +1293,6 @@ void static ProcessOneShot()
     }
 }
 
-// ppcoin: stake minter thread
-void ThreadStakeMinter()
-{
-    BitcoinMiner(pwalletMain, true);
-}
-
 void ThreadOpenConnections()
 {
     // Connect to specific addresses
@@ -1568,8 +1584,8 @@ void ThreadMessageHandler()
             // Send messages
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
-                if (lockSend)
-                    SendMessages(pnode, pnode == pnodeTrickle);
+                if (lockSend && fnSendMessages)
+                    fnSendMessages(pnode, pnode == pnodeTrickle);
             }
             boost::this_thread::interruption_point();
         }
@@ -1794,7 +1810,6 @@ void StartNode(boost::thread_group& threadGroup)
 bool StopNode()
 {
     printf("StopNode()\n");
-    GenerateBitcoins(false, NULL);
     MapPort(false);
     nTransactionsUpdated++;
     if (semOutbound)
