@@ -1258,7 +1258,12 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 double dPriority = 0;
                 // vouts to the payees
                 BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
-                    wtxNew.vout.push_back(CTxOut(s.second, s.first));
+                {
+                    CTxOut txout(s.second, s.first);
+                    if (txout.IsDust())
+                        return false;
+                    wtxNew.vout.push_back(txout);
+                }
 
                 // Choose coins to use
                 set<pair<const CWalletTx*,unsigned int> > setCoins;
@@ -1300,13 +1305,13 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     // change transaction isn't always pay-to-bitcoin-address
                     CScript scriptChange;
 					
-                     // coin control: send change to custom address
-                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
-                         scriptChange.SetDestination(coinControl->destChange);
+                    // coin control: send change to custom address
+                    if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
+                        scriptChange.SetDestination(coinControl->destChange);
  
-                     // no coin control: send change to newly generated address
-                     else
-                     {
+                    // no coin control: send change to newly generated address
+                    else
+                    {
                         // Note: We use a new key here to keep it from being obvious which side is the change.
                         //  The drawback is that by not reusing a previous key, the change may be lost if a
                         //  backup is restored, if the backup doesn't have the new private key for the change.
@@ -1318,12 +1323,24 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                         CPubKey vchPubKey;
                         assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
 
-                         scriptChange.SetDestination(vchPubKey.GetID());
-                     }
+                        scriptChange.SetDestination(vchPubKey.GetID());
+                    }
                     
-                    // Insert change txn at random position:
-                    vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size())+1;
-                    wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
+                    CTxOut newTxOut(nChange, scriptChange);
+
+                    // Never create dust outputs; if we would, just
+                    // add the dust to the fee.
+                    if (newTxOut.IsDust())
+                    {
+                        nFeeRet += nChange;
+                        reservekey.ReturnKey();
+                    }
+                    else
+                    {
+                        // Insert change txn at random position:
+                        vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size())+1;
+                        wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
+                    }
                 }
                 else
                     reservekey.ReturnKey();
