@@ -179,7 +179,7 @@ signals:
     void requireUnlock();
 
     // Asynchronous message notification
-    void message(const QString &title, const QString &message, bool modal, unsigned int style);
+    void message(const QString &title, const QString &message, unsigned int style);
 };
 
 
