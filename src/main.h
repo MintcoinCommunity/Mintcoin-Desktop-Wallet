@@ -31,7 +31,7 @@ class CBlockIndexTrustComparator;
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 /** The maximum size for mined blocks */
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
-/** The maximum size for transactions we're willing to relay/mine **/
+/** The maximum size for transactions we're willing to relay/mine */
 static const unsigned int MAX_STANDARD_TX_SIZE = MAX_BLOCK_SIZE_GEN/5;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
@@ -47,10 +47,6 @@ static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** Fake height value used in CCoins to signify they are only in the memory pool (since 0.8) */
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
-/** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
-static const int64 MIN_TX_FEE = 10 * CENT;
-/** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
-static const int64 MIN_RELAY_TX_FEE = 10 * CENT;
 /** No amount larger than this (in satoshi) is valid */
 static const int64 MAX_MONEY = 70000000000ull * COIN;			// 70 bil
 static const int64 CIRCULATION_MONEY = MAX_MONEY;
@@ -58,7 +54,7 @@ static const double TAX_PERCENTAGE = 0.01;
 static const int64 MAX_MINT_PROOF_OF_STAKE = 0.05 * COIN;	// 5% annual interest
 static const int CUTOFF_POW_BLOCK = 220000;
 
-static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
+static const int64 MIN_TXOUT_AMOUNT = CTransaction::nMinTxFee;
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
@@ -442,23 +438,7 @@ public:
         return !(a == b);
     }
 
-    size_t size() const
-    {
-        return sizeof(nValue)+scriptPubKey.size();
-    }
-
-    bool IsDust() const
-    {
-        // "Dust" is defined in terms of MIN_RELAY_TX_FEE, which
-        // has units satoshis-per-kilobyte.
-        // If you'd pay more than 1/3 in fees
-        // to spend something, then we consider it dust.
-        // A typical txout is 32 bytes big, and will
-        // need a CTxIn of at least 148 bytes to spend,
-        // so dust is a txout less than 54 uBTC
-        // (5400 satoshis)
-        return ((nValue*1000)/(3*(size()+148)) < MIN_RELAY_TX_FEE);
-    }
+    bool IsDust() const;
 
     std::string ToStringShort() const
     {
@@ -496,6 +476,8 @@ int64 GetMinFee(const CTransaction& tx, unsigned int nBlockSize = 1, bool fAllow
 class CTransaction
 {
 public:
+    static int64 nMinTxFee;
+    static int64 nMinRelayTxFee;
     static const int CURRENT_VERSION=1;
     int nVersion;
     unsigned int nTime;
