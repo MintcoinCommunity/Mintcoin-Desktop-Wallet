@@ -490,11 +490,11 @@ Value getblocktemplate(const Array& params, bool fHelp)
         }
         entry.push_back(Pair("depends", deps));
 
-        int64_t nSigOps = tx.GetLegacySigOpCount();
-        if (tx.HaveInputs(view))
+        int64_t nSigOps = GetLegacySigOpCount(tx);
+        if (view.HaveInputs(tx))
         {
-            entry.push_back(Pair("fee", (int64_t)(tx.GetValueIn(view) - tx.GetValueOut())));
-            nSigOps += tx.GetP2SHSigOpCount(view);
+            entry.push_back(Pair("fee", (int64_t)(view.GetValueIn(tx) - GetValueOut(tx))));
+            nSigOps += GetP2SHSigOpCount(tx, view);
          }
         entry.push_back(Pair("sigops", nSigOps));
 
