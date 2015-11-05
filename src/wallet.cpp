@@ -45,6 +45,13 @@ CPubKey CWallet::GenerateNewKey()
         SetMinVersion(FEATURE_COMPRPUBKEY);
 
     CPubKey pubkey = secret.GetPubKey();
+
+    // Create new metadata
+    int64 nCreationTime = GetTime();
+    mapKeyMetadata[pubkey.GetID()] = CKeyMetadata(nCreationTime);
+    if (!nTimeFirstKey || nCreationTime < nTimeFirstKey)
+        nTimeFirstKey = nCreationTime;
+
     if (!AddKeyPubKey(secret, pubkey))
         throw std::runtime_error("CWallet::GenerateNewKey() : AddKey failed");
     return pubkey;
@@ -57,12 +64,15 @@ bool CWallet::AddKeyPubKey(const CKey& secret, const CPubKey &pubkey)
     if (!fFileBacked)
         return true;
     if (!IsCrypted()) {
-        return CWalletDB(strWalletFile).WriteKey(pubkey, secret.GetPrivKey());
+        return CWalletDB(strWalletFile).WriteKey(pubkey,
+                                                 secret.GetPrivKey(),
+                                                 mapKeyMetadata[pubkey.GetID()]);
     }
     return true;
 }
 
-bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const vector<unsigned char> &vchCryptedSecret)
+bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
+                            const vector<unsigned char> &vchCryptedSecret)
 {
     if (!CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret))
         return false;
@@ -71,11 +81,24 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const vector<unsigned char
     {
         LOCK(cs_wallet);
         if (pwalletdbEncryption)
-            return pwalletdbEncryption->WriteCryptedKey(vchPubKey, vchCryptedSecret);
+            return pwalletdbEncryption->WriteCryptedKey(vchPubKey,
+                                                        vchCryptedSecret,
+                                                        mapKeyMetadata[vchPubKey.GetID()]);
         else
-            return CWalletDB(strWalletFile).WriteCryptedKey(vchPubKey, vchCryptedSecret);
+            return CWalletDB(strWalletFile).WriteCryptedKey(vchPubKey,
+                                                            vchCryptedSecret,
+                                                            mapKeyMetadata[vchPubKey.GetID()]);
     }
     return false;
+}
+
+bool CWallet::LoadKeyMetadata(const CPubKey &pubkey, const CKeyMetadata &meta)
+{
+    if (meta.nCreateTime && (!nTimeFirstKey || meta.nCreateTime < nTimeFirstKey))
+        nTimeFirstKey = meta.nCreateTime;
+
+    mapKeyMetadata[pubkey.GetID()] = meta;
+    return true;
 }
 
 bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret)
@@ -799,6 +822,13 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
         LOCK(cs_wallet);
         while (pindex)
         {
+            // no need to read and scan block, if block was created before
+            // our wallet birthday (as adjusted for block time variability)
+            if (nTimeFirstKey && (pindex->nTime < (nTimeFirstKey - 7200))) {
+                pindex = pindex->GetNextInMainChain();
+                continue;
+            }
+
             CBlock block;
             block.ReadFromDisk(pindex);
             BOOST_FOREACH(CTransaction& tx, block.vtx)
