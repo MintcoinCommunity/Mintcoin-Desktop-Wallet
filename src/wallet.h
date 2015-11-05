@@ -695,8 +695,7 @@ public:
     int GetRequestCount() const;
 
     void AddSupportingTransactions();
-
-    bool AcceptWalletTransaction(bool fCheckInputs=true);
+    bool AcceptWalletTransaction();
     void RelayWalletTransaction();
 };
 
