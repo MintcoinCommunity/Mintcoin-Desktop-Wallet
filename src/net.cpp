@@ -5,7 +5,7 @@
 
 #include "db.h"
 #include "net.h"
-#include "main.h"
+#include "core.h"
 #include "addrman.h"
 #include "ui_interface.h"
 #include "script.h"
@@ -68,27 +68,9 @@ CCriticalSection cs_vAddedNodes;
 
 static CSemaphore *semOutbound = NULL;
 
-//
-// Handlers that need to be registered
-//
-static ProcessMessagesHandler fnProcessMessages = NULL;
-static SendMessagesHandler fnSendMessages = NULL;
-static StartShutdownHandler fnStartShutdown = NULL;
-
-void SetProcessMessagesHandler(ProcessMessagesHandler handler)
-{
-    fnProcessMessages = handler;
-}
-
-void SetSendMessagesHandler(SendMessagesHandler handler)
-{
-    fnSendMessages = handler;
-}
-
-void SetStartShutdownHandler(StartShutdownHandler handler)
-{
-    fnStartShutdown = handler;
-}
+// Signals for message handling
+static CNodeSignals g_signals;
+CNodeSignals& GetNodeSignals() { return g_signals; }
 
 void AddOneShot(string strDest)
 {
@@ -1515,11 +1497,6 @@ void static StartSync(const vector<CNode*> &vNodes) {
     CNode *pnodeNewSync = NULL;
     double dBestScore = 0;
 
-    // fImporting and fReindex are accessed out of cs_main here, but only
-    // as an optimization - they are checked again in SendMessages.
-    if (fImporting || fReindex)
-        return;
-
     // Iterate over all nodes
     BOOST_FOREACH(CNode* pnode, vNodes) {
         // check preconditions for allowing a sync
@@ -1576,7 +1553,7 @@ void ThreadMessageHandler()
             {
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
-                    if (!ProcessMessages(pnode))
+                    if (!g_signals.ProcessMessages(pnode))
                         pnode->CloseSocketDisconnect();
             }
             boost::this_thread::interruption_point();
@@ -1584,8 +1561,8 @@ void ThreadMessageHandler()
             // Send messages
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
-                if (lockSend && fnSendMessages)
-                    fnSendMessages(pnode, pnode == pnodeTrickle);
+                if (lockSend)
+                    g_signals.SendMessages(pnode, pnode == pnodeTrickle);
             }
             boost::this_thread::interruption_point();
         }
@@ -1801,17 +1778,12 @@ void StartNode(boost::thread_group& threadGroup)
 
     // Dump network addresses
     threadGroup.create_thread(boost::bind(&LoopForever<void (*)()>, "dumpaddr", &DumpAddresses, 10000));
-
-    // ppcoin: mint proof-of-stake blocks in the background
-    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "stake", &ThreadStakeMinter));
-    
 }
 
 bool StopNode()
 {
     printf("StopNode()\n");
     MapPort(false);
-    nTransactionsUpdated++;
     if (semOutbound)
         for (int i=0; i<MAX_OUTBOUND_CONNECTIONS; i++)
             semOutbound->post();

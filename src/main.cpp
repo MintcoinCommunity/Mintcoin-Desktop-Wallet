@@ -96,6 +96,26 @@ int64 nTransactionFee = CTransaction::nMinTxFee;
 // Used during database migration.
 bool fDisableSignatureChecking = false;
 
+// still working on mask calculation and serialization of coinstake
+bool CCoins::IsCoinStake(uint256 hash) const {
+    CTransaction tx;
+    uint256 block;
+    GetTransaction(hash, tx, block, true);
+    return tx.IsCoinStake();
+}
+
+uint256 CBlockHeader::GetHash() const
+{
+    uint256 thash;
+    void * scratchbuff = scrypt_buffer_alloc();
+
+    scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+
+    scrypt_buffer_free(scratchbuff);
+
+    return thash;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -202,7 +222,22 @@ void ResendWalletTransactions()
 
 
 
+//////////////////////////////////////////////////////////////////////////////
+//
+// Registration of network node signals.
+//
 
+void RegisterNodeSignals(CNodeSignals& nodeSignals)
+{
+    nodeSignals.ProcessMessages.connect(&ProcessMessages);
+    nodeSignals.SendMessages.connect(&SendMessages);
+}
+
+void UnregisterNodeSignals(CNodeSignals& nodeSignals)
+{
+    nodeSignals.ProcessMessages.disconnect(&ProcessMessages);
+    nodeSignals.SendMessages.disconnect(&SendMessages);
+}
 
 
 
@@ -1407,9 +1442,9 @@ bool ConnectBestBlock(CValidationState &state) {
     } while(true);
 }
 
-void CBlockHeader::UpdateTime(const CBlockIndex* pindexPrev)
+void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev)
 {
-    nTime = max(GetBlockTime(), GetAdjustedTime());
+    block.nTime = max(block.GetBlockTime(), GetAdjustedTime());
 }
 
 
@@ -4908,7 +4943,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         pblock->nTime          = max(pindexPrev->GetMedianTimePast()+1, pblock->GetMaxTransactionTime());
         pblock->nTime          = max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime()));
         if (pblock->IsProofOfWork())
-            pblock->UpdateTime(pindexPrev);
+            UpdateTime(*pblock, pindexPrev);
         pblock->nNonce         = 0;
     }
 
@@ -5163,7 +5198,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             // Update nTime every few seconds
             pblock->nTime = max(pindexPrev->GetMedianTimePast()+1, pblock->GetMaxTransactionTime());
             pblock->nTime = max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime()));
-            pblock->UpdateTime(pindexPrev);
+            UpdateTime(*pblock, pindexPrev);
             nBlockTime = ByteReverse(pblock->nTime);
 
             if (pblock->GetBlockTime() >= (int64)pblock->vtx[0].nTime + GetClockDrift(GetAdjustedTime()))

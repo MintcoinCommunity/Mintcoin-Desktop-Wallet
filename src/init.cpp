@@ -574,10 +574,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 6: network initialization
 
-    SetProcessMessagesHandler(ProcessMessages);
-    SetSendMessagesHandler(SendMessages);
-    SetStartShutdownHandler(StartShutdown);
-    
+    RegisterNodeSignals(GetNodeSignals());
+ 
     int nSocksVersion = GetArg("-socks", 5);
     if (nSocksVersion != 4 && nSocksVersion != 5)
         return InitError(strprintf(_("Unknown -socks proxy version requested: %i"), nSocksVersion));
@@ -1002,6 +1000,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // Run a thread to flush wallet periodically
     threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
+
+    // ppcoin: mint proof-of-stake blocks in the background
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "stake", &ThreadStakeMinter));
 
     return !fRequestShutdown;
 }
