@@ -76,7 +76,7 @@ namespace Checkpoints
     };
 
     const CCheckpointData &Checkpoints() {
-        if (fTestNet)
+        if (TestNet())
             return dataTestnet;
         else
             return data;
@@ -273,7 +273,7 @@ namespace Checkpoints
         // Select the last proof-of-work block
         const CBlockIndex *pindex = GetLastBlockIndex(pindexBest, false);
         // Search forward for a block within max span and maturity window
-        while (pindex->GetNextInMainChain() && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN <= pindexBest->GetBlockTime() || pindex->nHeight + std::min(6, nCoinbaseMaturity - 20) <= pindexBest->nHeight))
+        while (pindex->GetNextInMainChain() && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN <= pindexBest->GetBlockTime() || pindex->nHeight + std::min(6u, Params().CoinbaseMaturity() - 20) <= pindexBest->nHeight))
             pindex = pindex->GetNextInMainChain();
         return pindex->GetBlockHash();
     }
@@ -281,7 +281,7 @@ namespace Checkpoints
     // Check against synchronized checkpoint
     bool CheckSync(const uint256& hashBlock, const CBlockIndex* pindexPrev)
     {
-        if (fTestNet) return true; // Testnet has no checkpoints
+        if (TestNet()) return true; // Testnet has no checkpoints
         int nHeight = pindexPrev->nHeight + 1;
 
         LOCK(cs_hashSyncCheckpoint);
@@ -372,7 +372,7 @@ namespace Checkpoints
     {
         // Test signing a sync-checkpoint with genesis block
         CSyncCheckpoint checkpoint;
-        checkpoint.hashCheckpoint = !fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet;
+        checkpoint.hashCheckpoint = Params().HashGenesisBlock();
         CDataStream sMsg(SER_NETWORK, PROTOCOL_VERSION);
         sMsg << (CUnsignedSyncCheckpoint)checkpoint;
         checkpoint.vchMsg = std::vector<unsigned char>(sMsg.begin(), sMsg.end());
@@ -426,8 +426,8 @@ namespace Checkpoints
         // sync-checkpoint should always be accepted block
         assert(mapBlockIndex.count(hashSyncCheckpoint));
         const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
-        return (nBestHeight >= pindexSync->nHeight + nCoinbaseMaturity ||
-                pindexSync->GetBlockTime() + nStakeMinAge < GetAdjustedTime());
+        return (nBestHeight >= pindexSync->nHeight + Params().CoinbaseMaturity() ||
+                pindexSync->GetBlockTime() + Params().StakeMinAge() < GetAdjustedTime());
     }
 
     // Is the sync-checkpoint too old?
@@ -521,7 +521,7 @@ bool Checkpoints::CheckMasterPubKey(bool reindex)
         // write checkpoint master key to db
         if (!pblocktree->WriteCheckpointPubKey(CSyncCheckpoint::strMasterPubKey))
             return error("LoadBlockIndexDB() : failed to write new checkpoint master key to db");
-        if ((!fTestNet) && !Checkpoints::ResetSyncCheckpoint(state))
+        if ((!TestNet()) && !Checkpoints::ResetSyncCheckpoint(state))
             return error("LoadBlockIndexDB() : failed to reset sync-checkpoint");
     }
     

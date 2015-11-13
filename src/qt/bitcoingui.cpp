@@ -27,6 +27,7 @@
 #include "ui_interface.h"
 #include "init.h"
 #include "wallet.h"
+#include "chainparams.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -60,8 +61,6 @@
 #include <iostream>
 
 extern CWallet *pwalletMain;
-extern int64 nLastCoinStakeSearchInterval;
-extern unsigned int nStakeTargetSpacing;
 extern bool fWalletUnlockMintOnly;
 const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
@@ -1019,7 +1018,7 @@ void BitcoinGUI::updateMintingIcon()
     }
     else if (nLastCoinStakeSearchInterval)
     {
-        uint64 nEstimateTime = nStakeTargetSpacing * nNetworkWeight / nWeight;
+        uint64 nEstimateTime = Params().StakeTargetSpacing() * nNetworkWeight / nWeight;
 
         QString text;
         if (nEstimateTime < 60)
