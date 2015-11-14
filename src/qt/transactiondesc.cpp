@@ -2,7 +2,7 @@
 
 #include "guiutil.h"
 #include "bitcoinunits.h"
-#include "main.h"
+//#include "main.h"
 #include "wallet.h"
 #include "txdb.h"
 #include "ui_interface.h"
