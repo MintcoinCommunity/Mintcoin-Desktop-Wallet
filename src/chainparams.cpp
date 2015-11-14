@@ -6,7 +6,9 @@
 #include "assert.h"
 
 #include "chainparams.h"
-#include "kernel.h"
+//#include "kernel.h"
+#include "core.h"
+#include "protocol.h"
 #include "util.h"
 
 //
@@ -73,7 +75,7 @@ public:
         nStakeMaxAge = 60 * 60 * 24 * 40;  // stake age of full weight: 40d
         nStakeTargetSpacing = 30;          // 30 sec block spacing
 
-        nModifierInterval = MODIFIER_INTERVAL;
+        nModifierInterval = 6 * 60 * 60;//MODIFIER_INTERVAL;
         nCoinbaseMaturity = 30;
 
 
