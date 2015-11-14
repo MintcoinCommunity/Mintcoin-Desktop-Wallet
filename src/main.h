@@ -128,7 +128,7 @@ static const uint64 nMinDiskSpace = 52428800;
 class CReserveKey;
 class CCoinsDB;
 class CBlockTreeDB;
-class CDiskBlockPos;
+struct CDiskBlockPos;
 class CCoins;
 class CTxUndo;
 class CCoinsView;
@@ -140,6 +140,8 @@ class CValidationState;
 void RegisterWallet(CWallet* pwalletIn);
 /** Unregister a wallet from core */
 void UnregisterWallet(CWallet* pwalletIn);
+/** Unregister all wallets from core */
+void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
 void SyncWithWallets(const uint256 &hash, const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
 
