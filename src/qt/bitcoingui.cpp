@@ -169,7 +169,7 @@ BitcoinGUI::BitcoinGUI(bool fIsTestnet, QWidget *parent) :
     // Override style sheet for progress bar for styles that have a segmented progress bar,
     // as they make the text unreadable (workaround for issue #1071)
     // See https://qt-project.org/doc/qt-4.8/gallery.html
-    QString curStyle = qApp->style()->metaObject()->className();
+    QString curStyle = QApplication::style()->metaObject()->className();
     if(curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
     {
         progressBar->setStyleSheet("QProgressBar { background-color: #e8e8e8; border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; } QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 orange); border-radius: 7px; margin: 0px; }");
@@ -451,7 +451,7 @@ void BitcoinGUI::createTrayIcon(bool fIsTestnet)
     trayIcon->show();
 #endif
 
-    notificator = new Notificator(qApp->applicationName(), trayIcon, this);
+    notificator = new Notificator(QApplication::applicationName(), trayIcon, this);
 }
 
 void BitcoinGUI::createTrayIconMenu()
@@ -516,7 +516,7 @@ void BitcoinGUI::restoreWindowGeometry()
     QSize size = settings.value("nWindowSize", QSize(940, 550)).toSize();
     if (!pos.x() && !pos.y())
     {
-        QRect screen = qApp->desktop()->screenGeometry();
+        QRect screen = QApplication::desktop()->screenGeometry();
         pos.setX((screen.width()-size.width())/2);
         pos.setY((screen.height()-size.height())/2);
     }
@@ -796,7 +796,7 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
         if(!clientModel->getOptionsModel()->getMinimizeToTray() &&
            !clientModel->getOptionsModel()->getMinimizeOnClose())
         {
-            qApp->quit();
+            QApplication::quit();
         }
 #endif
     }
