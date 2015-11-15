@@ -5177,7 +5177,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     unsigned int nExtraNonce = 0;
 
             nLastCoinStakeSearchInterval = 0;
-    try { for(;;) {
+    try { while (true) {
         if (Params().NetworkID() != CChainParams::REGTEST) {
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
@@ -5238,7 +5238,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         block_header res_header;
         uint256 result;
 
-        for (;;)
+        while (true)
         {
             unsigned int nHashesDone = 0;
             unsigned int nNonceFound;
