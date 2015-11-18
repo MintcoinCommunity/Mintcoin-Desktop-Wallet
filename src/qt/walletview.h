@@ -112,6 +112,10 @@ public slots:
     void lockWalletToggle();
 
     void setEncryptionStatus();
+
+signals:
+    /** Signal that we want to show the main window */
+    void showNormalIfMinimized();
 };
 
 #endif // WALLETVIEW_H
