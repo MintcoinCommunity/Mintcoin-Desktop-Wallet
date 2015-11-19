@@ -122,13 +122,13 @@ SendCoinsDialog::~SendCoinsDialog()
 
 void SendCoinsDialog::on_sendButton_clicked()
 {
+    if(!model || !model->getOptionsModel())
+        return;
+
     QList<SendCoinsRecipient> recipients;
 
     bool valid = true;
 
-    if(!model)
-        return;
-	
     if(model->getEncryptionStatus() != WalletModel::Unencrypted && model->getOptionsModel()->getPasswordOnSend())
     {
         AskPassphraseDialog dlg(AskPassphraseDialog::PassToSend,this);
@@ -162,7 +162,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     QStringList formatted;
     foreach(const SendCoinsRecipient &rcp, recipients)
     {
-        QString amount = BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount);
+        QString amount = BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), rcp.amount);
         if (rcp.authenticatedMerchant.isEmpty())
         {
             QString address = rcp.address;
@@ -257,7 +257,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     case WalletModel::AmountWithFeeExceedsBalance:
         QMessageBox::warning(this, tr("Send Coins"),
             tr("The total exceeds your balance when the %1 transaction fee is included.").
-            arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, sendstatus.fee)),
+            arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), sendstatus.fee)),
             QMessageBox::Ok, QMessageBox::Ok);
         break;
     case WalletModel::DuplicateAddress:
