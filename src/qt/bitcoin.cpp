@@ -156,12 +156,12 @@ static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTrans
 #if QT_VERSION < 0x050000
 void DebugMessageHandler(QtMsgType type, const char * msg)
 {
-    OutputDebugStringF("%s\n", msg);
+    OutputDebugStringF("MintCoin-Qt: %s\n", msg);
 }
 #else
 void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString &msg)
 {
-    OutputDebugStringF("%s\n", qPrintable(msg));
+    OutputDebugStringF("MintCoin-Qt: %s\n", qPrintable(msg));
 }
 #endif
 
@@ -237,6 +237,12 @@ int main(int argc, char *argv[])
 
     // Install global event filter that makes sure that long tooltips can be word-wrapped
     app.installEventFilter(new GUIUtil::ToolTipToRichTextFilter(TOOLTIP_WRAP_THRESHOLD, &app));
+    // Install qDebug() message handler to route to debug.log
+#if QT_VERSION < 0x050000
+    qInstallMsgHandler(DebugMessageHandler);
+#else
+    qInstallMessageHandler(DebugMessageHandler);
+#endif
 
     // ... now GUI settings:
     OptionsModel optionsModel;
@@ -255,13 +261,6 @@ int main(int argc, char *argv[])
         help.showOrPrint();
         return 1;
     }
-
-    // Install qDebug() message handler to route to debug.log:
-#if QT_VERSION < 0x050000
-    qInstallMsgHandler(DebugMessageHandler);
-#else
-    qInstallMessageHandler(DebugMessageHandler);
-#endif
 
     SplashScreen splash(QPixmap(), 0);
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
