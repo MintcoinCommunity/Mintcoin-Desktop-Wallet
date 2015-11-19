@@ -158,8 +158,8 @@ Value settxfee(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 1 || AmountFromValue(params[0]) < CTransaction::nMinTxFee)
         throw runtime_error(
-            "settxfee <amount>\n"
-            "<amount> is a real and is rounded to the nearest 0.01");
+            "settxfee <amount btc/kb>\n"
+            "<amount> is a real and is rounded to the nearest 0.01 btc per kb");
 
     nTransactionFee = AmountFromValue(params[0]);
     nTransactionFee = (nTransactionFee / CENT) * CENT;  // round to cent
