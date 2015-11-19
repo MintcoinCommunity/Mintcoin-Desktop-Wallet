@@ -383,7 +383,7 @@ bool CheckProofOfStake(CValidationState &state, const CTransaction& tx, unsigned
 
     // Read block header
     CBlock block;
-    if (!block.ReadFromDisk(mapBlockIndex[blockHash]))
+    if (!ReadBlockFromDisk(block, mapBlockIndex[blockHash]))
         return fDebug? error("CheckProofOfStake() : read block failed") : false; // unable to read block of previous transaction
 
     if (!CheckStakeKernelHash(nBits, block, block.GetTxOffset(txPrev), txPrev, txin.prevout, tx.nTime, hashProofOfStake, fDebug))

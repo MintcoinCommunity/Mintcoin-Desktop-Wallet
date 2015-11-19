@@ -614,264 +614,33 @@ public:
 };
 
 
-class CBlock : public CBlockHeader
-{
-public:
-    // network and disk
-    std::vector<CTransaction> vtx;
 
-    // ppcoin: block signature - signed by one of the coin base txout[N]'s owner
-    std::vector<unsigned char> vchBlockSig;
-
-    // memory only
-    mutable std::vector<uint256> vMerkleTree;
-
-    CBlock()
-    {
-        SetNull();
-    }
-
-    CBlock(const CBlockHeader &header)
-    {
-        SetNull();
-        *((CBlockHeader*)this) = header;
-    }
-
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(*(CBlockHeader*)this);
-        READWRITE(vtx);
-        READWRITE(vchBlockSig);
-    )
-
-    void SetNull()
-    {
-        CBlockHeader::SetNull();
-        vtx.clear();
-        vchBlockSig.clear();
-        vMerkleTree.clear();
-    }
-
-    CBlockHeader GetBlockHeader() const
-    {
-        CBlockHeader block;
-        block.nVersion       = nVersion;
-        block.hashPrevBlock  = hashPrevBlock;
-        block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
-        return block;
-    }
-
-    uint256 BuildMerkleTree() const
-    {
-        vMerkleTree.clear();
-        BOOST_FOREACH(const CTransaction& tx, vtx)
-            vMerkleTree.push_back(tx.GetHash());
-        int j = 0;
-        for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
-        {
-            for (int i = 0; i < nSize; i += 2)
-            {
-                int i2 = std::min(i+1, nSize-1);
-                vMerkleTree.push_back(Hash(BEGIN(vMerkleTree[j+i]),  END(vMerkleTree[j+i]),
-                                           BEGIN(vMerkleTree[j+i2]), END(vMerkleTree[j+i2])));
-            }
-            j += nSize;
-        }
-        return (vMerkleTree.empty() ? 0 : vMerkleTree.back());
-    }
-
-    const uint256 &GetTxHash(unsigned int nIndex) const {
-        assert(vMerkleTree.size() > 0); // BuildMerkleTree must have been called first
-        assert(nIndex < vtx.size());
-        return vMerkleTree[nIndex];
-    }
-
-    std::vector<uint256> GetMerkleBranch(int nIndex) const
-    {
-        if (vMerkleTree.empty())
-            BuildMerkleTree();
-        std::vector<uint256> vMerkleBranch;
-        int j = 0;
-        for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
-        {
-            int i = std::min(nIndex^1, nSize-1);
-            vMerkleBranch.push_back(vMerkleTree[j+i]);
-            nIndex >>= 1;
-            j += nSize;
-        }
-        return vMerkleBranch;
-    }
-
-    static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex)
-    {
-        if (nIndex == -1)
-            return 0;
-        BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
-        {
-            if (nIndex & 1)
-                hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
-            else
-                hash = Hash(BEGIN(hash), END(hash), BEGIN(otherside), END(otherside));
-            nIndex >>= 1;
-        }
-        return hash;
-    }
-
-    bool WriteToDisk(CDiskBlockPos &pos)
-    {
-        // Open history file to append
-        CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-        if (!fileout)
-            return error("CBlock::WriteToDisk() : OpenBlockFile failed");
-
-        // Write index header
-        unsigned int nSize = fileout.GetSerializeSize(*this);
-        fileout << FLATDATA(Params().MessageStart()) << nSize;
-
-        // Write block
-        long fileOutPos = ftell(fileout);
-        if (fileOutPos < 0)
-            return error("CBlock::WriteToDisk() : ftell failed");
-        pos.nPos = (unsigned int)fileOutPos;
-        fileout << *this;
-
-        // Flush stdio buffers and commit to disk before returning
-        fflush(fileout);
-        if (!IsInitialBlockDownload())
-            FileCommit(fileout);
-
-        return true;
-    }
-
-    bool ReadFromDisk(const CDiskBlockPos &pos)
-    {
-        SetNull();
-
-        // Open history file to read
-        CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-        if (!filein)
-            return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
-
-        // Read block
-        try {
-            filein >> *this;
-        }
-        catch (std::exception &e) {
-            return error("%s() : deserialize or I/O error", __PRETTY_FUNCTION__);
-        }
-
-        // Check the header
-        if (IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
-            return error("CBlock::ReadFromDisk() : errors in block header");
-
-        return true;
-    }
+/** Functions for disk access for blocks */
+bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos);
+bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos);
+bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 
 
+/** Functions for validating blocks and updating the block tree */
 
-    void print() const
-    {
-        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
-            GetHash().ToString().c_str(),
-            nVersion,
-            hashPrevBlock.ToString().c_str(),
-            hashMerkleRoot.ToString().c_str(),
-            nTime, nBits, nNonce,
-            vtx.size(),
-            HexStr(vchBlockSig.begin(), vchBlockSig.end()).c_str());
-        for (unsigned int i = 0; i < vtx.size(); i++)
-        {
-            printf("  ");
-            vtx[i].print();
-        }
-        printf("  vMerkleTree: ");
-        for (unsigned int i = 0; i < vMerkleTree.size(); i++)
-            printf("%s ", vMerkleTree[i].ToString().c_str());
-        printf("\n");
-    }
+/** Undo the effects of this block (with given index) on the UTXO set represented by coins.
+ *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
+ *  will be true if no problems were found. Otherwise, the return value will be false in case
+ *  of problems. Note that in any case, coins may be modified. */
+bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool* pfClean = NULL);
 
-    // ppcoin: entropy bit for stake modifier if chosen by modifier
-    unsigned int GetStakeEntropyBit(unsigned int nHeight) const
-    {
-        // Take last bit of block hash as entropy bit
-        unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
-        if (fDebug && GetBoolArg("-printstakemodifier"))
-            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
-        return nEntropyBit;
-    }
+// Apply the effects of this block (with given index) on the UTXO set represented by coins
+bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false);
 
-    // ppcoin: two types of block: proof-of-work or proof-of-stake
-    bool IsProofOfStake() const
-    {
-        return (vtx.size() > 1 && vtx[1].IsCoinStake());
-    }
+// Add this block to the block index, and if necessary, switch the active block chain to this
+bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos);
 
-    bool IsProofOfWork() const
-    {
-        return !IsProofOfStake();
-    }
+// Context-independent validity checks
+bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
-    std::pair<COutPoint, unsigned int> GetProofOfStake() const
-    {
-        return IsProofOfStake()? std::make_pair(vtx[1].vin[0].prevout, vtx[1].nTime) : std::make_pair(COutPoint(), (unsigned int)0);
-    }
-
-    // ppcoin: get max transaction timestamp
-    int64 GetMaxTransactionTime() const
-    {
-        int64 maxTransactionTime = 0;
-        BOOST_FOREACH(const CTransaction& tx, vtx)
-            maxTransactionTime = std::max(maxTransactionTime, (int64)tx.nTime);
-        return maxTransactionTime;
-    }
-
-    unsigned int GetTxOffset(CTransaction &tx)
-    {
-        unsigned int txOffset = ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(vtx.size());
-        int i=0;
-        uint256 hash = tx.GetHash();
-        if(hash == vtx[i].GetHash())
-            return txOffset;
-        do
-        {
-            txOffset += ::GetSerializeSize(vtx[i], SER_DISK, CLIENT_VERSION);
-            i++;
-        }while(hash != vtx[i].GetHash());
-        return txOffset;
-    }
-
-
-    /** Undo the effects of this block (with given index) on the UTXO set represented by coins.
-     *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
-     *  will be true if no problems were found. Otherwise, the return value will be false in case
-     *  of problems. Note that in any case, coins may be modified. */
-    bool DisconnectBlock(CValidationState &state, CBlockIndex *pindex, CCoinsViewCache &coins, bool *pfClean = NULL);
-
-    // Apply the effects of this block (with given index) on the UTXO set represented by coins
-    bool ConnectBlock(CValidationState &state, CBlockIndex *pindex, CCoinsViewCache &coins, bool fJustCheck=false);
-
-    // Read a block from disk
-    bool ReadFromDisk(const CBlockIndex* pindex);
-
-    // Add this block to the block index, and if necessary, switch the active block chain to this
-    bool AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos);
-
-    // Context-independent validity checks
-    bool CheckBlock(CValidationState &state, bool fCheckPOW=true, bool fCheckMerkleRoot=true) const;
-
-    // Store block on disk
-    // if dbp is provided, the file is known to already reside on disk
-    bool AcceptBlock(CDiskBlockPos *dbp = NULL);
-    bool GetCoinAge(uint64& nCoinAge) const; // ppcoin: calculate total coin age spent in block
-    bool SignBlock(const CKeyStore& keystore);
-    bool CheckBlockSignature() const;
-    bool AcceptBlock(CValidationState &state, CDiskBlockPos *dbp = NULL);
-};
-
-
+// Store block on disk
+// if dbp is provided, the file is known to already reside on disk
+bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp = NULL);
 
 
 
