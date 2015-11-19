@@ -375,7 +375,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 2: parameter interactions
 
 	fUseFastIndex = GetBoolArg("-fastindex", true);
-    Checkpoints::fEnabled = GetBoolArg("-checkpoints", false);
 
     if (mapArgs.count("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
@@ -425,6 +424,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     fDebug = GetBoolArg("-debug");
     fBenchmark = GetBoolArg("-benchmark");
     mempool.fChecks = GetBoolArg("-checkmempool", RegTest());
+    Checkpoints::fEnabled = GetBoolArg("-checkpoints", true);
 
     // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency
     nScriptCheckThreads = GetArg("-par", 0);
