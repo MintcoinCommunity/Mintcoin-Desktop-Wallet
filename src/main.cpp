@@ -2688,16 +2688,15 @@ bool CheckDiskSpace(uint64 nAdditionalBytes)
     if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes)
     {
         fShutdown = true;
-        string strMessage = _("Warning: Disk space is low!");
+        string strMessage = _("Error: Disk space is low!");
         strMiscWarning = strMessage;
         printf("*** %s\n", strMessage.c_str());
-        uiInterface.ThreadSafeMessageBox(strMessage, "MintCoin", CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
+        uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_ERROR);
         StartShutdown();
         return false;
     }
     return true;
 }
-
 
 CCriticalSection cs_LastBlockFile;
 CBlockFileInfo infoLastBlockFile;
@@ -2892,7 +2891,7 @@ bool LoadBlockIndex()
     //
     if (!LoadBlockIndexDB())
         return false;
-    
+
     //
     // Init with genesis block
     //
@@ -3169,6 +3168,10 @@ string GetWarnings(string strFor)
     assert(!"GetWarnings() : invalid parameter");
     return "error";
 }
+
+
+
+
 
 
 
@@ -3654,7 +3657,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         bool fMissingInputs = false;
         if (tx.AcceptToMemoryPool(true, &fMissingInputs))
-        {            
+        {
             SyncWithWallets(inv.hash, tx, NULL, true);
             RelayMessage(inv, vMsg);
             mapAlreadyAskedFor.erase(inv);
