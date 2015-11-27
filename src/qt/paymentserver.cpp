@@ -44,7 +44,6 @@
 #include "wallet.h"
 #include "walletmodel.h"
 
-using namespace boost;
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 const QString BITCOIN_IPC_PREFIX("bitcoin:");
@@ -74,14 +73,14 @@ static QString ipcServerName()
     // Append a simple hash of the datadir
     // Note that GetDataDir(true) returns a different path
     // for -testnet versus main net
-    QString ddir(GetDataDir(true).string().c_str());
+    QString ddir(QString::fromStdString(GetDataDir(true).string()));
     name.append(QString::number(qHash(ddir)));
 
     return name;
 }
 
 //
-// We store payment URLs and requests received before
+// We store payment URIs and requests received before
 // the main GUI window is up and ready to ask the user
 // to send payment.
 
@@ -251,8 +250,7 @@ bool PaymentServer::ipcSendCommandLine(int argc, char* argv[])
     return fResult;
 }
 
-PaymentServer::PaymentServer(QObject* parent,
-                             bool startLocalServer) : QObject(parent), saveURIs(true)
+PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) : QObject(parent), saveURIs(true)
 {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
@@ -287,12 +285,12 @@ PaymentServer::~PaymentServer()
 }
 
 //
-// OSX-specific way of handling bitcoin uris and
+// OSX-specific way of handling bitcoin: URIs and
 // PaymentRequest mime types
 //
 bool PaymentServer::eventFilter(QObject *, QEvent *event)
 {
-    // clicking on bitcoin: URLs creates FileOpen events on the Mac:
+    // clicking on bitcoin: URIs creates FileOpen events on the Mac:
     if (event->type() == QEvent::FileOpen)
     {
         QFileOpenEvent* fileEvent = static_cast<QFileOpenEvent*>(event);
@@ -357,13 +355,13 @@ void PaymentServer::handleURIOrFile(const QString& s)
     if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // bitcoin:
     {
 #if QT_VERSION >= 0x050000
-        QUrlQuery url((QUrl(s)));
+        QUrlQuery uri((QUrl(s)));
 #else
-        QUrl url(s);
+        QUrl uri(s);
 #endif
-        if (url.hasQueryItem("request"))
+        if (uri.hasQueryItem("request"))
         {
-            QByteArray temp; temp.append(url.queryItemValue("request"));
+            QByteArray temp; temp.append(uri.queryItemValue("request"));
             QString decoded = QUrl::fromPercentEncoding(temp);
             QUrl fetchUrl(decoded, QUrl::StrictMode);
 
@@ -437,9 +435,7 @@ bool PaymentServer::readPaymentRequest(const QString& filename, PaymentRequestPl
     return request.parse(data);
 }
 
-bool
-PaymentServer::processPaymentRequest(PaymentRequestPlus& request,
-                                     QList<SendCoinsRecipient>& recipients)
+bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, QList<SendCoinsRecipient>& recipients)
 {
     if (!optionsModel)
         return false;
@@ -494,7 +490,7 @@ PaymentServer::processPaymentRequest(PaymentRequestPlus& request,
                 // Insecure payments to custom bitcoin addresses are not supported
                 // (there is no good way to tell the user where they are paying in a way
                 // they'd have a chance of understanding).
-                emit reportError(tr("Payment request error"), 
+                emit reportError(tr("Payment request error"),
                                  tr("Insecure requests to custom payment scripts unsupported"),
                                  CClientUIInterface::MODAL);
                 return false;
@@ -505,8 +501,7 @@ PaymentServer::processPaymentRequest(PaymentRequestPlus& request,
     return true;
 }
 
-void
-PaymentServer::fetchRequest(const QUrl& url)
+void PaymentServer::fetchRequest(const QUrl& url)
 {
     QNetworkRequest netRequest;
     netRequest.setAttribute(QNetworkRequest::User, "PaymentRequest");
@@ -516,8 +511,7 @@ PaymentServer::fetchRequest(const QUrl& url)
     netManager->get(netRequest);
 }
 
-void
-PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipient, QByteArray transaction)
+void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipient, QByteArray transaction)
 {
     const payments::PaymentDetails& details = recipient.paymentRequest.getDetails();
     if (!details.has_payment_url())
@@ -572,8 +566,7 @@ PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipient, QB
     }
 }
 
-void
-PaymentServer::netRequestFinished(QNetworkReply* reply)
+void PaymentServer::netRequestFinished(QNetworkReply* reply)
 {
     reply->deleteLater();
     if (reply->error() != QNetworkReply::NoError)
@@ -618,9 +611,10 @@ PaymentServer::netRequestFinished(QNetworkReply* reply)
     }
 }
 
-void
-PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError> &errs)
+void PaymentServer::reportSslErrors(QNetworkReply* reply, const QList<QSslError> &errs)
 {
+    Q_UNUSED(reply);
+
     QString errString;
     foreach (const QSslError& err, errs) {
         qDebug() << "PaymentServer::reportSslErrors : " << err;
