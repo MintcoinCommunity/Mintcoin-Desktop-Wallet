@@ -1,12 +1,10 @@
-.PHONY: FORCE
+# Helper for rules and subdir Makefiles to find parent targets.
+# Flags and other non-target variables should not be set here.
 
 LIBBITCOIN=$(top_builddir)/src/libbitcoin.a
 LIBLEVELDB=$(top_builddir)/src/leveldb/libleveldb.a
 LIBMEMENV=$(top_builddir)/src/leveldb/libmemenv.a
 LIBBITCOINQT=$(top_builddir)/src/qt/libbitcoinqt.a
-
-INCLUDES += $(BDB_CPPFLAGS)
-LIBBITCOIN += $(BDB_LIBS)
 
 $(LIBBITCOIN):
 	$(MAKE) -C $(top_builddir)/src $(@F)
@@ -49,3 +47,19 @@ moc_%.cpp: %.h
 %.pb.cc %.pb.h: %.proto
 	test -f $(PROTOC) && $(PROTOC) --cpp_out=$(@D) --proto_path=$(abspath $(<D) $<)  || \
 	  echo error: could not build $@
+
+%.json.h: %.json
+	@$(MKDIR_P) $(@D)
+	@echo "namespace json_tests{" > $@
+	@echo "static unsigned const char $(*F)[] = {" >> $@
+	@$(HEXDUMP) -v -e '8/1 "0x%02x, "' -e '"\n"' $< | $(SED) -e 's/0x  ,//g' >> $@
+	@echo "};};" >> $@
+	@echo "Generated $@"
+
+%.raw.h: %.raw
+	@$(MKDIR_P) $(@D)
+	@echo "namespace alert_tests{" > $@
+	@echo "static unsigned const char $(*F)[] = {" >> $@
+	@$(HEXDUMP) -v -e '8/1 "0x%02x, "' -e '"\n"' $< | $(SED) -e 's/0x  ,//g' >> $@
+	@echo "};};" >> $@
+	@echo "Generated $@"
