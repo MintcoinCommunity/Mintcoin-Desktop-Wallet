@@ -144,7 +144,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
     // ppcoin: if coinstake available add coinstake tx
     static int64 nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
-    CBlockIndex* pindexPrev = pindexBest;
+    CBlockIndex* pindexPrev = chainActive.Tip();
 
     if (fProofOfStake)  // attempt to find a coinstake
     {
@@ -175,7 +175,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     int64 nFees = 0;
     {
         LOCK2(cs_main, mempool.cs);
-        CBlockIndex* pindexPrev = pindexBest;
+        CBlockIndex* pindexPrev = chainActive.Tip();
         CCoinsViewCache view(*pcoinsTip, true);
 
         // Priority order to process transactions
@@ -460,7 +460,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     // Found a solution
     {
         LOCK(cs_main);
-        if (pblock->hashPrevBlock != hashBestChain)
+        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
             return error("BitcoinMiner : generated block is stale");
 
         // Remove key from key pool
@@ -506,7 +506,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         // Create new block
         //
         unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
-        CBlockIndex* pindexPrev = pindexBest;
+        CBlockIndex* pindexPrev = chainActive.Tip();
 
         auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
         if (!pblock.get())
@@ -630,7 +630,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 break;
             if (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60)
                 break;
-            if (pindexPrev != pindexBest)
+            if (pindexPrev != chainActive.Tip())
                 break;
 
             // Update nTime every few seconds

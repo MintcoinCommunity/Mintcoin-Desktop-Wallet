@@ -825,7 +825,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
             // no need to read and scan block, if block was created before
             // our wallet birthday (as adjusted for block time variability)
             if (nTimeFirstKey && (pindex->nTime < (nTimeFirstKey - 7200))) {
-                pindex = pindex->GetNextInMainChain();
+                pindex = chainActive.Next(pindex);
                 continue;
             }
 
@@ -836,7 +836,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
                 if (AddToWalletIfInvolvingMe(tx.GetHash(), tx, &block, fUpdate))
                     ret++;
             }
-            pindex = pindex->GetNextInMainChain();
+            pindex = chainActive.Next(pindex);
         }
     }
     return ret;
@@ -890,7 +890,7 @@ void CWallet::ReacceptWalletTransactions()
         if (fMissing)
         {
             // TODO: optimize this to scan just part of the block chain?
-            if (ScanForWalletTransactions(pindexGenesisBlock))
+            if (ScanForWalletTransactions(chainActive.Genesis()))
                 fRepeat = true;  // Found missing transactions: re-do re-accept.
         }
     }
@@ -1499,7 +1499,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
     static unsigned int nStakeSplitAge = (60 * 60 * 24 * 30);
-	const CBlockIndex* pIndex0 = GetLastBlockIndex(pindexBest, false);
+	const CBlockIndex* pIndex0 = GetLastBlockIndex(chainActive.Tip(), false);
     int64 nCombineThreshold = 0;
 	if(pIndex0->pprev)
 		nCombineThreshold = GetProofOfWorkReward(pIndex0->nHeight, CTransaction::nMinTxFee, pIndex0->pprev->GetBlockHash()) / 3;
@@ -1661,7 +1661,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Calculate coin age reward
     {
         uint64 nCoinAge;
-        const CBlockIndex* pIndex0 = GetLastBlockIndex(pindexBest, true);
+        const CBlockIndex* pIndex0 = GetLastBlockIndex(chainActive.Tip(), true);
 
         if (!txNew.GetCoinAge(nCoinAge))
             return error("CreateCoinStake : failed to calculate coin age");
@@ -2401,7 +2401,7 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64> &mapKeyBirth) const {
             mapKeyBirth[it->first] = it->second.nCreateTime;
 
     // map in which we'll infer heights of other keys
-    CBlockIndex *pindexMax = FindBlockByHeight(std::max(0, nBestHeight - 144)); // the tip can be reorganised; use a 144-block safety margin
+    CBlockIndex *pindexMax = chainActive[std::max(0, chainActive.Height() - 144)]; // the tip can be reorganised; use a 144-block safety margin
     std::map<CKeyID, CBlockIndex*> mapKeyFirstBlock;
     std::set<CKeyID> setKeys;
     GetKeys(setKeys);
@@ -2421,7 +2421,7 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64> &mapKeyBirth) const {
         // iterate over all wallet transactions...
         const CWalletTx &wtx = (*it).second;
         std::map<uint256, CBlockIndex*>::const_iterator blit = mapBlockIndex.find(wtx.hashBlock);
-        if (blit != mapBlockIndex.end() && blit->second->IsInMainChain()) {
+        if (blit != mapBlockIndex.end() && chainActive.Contains(blit->second)) {
             // ... which are already in a block
             int nHeight = blit->second->nHeight;
             BOOST_FOREACH(const CTxOut &txout, wtx.vout) {

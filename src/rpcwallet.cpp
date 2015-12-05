@@ -82,8 +82,8 @@ Value getinfo(const Array& params, bool fHelp)
     }
     obj.push_back(Pair("newmint",       ValueFromAmount(pwalletMain->GetNewMint())));
     obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
-    obj.push_back(Pair("blocks",        (int)nBestHeight));
-    obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
+    obj.push_back(Pair("blocks",        (int)chainActive.Height()));
+    obj.push_back(Pair("moneysupply",   ValueFromAmount(chainActive.Tip()->nMoneySupply)));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
@@ -1275,7 +1275,7 @@ Value listsinceblock(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
     }
 
-    int depth = pindex ? (1 + nBestHeight - pindex->nHeight) : -1;
+    int depth = pindex ? (1 + chainActive.Height() - pindex->nHeight) : -1;
 
     Array transactions;
 
@@ -1287,23 +1287,8 @@ Value listsinceblock(const Array& params, bool fHelp)
             ListTransactions(tx, "*", 0, true, transactions);
     }
 
-    uint256 lastblock;
-
-    if (target_confirms == 1)
-    {
-        lastblock = hashBestChain;
-    }
-    else
-    {
-        int target_height = pindexBest->nHeight + 1 - target_confirms;
-
-        CBlockIndex *block;
-        for (block = pindexBest;
-             block && block->nHeight > target_height;
-             block = block->pprev)  { }
-
-        lastblock = block ? block->GetBlockHash() : 0;
-    }
+    CBlockIndex *pblockLast = chainActive[chainActive.Height() + 1 - target_confirms];
+    uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : 0;
 
     Object ret;
     ret.push_back(Pair("transactions", transactions));
@@ -1362,9 +1347,9 @@ Value gettransaction(const Array& params, bool fHelp)
                 if (mi != mapBlockIndex.end() && (*mi).second)
                 {
                     CBlockIndex* pindex = (*mi).second;
-                    if (pindex->IsInMainChain())
+                    if (chainActive.Contains(pindex))
                     {
-                        entry.push_back(Pair("confirmations", 1 + nBestHeight - pindex->nHeight));
+                        entry.push_back(Pair("confirmations", 1 + chainActive.Height() - pindex->nHeight));
                         entry.push_back(Pair("txntime", (boost::int64_t)tx.nTime));
                         entry.push_back(Pair("time", (boost::int64_t)pindex->nTime));
                     }

@@ -18,10 +18,10 @@ double GetDifficulty(const CBlockIndex* blockindex)
     // minimum difficulty = 1.0.
     if (blockindex == NULL)
     {
-        if (pindexBest == NULL)
+        if (chainActive.Tip() == NULL)
             return 1.0;
         else
-            blockindex = GetLastBlockIndex(pindexBest, false);
+            blockindex = GetLastBlockIndex(chainActive.Tip(), false);
     }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
@@ -49,7 +49,7 @@ double GetPoSKernelPS()
     double dStakeKernelsTriedAvg = 0;
     int nStakesHandled = 0, nStakesTime = 0;
 
-    CBlockIndex* pindex = pindexBest;;
+    CBlockIndex* pindex = chainActive.Tip();
     CBlockIndex* pindexPrevStake = NULL;
 
     while (pindex && nStakesHandled < nPoSInterval)
@@ -87,7 +87,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = blockindex->GetNextInMainChain();
+    CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
 
@@ -126,7 +126,7 @@ Value getblockcount(const Array& params, bool fHelp)
             "getblockcount\n"
             "Returns the number of blocks in the longest block chain.");
 
-    return nBestHeight;
+    return chainActive.Height();
 }
 
 Value getbestblockhash(const Array& params, bool fHelp)
@@ -136,7 +136,7 @@ Value getbestblockhash(const Array& params, bool fHelp)
             "getbestblockhash\n"
             "Returns the hash of the best (tip) block in the longest block chain.");
 
-    return hashBestChain.GetHex();
+    return chainActive.Tip()->GetBlockHash().GetHex();
 }
 
 Value getdifficulty(const Array& params, bool fHelp)
@@ -148,7 +148,7 @@ Value getdifficulty(const Array& params, bool fHelp)
 
     Object obj;
     obj.push_back(Pair("proof-of-work",        GetDifficulty()));
-    obj.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
     obj.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
     return obj;
 }
@@ -192,11 +192,11 @@ Value getblockhash(const Array& params, bool fHelp)
             "Returns hash of block in best-block-chain at <index>.");
 
     int nHeight = params[0].get_int();
-    if (nHeight < 0 || nHeight > nBestHeight)
+    if (nHeight < 0 || nHeight > chainActive.Height())
         throw runtime_error("Block number out of range.");
 
-    CBlockIndex* pblockindex = FindBlockByHeight(nHeight);
-    return pblockindex->phashBlock->GetHex();
+    CBlockIndex* pblockindex = chainActive[nHeight];
+    return pblockindex->GetBlockHash().GetHex();
 }
 
 Value getblock(const Array& params, bool fHelp)
@@ -313,11 +313,11 @@ Value getblockbynumber(const Array& params, bool fHelp)
             "Returns details of a block with given block-number.");
 
     int nHeight = params[0].get_int();
-    if (nHeight < 0 || nHeight > nBestHeight)
+    if (nHeight < 0 || nHeight > chainActive.Height())
         throw runtime_error("Block number out of range.");
 
     CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hashBestChain];
+    CBlockIndex* pblockindex = mapBlockIndex[chainActive.Tip()->GetBlockHash()];
     while (pblockindex->nHeight > nHeight)
         pblockindex = pblockindex->pprev;
 

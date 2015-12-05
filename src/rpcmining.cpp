@@ -95,7 +95,7 @@ Value getmininginfo(const Array& params, bool fHelp)
             "Returns an object containing mining-related information.");
 
     Object obj;
-    obj.push_back(Pair("blocks",           (int)nBestHeight));
+    obj.push_back(Pair("blocks",           (int)chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
     obj.push_back(Pair("difficulty",       (double)GetDifficulty()));
@@ -111,6 +111,7 @@ Value getmininginfo(const Array& params, bool fHelp)
 
 // Litecoin: Return average network hashes per second based on last number of blocks.
 Value GetNetworkHashPS(int lookup) {
+    CBlockIndex* pindexBest = chainActive.Tip();
     if (pindexBest == NULL)
         return 0;
 
@@ -146,6 +147,7 @@ Value getnetworkhashps(const Array& params, bool fHelp)
 
 Value getworkex(const Array& params, bool fHelp)
 {
+    CBlockIndex* pindexBest = chainActive.Tip();
     if (fHelp || params.size() > 2)
         throw runtime_error(
             "getworkex [data, coinbase]\n"
@@ -303,10 +305,10 @@ Value getwork(const Array& params, bool fHelp)
         static CBlockIndex* pindexPrev;
         static int64 nStart;
         static CBlock* pblock;
-        if (pindexPrev != pindexBest ||
+        if (pindexPrev != chainActive.Tip() ||
             (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60))
         {
-            if (pindexPrev != pindexBest)
+            if (pindexPrev != chainActive.Tip())
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
@@ -320,7 +322,7 @@ Value getwork(const Array& params, bool fHelp)
 
             // Store the pindexBest used before CreateNewBlock, to avoid races
             nTransactionsUpdatedLast = nTransactionsUpdated;
-            CBlockIndex* pindexPrevNew = pindexBest;
+            CBlockIndex* pindexPrevNew = chainActive.Tip();
             nStart = GetTime();
 
             // Create new block
@@ -443,7 +445,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     static CBlockIndex* pindexPrev;
     static int64 nStart;
     static CBlock* pblock;
-    if (pindexPrev != pindexBest ||
+    if (pindexPrev != chainActive.Tip() ||
         (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -451,7 +453,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
         nTransactionsUpdatedLast = nTransactionsUpdated;
-        CBlockIndex* pindexPrevNew = pindexBest;
+        CBlockIndex* pindexPrevNew = chainActive.Tip();
         nStart = GetTime();
 
         // Create new block

@@ -42,7 +42,7 @@ int ClientModel::getNumConnections() const
 
 int ClientModel::getNumBlocks() const
 {
-    return nBestHeight;
+    return chainActive.Height();
 }
 
 int ClientModel::getNumBlocksAtStartup()
@@ -53,15 +53,15 @@ int ClientModel::getNumBlocksAtStartup()
 
 QDateTime ClientModel::getLastBlockDate() const
 {
-    if (pindexBest)
-        return QDateTime::fromTime_t(pindexBest->GetBlockTime());
+    if (chainActive.Tip())
+        return QDateTime::fromTime_t(chainActive.Tip()->GetBlockTime());
     else
         return QDateTime::fromTime_t(1391393693); // Genesis block's time
 }
 
 double ClientModel::getVerificationProgress() const
 {
-    return Checkpoints::GuessVerificationProgress(pindexBest);
+    return Checkpoints::GuessVerificationProgress(chainActive.Tip());
 }
 
 void ClientModel::updateTimer()
@@ -112,6 +112,7 @@ double ClientModel::GetDifficulty() const
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
+    CBlockIndex* pindexBest = chainActive.Tip();
 
     if (pindexBest == NULL)
         return 1.0;
