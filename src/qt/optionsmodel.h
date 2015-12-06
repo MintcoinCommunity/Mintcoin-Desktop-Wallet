@@ -60,6 +60,7 @@ public:
     void setRecurringSendEntries(QString recurringSendEntries);
 
     QString getLanguage() { return language; }
+    bool getProxySettings(QString& proxyIP, quint16 &proxyPort) const;
 
     bool isLocked;
 

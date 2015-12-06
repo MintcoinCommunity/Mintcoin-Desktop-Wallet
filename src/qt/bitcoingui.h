@@ -19,6 +19,7 @@ class OverviewPage;
 class AddressBookPage;
 class MerchantPage;
 class SendCoinsDialog;
+class SendCoinsRecipient;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
@@ -166,7 +167,9 @@ public slots:
       @param[out] payFee            true to pay the fee, false to not pay the fee
     */
     void askFee(qint64 nFeeRequired, bool *payFee);
-    void handleURI(QString strURI);
+
+    void handlePaymentRequest(const SendCoinsRecipient& recipient);
+    void showPaymentACK(QString msg);
 
     /** Show incoming transaction notification for new transactions. */
     void incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address);

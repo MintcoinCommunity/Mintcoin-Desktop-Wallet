@@ -376,9 +376,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 	fUseFastIndex = GetBoolArg("-fastindex", true);
     Checkpoints::fEnabled = GetBoolArg("-checkpoints", false);
-    if (!SelectParamsFromCommandLine()) {
-        return InitError("Invalid combination of -testnet and -regtest.");
-    }
 
     if (mapArgs.count("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
@@ -919,7 +916,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         CPubKey newDefaultKey;
         if (pwalletMain->GetKeyFromPool(newDefaultKey, false)) {
             pwalletMain->SetDefaultKey(newDefaultKey);
-            if (!pwalletMain->SetAddressBookName(pwalletMain->vchDefaultKey.GetID(), ""))
+            if (!pwalletMain->SetAddressBook(pwalletMain->vchDefaultKey.GetID(), "", "receive"))
                 strErrors << _("Cannot write default address") << "\n";
         }
 

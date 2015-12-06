@@ -18,6 +18,7 @@ class AddressBookPage;
 class RecurringSendPage;
 class MerchantPage;
 class SendCoinsDialog;
+class SendCoinsRecipient;
 class SignVerifyMessageDialog;
 class RPCConsole;
 
@@ -52,7 +53,7 @@ public:
     RecurringSendPage *recurringSendPage;
     void setWalletModel(WalletModel *walletModel);
 
-    bool handleURI(const QString &uri);
+    bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 
     void showOutOfSyncWarning(bool fShow);
 

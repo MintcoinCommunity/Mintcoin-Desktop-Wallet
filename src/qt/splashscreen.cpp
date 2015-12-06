@@ -1,6 +1,7 @@
 #include "splashscreen.h"
 #include "clientversion.h"
 #include "util.h"
+#include "chainparams.h"
 
 #include <QPainter>
 #undef loop /* ugh, remove this when the #define loop is gone from util.h */
@@ -27,7 +28,7 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
 
     // load the bitmap for writing some text over it
     QPixmap newPixmap;
-    if(GetBoolArg("-testnet")) {
+    if(TestNet()) {
         newPixmap     = QPixmap(":/images/splash");
     }
     else {
