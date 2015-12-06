@@ -117,7 +117,7 @@ void Shutdown()
     {
         LOCK(cs_main);
         if (pwalletMain)
-            pwalletMain->SetBestChain(CBlockLocator(chainActive.Tip()));
+            pwalletMain->SetBestChain(chainActive.GetLocator());
         if (pblocktree)
             pblocktree->Flush();
         if (pcoinsTip)
@@ -929,7 +929,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 strErrors << _("Cannot write default address") << "\n";
         }
 
-        pwalletMain->SetBestChain(CBlockLocator(chainActive.Tip()));
+        pwalletMain->SetBestChain(chainActive.GetLocator());
     }
 
     LogPrintf("%s", strErrors.str().c_str());
@@ -945,7 +945,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         CWalletDB walletdb(strWalletFile);
         CBlockLocator locator;
         if (walletdb.ReadBestBlock(locator))
-            pindexRescan = locator.GetBlockIndex();
+            pindexRescan = chainActive.FindFork(locator);
         else
             pindexRescan = chainActive.Genesis();
     }
@@ -956,7 +956,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
         LogPrintf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
-        pwalletMain->SetBestChain(CBlockLocator(chainActive.Tip()));
+        pwalletMain->SetBestChain(chainActive.GetLocator());
         nWalletDBUpdated++;
     }
 
