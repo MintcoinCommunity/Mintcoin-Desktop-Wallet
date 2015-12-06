@@ -168,6 +168,7 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
         ui->memo_s->setTextFormat(Qt::PlainText);
         ui->memo_s->setText(QString::fromStdString(details.memo()));
         ui->payAmount_s->setValue(value.amount);
+        ui->payAmount_s->setReadOnly(true);
         setCurrentWidget(ui->SendCoinsSecure);
     }
 }
