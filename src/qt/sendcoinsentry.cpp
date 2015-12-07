@@ -108,8 +108,8 @@ bool SendCoinsEntry::validate()
     if (!recipient.authenticatedMerchant.isEmpty())
         return retval;
 
-    if(!ui->payTo->hasAcceptableInput() ||
-       (model && !model->validateAddress(ui->payTo->text())))
+    if (!ui->payTo->hasAcceptableInput() ||
+        (model && !model->validateAddress(ui->payTo->text())))
     {
         ui->payTo->setValid(false);
         retval = false;
@@ -165,8 +165,7 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
         const payments::PaymentDetails& details = value.paymentRequest.getDetails();
 
         ui->payTo_s->setText(value.authenticatedMerchant);
-        ui->memo_s->setTextFormat(Qt::PlainText);
-        ui->memo_s->setText(QString::fromStdString(details.memo()));
+		ui->memoTextLabel_s->setText(QString::fromStdString(details.memo()));
         ui->payAmount_s->setValue(value.amount);
         ui->payAmount_s->setReadOnly(true);
         setCurrentWidget(ui->SendCoinsSecure);
