@@ -50,6 +50,7 @@ const QString BITCOIN_IPC_PREFIX("bitcoin:");
 const QString MINTCOIN_IPC_PREFIX("mitcoin:");
 const char* BITCOIN_REQUEST_MIMETYPE = "application/bitcoin-paymentrequest";
 const char* BITCOIN_PAYMENTACK_MIMETYPE = "application/bitcoin-paymentack";
+const char* BITCOIN_PAYMENTACK_CONTENTTYPE = "application/bitcoin-payment";
 
 X509_STORE* PaymentServer::certStore = NULL;
 void PaymentServer::freeCertStore()
@@ -473,11 +474,7 @@ bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, QList<Sen
             recipients.append(SendCoinsRecipient());
             recipients[i].amount = sendingTo.second;
             QString memo = QString::fromStdString(request.getDetails().memo());
-#if QT_VERSION < 0x050000
-            recipients[i].label = Qt::escape(memo);
-#else
-            recipients[i].label = memo.toHtmlEscaped();
-#endif
+            recipients[i].label = GUIUtil::HtmlEscape(memo);
             CTxDestination dest;
             if (ExtractDestination(sendingTo.first, dest)) {
                 if (i == 0) // Tie request to first pay-to, we don't want multiple ACKs
@@ -520,7 +517,7 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
     QNetworkRequest netRequest;
     netRequest.setAttribute(QNetworkRequest::User, "PaymentACK");
     netRequest.setUrl(QString::fromStdString(details.payment_url()));
-    netRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/bitcoin-payment");
+    netRequest.setHeader(QNetworkRequest::ContentTypeHeader, BITCOIN_PAYMENTACK_CONTENTTYPE);
     netRequest.setRawHeader("User-Agent", CLIENT_NAME.c_str());
     netRequest.setRawHeader("Accept", BITCOIN_PAYMENTACK_MIMETYPE);
 
