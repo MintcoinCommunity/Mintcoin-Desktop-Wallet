@@ -420,6 +420,8 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 
         rpcConsole->setClientModel(clientModel);
         walletFrame->setClientModel(clientModel);
+
+        
     }
 }
 
@@ -548,36 +550,43 @@ void BitcoinGUI::checkWallet()
 
 void BitcoinGUI::gotoOverviewPage()
 {
+    overviewAction->setChecked(true);
     if (walletFrame) walletFrame->gotoOverviewPage();
 }
 
 void BitcoinGUI::gotoHistoryPage()
 {
+    historyAction->setChecked(true);
     if (walletFrame) walletFrame->gotoHistoryPage();
 }
 
 void BitcoinGUI::gotoAddressBookPage()
 {
+    addressBookAction->setChecked(true);
     if (walletFrame) walletFrame->gotoAddressBookPage();
 }
 
 void BitcoinGUI::gotoRecurringSendPage()
 {
+    recurringSendAction->setChecked(true);
     if (walletFrame) walletFrame->gotoRecurringSendPage();
 }
 
 void BitcoinGUI::gotoMerchantPage()
 {
+    merchantAction->setChecked(true);
     if (walletFrame) walletFrame->gotoMerchantPage();
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage()
 {
+    receiveCoinsAction->setChecked(true);
     if (walletFrame) walletFrame->gotoReceiveCoinsPage();
 }
 
 void BitcoinGUI::gotoSendCoinsPage(QString addr)
 {
+    sendCoinsAction->setChecked(true);
     if (walletFrame) walletFrame->gotoSendCoinsPage(addr);
 }
 
@@ -588,7 +597,7 @@ void BitcoinGUI::gotoSignMessageTab(QString addr)
 
 void BitcoinGUI::gotoVerifyMessageTab(QString addr)
 {
-    if (walletFrame) walletFrame->gotoSignMessageTab(addr);
+    if (walletFrame) walletFrame->gotoVerifyMessageTab(addr);
 }
 
 void BitcoinGUI::setNumConnections(int count)

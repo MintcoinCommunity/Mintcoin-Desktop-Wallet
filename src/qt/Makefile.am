@@ -54,7 +54,7 @@ QT_MOC_CPP = moc_aboutdialog.cpp moc_addressbookpage.cpp \
   moc_signverifymessagedialog.cpp moc_splashscreen.cpp moc_trafficgraphwidget.cpp moc_transactiondesc.cpp \
   moc_transactiondescdialog.cpp moc_transactionfilterproxy.cpp \
   moc_transactiontablemodel.cpp moc_transactionview.cpp moc_walletframe.cpp \
-  moc_walletmodel.cpp moc_walletstack.cpp moc_walletview.cpp \
+  moc_walletmodel.cpp moc_walletview.cpp \
   moc_merchantpage.cpp moc_recurringsendpage.cpp moc_recurringsendentry.cpp \
   moc_repairwalletdialog.cpp moc_webviewhandler.cpp moc_coincontroldialog.cpp \
   moc_coincontroltreewidget.cpp
@@ -81,7 +81,7 @@ BITCOIN_QT_H  = aboutdialog.h addressbookpage.h addresstablemodel.h \
   sendcoinsdialog.h sendcoinsentry.h signverifymessagedialog.h splashscreen.h \
   trafficgraphwidget.h transactiondescdialog.h transactiondesc.h transactionfilterproxy.h \
   transactionrecord.h transactiontablemodel.h transactionview.h walletframe.h \
-  walletmodel.h walletmodeltransaction.h walletstack.h walletview.h \
+  walletmodel.h walletmodeltransaction.h walletview.h \
   merchantpage.h recurringsendentry.h recurringsendpage.h repairwalletdialog.h \
   webviewhandler.h coincontroldialog.h coincontroltreewidget.h
 
@@ -112,7 +112,7 @@ BITCOIN_QT_CPP = aboutdialog.cpp addressbookpage.cpp \
   signverifymessagedialog.cpp splashscreen.cpp trafficgraphwidget.cpp transactiondesc.cpp \
   transactiondescdialog.cpp transactionfilterproxy.cpp transactionrecord.cpp \
   transactiontablemodel.cpp transactionview.cpp walletframe.cpp \
-  walletmodel.cpp walletmodeltransaction.cpp walletstack.cpp walletview.cpp \
+  walletmodel.cpp walletmodeltransaction.cpp walletview.cpp \ 
   webviewhandler.cpp coincontroldialog.cpp coincontroltreewidget.cpp \
   merchantpage.cpp recurringsendpage.cpp recurringsendentry.cpp repairwalletdialog.cpp
 

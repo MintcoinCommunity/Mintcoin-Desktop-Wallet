@@ -38,7 +38,7 @@ class WalletView : public QStackedWidget
     Q_OBJECT
 
 public:
-    explicit WalletView(QWidget *parent, BitcoinGUI *_gui);
+    explicit WalletView(QWidget *parent);
     ~WalletView();
 
     void setBitcoinGUI(BitcoinGUI *gui);
@@ -56,6 +56,7 @@ public:
     bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 
     void showOutOfSyncWarning(bool fShow);
+    void setDonate(bool set);
 
 private:
     BitcoinGUI *gui;
@@ -68,7 +69,6 @@ private:
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     MerchantPage *merchantPage;
-    SignVerifyMessageDialog *signVerifyMessageDialog;
 
     TransactionView *transactionView;
 
