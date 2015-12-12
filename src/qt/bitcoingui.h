@@ -16,7 +16,6 @@ class WalletModel;
 class WalletStack;
 class TransactionView;
 class OverviewPage;
-class AddressBookPage;
 class MerchantPage;
 class SendCoinsDialog;
 class SendCoinsRecipient;
@@ -88,7 +87,8 @@ private:
     QAction *historyAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
-    QAction *addressBookAction;
+    QAction *usedSendingAddressesAction;
+    QAction *usedReceivingAddressesAction;
     QAction *merchantAction;
     QAction *recurringSendAction;
     QAction *signMessageAction;
@@ -170,8 +170,6 @@ private slots:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
-    /** Switch to address book page */
-    void gotoAddressBookPage();
     /** Switch to merchant page */
     void gotoMerchantPage();
     /** Switch to receive coins page */

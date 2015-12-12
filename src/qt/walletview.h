@@ -14,10 +14,10 @@ class ClientModel;
 class WalletModel;
 class TransactionView;
 class OverviewPage;
-class AddressBookPage;
 class RecurringSendPage;
 class MerchantPage;
 class SendCoinsDialog;
+class ReceiveCoinsDialog;
 class SendCoinsRecipient;
 class SignVerifyMessageDialog;
 class RPCConsole;
@@ -65,8 +65,7 @@ private:
 
     OverviewPage *overviewPage;
     QWidget *transactionsPage;
-    AddressBookPage *addressBookPage;
-    AddressBookPage *receiveCoinsPage;
+    ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     MerchantPage *merchantPage;
 
@@ -77,8 +76,6 @@ public slots:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
-    /** Switch to address book page */
-    void gotoAddressBookPage();
     /** Switch to recurring Send page */
     void gotoRecurringSendPage();
     /** Switch to merchant page */
@@ -110,6 +107,11 @@ public slots:
     void unlockWallet();
     /** Toggle unlocking wallet */
     void lockWalletToggle();
+
+    /** Show used sending addresses */
+    void usedSendingAddresses();
+    /** Show used receiving addresses */
+    void usedReceivingAddresses();
 
     void setEncryptionStatus();
 
