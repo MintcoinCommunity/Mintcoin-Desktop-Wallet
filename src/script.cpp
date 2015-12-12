@@ -1134,7 +1134,7 @@ bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubK
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
 {
     // Templates
-    static map<txnouttype, CScript> mTemplates;
+    static multimap<txnouttype, CScript> mTemplates;
     if (mTemplates.empty())
     {
         // Standard tx, sender provides pubkey, receiver adds signature
@@ -1148,6 +1148,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 
         // Empty, provably prunable, data-carrying output
         mTemplates.insert(make_pair(TX_NULL_DATA, CScript() << OP_RETURN << OP_SMALLDATA));
+        mTemplates.insert(make_pair(TX_NULL_DATA, CScript() << OP_RETURN));
     }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
@@ -1470,6 +1471,10 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, vecto
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, typeRet, vSolutions))
         return false;
+    if (typeRet == TX_NULL_DATA){
+        // This is data, not addresses
+        return false;
+    }
 
     if (typeRet == TX_MULTISIG)
     {
