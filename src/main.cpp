@@ -3813,9 +3813,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CAddress addrFrom;
         uint64 nNonce = 1;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if (pfrom->nVersion < (GetAdjustedTime() > FORK_TIME ? MIN_PROTO_VERSION_FORK : MIN_PROTO_VERSION))
+        if (pfrom->nVersion < (GetAdjustedTime() > FORK_TIME ? MIN_PEER_PROTO_VERSION_FORK : MIN_PEER_PROTO_VERSION))
         {
             // August 2015 fork changes minimum peer protocol to post-fork clients only
+            // disconnect from peers older than this proto version
             LogPrintf("partner %s using obsolete version %i; disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             pfrom->fDisconnect = true;
             return false;
