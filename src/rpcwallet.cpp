@@ -1401,7 +1401,7 @@ Value keypoolrefill(const Array& params, bool fHelp)
     unsigned int kpSize = max(GetArg("-keypool", 100), 0LL);
     if (params.size() > 0) {
         if (params[0].get_int() < 0)
-            throw JSONRPCError(-8, "Invalid parameter, expected valid size");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected valid size");
         kpSize = (unsigned int) params[0].get_int();
     }
 
@@ -1432,6 +1432,8 @@ Value walletpassphrase(const Array& params, bool fHelp)
             "mintonly is optional true/false allowing only block minting.");
     if (fHelp)
         return true;
+    if (!fServer)
+        throw JSONRPCError(RPC_SERVER_NOT_STARTED, "Error: RPC server was not started, use server=1 to change this.");
     if (!pwalletMain->IsCrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an unencrypted wallet, but walletpassphrase was called.");
 
