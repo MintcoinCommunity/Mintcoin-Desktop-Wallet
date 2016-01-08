@@ -605,7 +605,7 @@ bool CNode::Misbehaving(int howmuch)
         }
         CloseSocketDisconnect();
 
-        cPeerBlockCounts.removeLast(nStartingHeight); // remove this node's reported number of blocks
+        //cPeerBlockCounts.removeLast(nStartingHeight); // remove this node's reported number of blocks
 
         return true;
     } else
