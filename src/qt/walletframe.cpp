@@ -62,7 +62,7 @@ bool WalletFrame::setCurrentWallet(const QString& name)
 
     WalletView *walletView = mapWalletViews.value(name);
     walletStack->setCurrentWidget(walletView);
-    walletView->setEncryptionStatus();
+    walletView->updateEncryptionStatus();
     return true;
 }
 
@@ -203,13 +203,6 @@ void WalletFrame::lockWalletToggle()
     WalletView *walletView = (WalletView*)walletStack->currentWidget();
     if (walletView)
         walletView->lockWalletToggle();
-}
-
-void WalletFrame::setEncryptionStatus()
-{
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
-    if (walletView)
-        walletView->setEncryptionStatus();
 }
 
 void WalletFrame::usedSendingAddresses()

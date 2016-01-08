@@ -59,7 +59,6 @@ public:
     void setDonate(bool set);
 
 private:
-    BitcoinGUI *gui;
     ClientModel *clientModel;
     WalletModel *walletModel;
 
@@ -94,7 +93,7 @@ public slots:
 
         The new items are those between start and end inclusive, under the given parent item.
     */
-    void incomingTransaction(const QModelIndex& parent, int start, int /*end*/);
+    void processNewTransaction(const QModelIndex& parent, int start, int /*end*/);
     /** Encrypt the wallet */
     void encryptWallet(bool status);
     /** Backup the wallet */
@@ -113,14 +112,17 @@ public slots:
     /** Show used receiving addresses */
     void usedReceivingAddresses();
 
-    void setEncryptionStatus();
-
+    /** Re-emit encryption status signal */
+    void updateEncryptionStatus();
 signals:
     /** Signal that we want to show the main window */
     void showNormalIfMinimized();
-
     /**  Fired when a message should be reported to the user */
     void message(const QString &title, const QString &message, unsigned int style);
+    /** Encryption status of wallet changed */
+    void encryptionStatusChanged(int status);
+    /** Notify that a new transaction appeared */
+    void incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address);
 };
 
 #endif // WALLETVIEW_H

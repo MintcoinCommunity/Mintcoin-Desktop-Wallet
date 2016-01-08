@@ -35,7 +35,6 @@
 
 WalletView::WalletView(QWidget *parent):
     QStackedWidget(parent),
-    gui(0),
     clientModel(0),
     walletModel(0)
 {
@@ -77,6 +76,9 @@ WalletView::WalletView(QWidget *parent):
 
     // Clicking on "Export" allows to export the transaction list
     connect(exportButton, SIGNAL(clicked()), transactionView, SLOT(exportClicked()));
+
+    // Pass through messages from sendCoinsPage
+    connect(sendCoinsPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
 }
 
 WalletView::~WalletView()
@@ -85,8 +87,6 @@ WalletView::~WalletView()
 
 void WalletView::setBitcoinGUI(BitcoinGUI *gui)
 {
-    this->gui = gui;
-
     if (gui)
     {
         // Clicking on a transaction on the overview page sends you to the transactions tab
@@ -94,18 +94,21 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui)
 
         // Receive and report messages
         connect(this, SIGNAL(message(QString,QString,unsigned int)), gui, SLOT(message(QString,QString,unsigned int)));
-        connect(sendCoinsPage, SIGNAL(message(QString,QString,unsigned int)), gui, SLOT(message(QString,QString,unsigned int)));
+
+        // Pass through encryption status changed signals
+        connect(this, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
+
+        // Pass through transaction notifications
+        connect(this, SIGNAL(incomingTransaction(QString,int,qint64,QString,QString)), gui, SLOT(incomingTransaction(QString,int,qint64,QString,QString)));
     }
 }
 
 void WalletView::setClientModel(ClientModel *clientModel)
 {
     this->clientModel = clientModel;
-    if (clientModel)
-    {
-        overviewPage->setClientModel(clientModel);
-        recurringSendPage->setOptionsModel(clientModel->getOptionsModel());
-    }
+
+    overviewPage->setClientModel(clientModel);
+	recurringSendPage->setOptionsModel(clientModel->getOptionsModel());
 }
 
 void WalletView::setDonate(bool set)
@@ -119,31 +122,33 @@ void WalletView::setDonate(bool set)
 void WalletView::setWalletModel(WalletModel *walletModel)
 {
     this->walletModel = walletModel;
-    if (walletModel && gui)
+
+    // Put transaction list in tabs
+    transactionView->setModel(walletModel);
+    overviewPage->setWalletModel(walletModel);
+    receiveCoinsPage->setModel(walletModel);
+    sendCoinsPage->setModel(walletModel);
+	recurringSendPage->setModel(walletModel);
+
+    if (walletModel)
     {
         // Receive and report messages from wallet thread
-        connect(walletModel, SIGNAL(message(QString,QString,unsigned int)), gui, SLOT(message(QString,QString,unsigned int)));
+        connect(walletModel, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
 
-        // Put transaction list in tabs
-        transactionView->setModel(walletModel);
-        overviewPage->setWalletModel(walletModel);
-        receiveCoinsPage->setModel(walletModel);
-        sendCoinsPage->setModel(walletModel);
-        recurringSendPage->setModel(walletModel);
-
-        setEncryptionStatus();
-        connect(walletModel, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
+        // Handle changes in encryption status
+        connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SIGNAL(encryptionStatusChanged(int)));
+        updateEncryptionStatus();
 
         // Balloon pop-up for new transaction
         connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-                this, SLOT(incomingTransaction(QModelIndex,int,int)));
+                this, SLOT(processNewTransaction(QModelIndex,int,int)));
 
         // Ask for passphrase if needed
         connect(walletModel, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
     }
 }
 
-void WalletView::incomingTransaction(const QModelIndex& parent, int start, int /*end*/)
+void WalletView::processNewTransaction(const QModelIndex& parent, int start, int /*end*/)
 {
     // Prevent balloon-spam when initial block download is in progress
     if (!walletModel || !clientModel || clientModel->inInitialBlockDownload())
@@ -156,7 +161,7 @@ void WalletView::incomingTransaction(const QModelIndex& parent, int start, int /
     QString type = ttm->index(start, TransactionTableModel::Type, parent).data().toString();
     QString address = ttm->index(start, TransactionTableModel::ToAddress, parent).data().toString();
 
-    gui->incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address);
+    emit incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address);
 }
 
 void WalletView::gotoOverviewPage()
@@ -226,9 +231,9 @@ void WalletView::showOutOfSyncWarning(bool fShow)
     overviewPage->showOutOfSyncWarning(fShow);
 }
 
-void WalletView::setEncryptionStatus()
+void WalletView::updateEncryptionStatus()
 {
-    gui->setEncryptionStatus(walletModel->getEncryptionStatus());
+    emit encryptionStatusChanged(walletModel->getEncryptionStatus());
 }
 
 void WalletView::encryptWallet(bool status)
@@ -239,7 +244,7 @@ void WalletView::encryptWallet(bool status)
     dlg.setModel(walletModel);
     dlg.exec();
 
-    setEncryptionStatus();
+    updateEncryptionStatus();
 }
 
 void WalletView::backupWallet()
