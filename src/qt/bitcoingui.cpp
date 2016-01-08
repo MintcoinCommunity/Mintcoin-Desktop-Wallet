@@ -9,14 +9,12 @@
 
 #include "bitcoingui.h"
 
-#include "transactiontablemodel.h"
 #include "optionsdialog.h"
 #include "aboutdialog.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "walletframe.h"
 #include "optionsmodel.h"
-#include "transactiondescdialog.h"
 #include "repairwalletdialog.h"
 #include "bitcoinunits.h"
 #include "guiconstants.h"
@@ -322,9 +320,9 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
 
     usedSendingAddressesAction = new QAction(QIcon(":/icons/address-book"), tr("&Used sending addresses..."), this);
-    usedSendingAddressesAction->setStatusTip(tr("Edit the list of used sending addresses and labels"));
+    usedSendingAddressesAction->setStatusTip(tr("Show the list of used sending addresses and labels"));
     usedReceivingAddressesAction = new QAction(QIcon(":/icons/address-book"), tr("Used &receiving addresses..."), this);
-    usedReceivingAddressesAction->setStatusTip(tr("Edit the list of used receiving addresses and labels"));
+    usedReceivingAddressesAction->setStatusTip(tr("Show the list of used receiving addresses and labels"));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(checkWalletAction, SIGNAL(triggered()), this, SLOT(checkWallet()));
