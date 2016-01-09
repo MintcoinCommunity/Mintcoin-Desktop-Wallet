@@ -1092,10 +1092,9 @@ public:
         return (*this);
     }
 
-    void GetAndClear(CSerializeData &data)
-    {
-        vch.swap(data);
-        CSerializeData().swap(vch);
+    void GetAndClear(CSerializeData &data) {
+        data.insert(data.end(), begin(), end());
+        clear();
     }
 };
 
