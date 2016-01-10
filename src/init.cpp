@@ -439,7 +439,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         SoftSetBoolArg("-discover", false);
     }
 
-    if (GetBoolArg("-salvagewallet")) {
+    if (GetBoolArg("-salvagewallet", false)) {
         // Rewrite just private keys: rescan to find transactions
         SoftSetBoolArg("-rescan", true);
     }
@@ -457,7 +457,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 3: parameter-to-internal-flags
 
     if (mapMultiArgs.count("-debug")) fDebug = true;
-    fBenchmark = GetBoolArg("-benchmark");
+    fBenchmark = GetBoolArg("-benchmark", false);
     mempool.fChecks = GetBoolArg("-checkmempool", RegTest());
     Checkpoints::fEnabled = GetBoolArg("-checkpoints", true);
 
@@ -474,19 +474,19 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fDebug)
         fDebugNet = true;
     else
-        fDebugNet = GetBoolArg("-debugnet");
+        fDebugNet = GetBoolArg("-debugnet", false);
 
     if (fDaemon)
         fServer = true;
     else
-        fServer = GetBoolArg("-server");
+        fServer = GetBoolArg("-server", false);
 
     /* force fServer when running without GUI */
     if (!fHaveGUI)
         fServer = true;
-    fPrintToConsole = GetBoolArg("-printtoconsole");
-    fPrintToDebugger = GetBoolArg("-printtodebugger");
-    fLogTimestamps = GetBoolArg("-logtimestamps");
+    fPrintToConsole = GetBoolArg("-printtoconsole", false);
+    fPrintToDebugger = GetBoolArg("-printtodebugger", false);
+    fLogTimestamps = GetBoolArg("-logtimestamps", false);
 
     if (mapArgs.count("-timeout"))
     {
@@ -597,7 +597,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
     }
 
-    if (GetBoolArg("-salvagewallet"))
+    if (GetBoolArg("-salvagewallet", false))
     {
         // Recover readable keypairs:
         if (!CWalletDB::Recover(bitdb, strWalletFile, true))
@@ -744,7 +744,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     // AddOneShot(string(""));
     // ********************************************************* Step 7: load block chain
 
-    fReindex = GetBoolArg("-reindex");
+    fReindex = GetBoolArg("-reindex", false);
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -873,7 +873,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
     LogPrintf(" block index %15"PRI64d"ms\n", GetTimeMillis() - nStart);
 
-    if (GetBoolArg("-printblockindex") || GetBoolArg("-printblocktree"))
+    if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
         PrintBlockTree();
         return false;
@@ -969,7 +969,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     RegisterWallet(pwalletMain);
 
     CBlockIndex *pindexRescan = chainActive.Tip();
-    if (GetBoolArg("-rescan"))
+    if (GetBoolArg("-rescan", false))
         pindexRescan = chainActive.Genesis();
     else
     {

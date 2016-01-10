@@ -43,7 +43,7 @@ Value getgenerate(const Array& params, bool fHelp)
     if (!pMiningKey)
         return false;
 
-    return GetBoolArg("-gen");
+    return GetBoolArg("-gen", false);
 }
 
 

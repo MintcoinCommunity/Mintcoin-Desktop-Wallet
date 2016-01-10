@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
     }
 
     SplashScreen splash(QPixmap(), 0);
-    if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
+    if (GetBoolArg("-splash", true) && !GetBoolArg("-min", false))
     {
         splash.show();
         splash.setAutoFillBackground(true);
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
                 window.setCurrentWallet("~Default");
 
                 // If -min option passed, start window minimized.
-                if(GetBoolArg("-min"))
+                if(GetBoolArg("-min", false))
                 {
                     window.showMinimized();
                 }
