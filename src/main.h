@@ -94,7 +94,6 @@ extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern std::set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid;
-extern uint256 nBestInvalidTrust;
 extern unsigned int nTransactionsUpdated;
 extern uint64 nLastBlockTx;
 extern uint64 nLastBlockSize;
