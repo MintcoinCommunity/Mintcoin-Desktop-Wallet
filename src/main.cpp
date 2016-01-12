@@ -40,8 +40,6 @@ set<pair<COutPoint, unsigned int> > setStakeSeen;
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 
 CChain chainActive;
-CBlockIndex *pindexBestInvalid;
-set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid; // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
 int64 nTimeBestReceived = 0;
 int nScriptCheckThreads = 0;
 bool fImporting = false;
@@ -74,7 +72,28 @@ const string strMessageMagic = "MintCoin Signed Message:\n";
 // Settings
 int64 nTransactionFee = CTransaction::nMinTxFee;
 
+// Internal stuff
+namespace {
+struct CBlockIndexTrustComparator
+{
+    bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
+        if (pa->nChainTrust > pb->nChainTrust) return false;
+        if (pa->nChainTrust < pb->nChainTrust) return true;
 
+        if (pa->GetBlockHash() < pb->GetBlockHash()) return false;
+        if (pa->GetBlockHash() > pb->GetBlockHash()) return true;
+
+        return false; // identical blocks
+    }
+};
+
+CBlockIndex *pindexBestInvalid;
+set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid; // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
+
+CCriticalSection cs_LastBlockFile;
+CBlockFileInfo infoLastBlockFile;
+int nLastBlockFile = 0;
+}
 // Used during database migration.
 bool fDisableSignatureChecking = false;
 
@@ -3086,10 +3105,6 @@ bool CheckDiskSpace(uint64 nAdditionalBytes)
 
     return true;
 }
-
-CCriticalSection cs_LastBlockFile;
-CBlockFileInfo infoLastBlockFile;
-int nLastBlockFile = 0;
 
 FILE* OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
 {
