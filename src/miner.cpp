@@ -505,7 +505,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         //
         // Create new block
         //
-        unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
+        unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
         CBlockIndex* pindexPrev = chainActive.Tip();
 
         auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
@@ -628,7 +628,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 break;
             if (nBlockNonce >= 0xffff0000)
                 break;
-            if (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+            if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
                 break;
             if (pindexPrev != chainActive.Tip())
                 break;
