@@ -9,7 +9,7 @@
 
 class CBlock;
 class CBlockIndex;
-class CBlockTemplate;
+struct CBlockTemplate;
 class CReserveKey;
 class CScript;
 class CWallet;
