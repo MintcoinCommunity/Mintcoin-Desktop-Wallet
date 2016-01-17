@@ -39,7 +39,7 @@ class BitcoinGUI : public QMainWindow
 
 public:
     static const QString DEFAULT_WALLET;
-    
+
     explicit BitcoinGUI(bool fIsTestnet = false, QWidget *parent = 0);
     ~BitcoinGUI();
 
@@ -98,6 +98,7 @@ private:
     QAction *lockWalletToggleAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
+    QAction *openAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
@@ -121,6 +122,10 @@ private:
     void createTrayIcon(bool fIsTestnet);
     /** Create system tray menu (or setup the dock menu) */
     void createTrayIconMenu();
+
+signals:
+    /** Signal raised when a URI was entered or dragged to the GUI */
+    void receivedURI(const QString &uri);
 
 public slots:
     /** Set number of connections shown in the UI */
@@ -186,6 +191,9 @@ private slots:
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
+    /** Show open dialog */
+    void openClicked();
+
     /** Repair the wallet **/
     void repairWallet();
 

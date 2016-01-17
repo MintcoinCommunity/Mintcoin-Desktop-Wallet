@@ -102,6 +102,9 @@ public slots:
     // Submit Payment message to a merchant, get back PaymentACK:
     void fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipient, QByteArray transaction);
 
+    // Handle an incoming URI or file
+    void handleURIOrFile(const QString& s);
+
 private slots:
     void handleURIConnection();
     void netRequestFinished(QNetworkReply*);
@@ -111,7 +114,6 @@ private slots:
 private:
     static bool readPaymentRequest(const QString& filename, PaymentRequestPlus& request);
     bool processPaymentRequest(PaymentRequestPlus& request, SendCoinsRecipient& recipient);
-    void handleURIOrFile(const QString& s);
     void fetchRequest(const QUrl& url);
 
     // Setup networking
