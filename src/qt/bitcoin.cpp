@@ -305,7 +305,6 @@ int main(int argc, char *argv[])
 
                 PaymentServer::LoadRootCAs();
                 paymentServer->setOptionsModel(&optionsModel);
-                paymentServer->initNetManager();
 
                 if (splashref)
                     splash.finish(&window);
