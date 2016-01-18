@@ -3466,7 +3466,7 @@ void static ProcessGetData(CNode* pfrom)
 
             // Track requests for our stuff.
             g_signals.Inventory(inv.hash);
-            
+
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
                 break;
         }
@@ -4035,10 +4035,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         size_t nAvail = vRecv.in_avail();
         bool bPingFinished = false;
         std::string sProblem;
-        
+
         if (nAvail >= sizeof(nonce)) {
             vRecv >> nonce;
-        
+
             // Only process pong message if there is an outstanding ping (old ping without nonce should never pong)
             if (pfrom->nPingNonceSent != 0) {
                 if (nonce == pfrom->nPingNonceSent) {
@@ -4069,7 +4069,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             bPingFinished = true;
             sProblem = "Short payload";
         }
-        
+
         if (!(sProblem.empty())) {
             LogPrint("net", "pong %s %s: %s, %"PRIx64" expected, %"PRIx64" received, %"PRIszu" bytes\n",
                 pfrom->addr.ToString().c_str(),
@@ -4083,8 +4083,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->nPingNonceSent = 0;
         }
     }
-    
-    
+
+
     else if (strCommand == "alert")
     {
         CAlert alert;
@@ -4220,10 +4220,10 @@ bool ProcessMessages(CNode* pfrom)
 
     if (!pfrom->vRecvGetData.empty())
         ProcessGetData(pfrom);
-    
+
     // this maintains the order of responses
     if (!pfrom->vRecvGetData.empty()) return fOk;
-    
+
     std::deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
     while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
         // Don't bother if send buffer is too full to respond anyway
@@ -4312,7 +4312,7 @@ bool ProcessMessages(CNode* pfrom)
 
         if (!fRet)
             LogPrintf("ProcessMessage(%s, %u bytes) FAILED\n", strCommand.c_str(), nMessageSize);
-        
+
         break;
     }
 

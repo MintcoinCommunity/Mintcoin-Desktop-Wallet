@@ -132,7 +132,6 @@ Value importwallet(const Array& params, bool fHelp)
 
     int64_t nTimeBegin = chainActive.Tip()->nTime;
 
-
     bool fGood = true;
 
     while (file.good()) {
