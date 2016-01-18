@@ -68,7 +68,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QValidatedLineEdit" name="addAsLabel">
+      <widget class="QLineEdit" name="addAsLabel">
        <property name="enabled">
         <bool>true</bool>
        </property>
