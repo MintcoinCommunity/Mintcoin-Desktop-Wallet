@@ -1,3 +1,7 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef OPTIONSMODEL_H
 #define OPTIONSMODEL_H
 
@@ -17,23 +21,23 @@ public:
     explicit OptionsModel(QObject *parent = 0);
 
     enum OptionID {
-        StartAtStartup,    // bool
-        MinimizeToTray,    // bool
-        MapPortUPnP,       // bool
-        MinimizeOnClose,   // bool
-        ProxyUse,          // bool
-        ProxyIP,           // QString
-        ProxyPort,         // int
-        ProxySocksVersion, // int
-        Fee,               // qint64
-        DisplayUnit,       // BitcoinUnits::Unit
-        DisplayAddresses,  // bool
-        Language,          // QString
-        CoinControlFeatures, // bool
-        ShowShopDonate,    // bool
-        ShowOverviewNews,  // bool
-        PasswordOnSend,    // bool
-        recurringSendEntries,//string
+        StartAtStartup,         // bool
+        MinimizeToTray,         // bool
+        MapPortUPnP,            // bool
+        MinimizeOnClose,        // bool
+        ProxyUse,               // bool
+        ProxyIP,                // QString
+        ProxyPort,              // int
+        ProxySocksVersion,      // int
+        Fee,                    // qint64
+        DisplayUnit,            // BitcoinUnits::Unit
+        DisplayAddresses,       // bool
+        Language,               // QString
+        CoinControlFeatures,    // bool
+        ShowShopDonate,    		// bool
+        ShowOverviewNews,  		// bool
+        PasswordOnSend,    		// bool
+        recurringSendEntries,	//string
         OptionIDRowCount,
     };
 
@@ -52,7 +56,6 @@ public:
     bool getMinimizeOnClose();
     int getDisplayUnit();
     bool getDisplayAddresses();
-    bool getCoinControlFeatures();
     bool getShowShopDonate();
     bool getShowOverviewNews();
     QString getRecurringSendEntries();
@@ -61,6 +64,7 @@ public:
 
     QString getLanguage() { return language; }
     bool getProxySettings(QString& proxyIP, quint16 &proxyPort) const;
+    bool getCoinControlFeatures() { return fCoinControlFeatures; }
 
     bool isLocked;
 

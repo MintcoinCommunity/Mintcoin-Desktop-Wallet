@@ -287,11 +287,10 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         case Language:
             settings.setValue("language", value);
             break;
-        case CoinControlFeatures: {
+        case CoinControlFeatures:
             fCoinControlFeatures = value.toBool();
             settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
             emit coinControlFeaturesChanged(fCoinControlFeatures);
-            }
             break;
         case ShowShopDonate: {
             bShowShopDonate = value.toBool();
@@ -332,11 +331,6 @@ bool OptionsModel::getProxySettings(QString& proxyIP, quint16 &proxyPort) const
     proxyIP = QString(addrProxy.ToStringIP().c_str());
     proxyPort = addrProxy.GetPort();
     return true;
-}
-
-bool OptionsModel::getCoinControlFeatures()
-{
-     return fCoinControlFeatures;
 }
 
 bool OptionsModel::getShowShopDonate()

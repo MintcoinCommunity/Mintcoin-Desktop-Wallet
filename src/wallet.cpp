@@ -7,9 +7,9 @@
 #include "wallet.h"
 
 #include "base58.h"
+#include "coincontrol.h"
 #include "net.h"
 #include "kernel.h"
-#include "coincontrol.h"
 #include "chainparams.h"
 
 #include <inttypes.h>

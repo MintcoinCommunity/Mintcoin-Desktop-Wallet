@@ -4,19 +4,18 @@
 
 #include "sendcoinsdialog.h"
 #include "ui_sendcoinsdialog.h"
-//#include "init.h"
-#include "bitcoinunits.h"
-//#include "addressbookpage.h"
+
 #include "addresstablemodel.h"
+#include "bitcoinunits.h"
+#include "coincontroldialog.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
 #include "sendcoinsentry.h"
 #include "askpassphrasedialog.h"
 
 #include "base58.h"
-#include "ui_interface.h"
 #include "coincontrol.h"
-#include "coincontroldialog.h"
+#include "ui_interface.h"
 #include "bitcoingui.h"
 #include "guiconstants.h"
 #include "walletview.h"
@@ -41,8 +40,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
 #endif
 
 #if QT_VERSION >= 0x040700
-     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-     ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a Mintcoin address (e.g. MrXW1RKLDe8VMNwTwLwSiKuATN5M74EL85)"));
+    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a Mintcoin address (e.g. MrXW1RKLDe8VMNwTwLwSiKuATN5M74EL85)"));
 #endif
 
     addEntry();
