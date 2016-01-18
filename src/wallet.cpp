@@ -13,7 +13,6 @@
 #include "chainparams.h"
 
 #include <inttypes.h>
-#include <stdint.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>

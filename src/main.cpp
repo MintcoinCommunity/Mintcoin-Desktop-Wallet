@@ -23,7 +23,6 @@
 
 #include <inttypes.h>
 #include <sstream>
-#include <stdint.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
