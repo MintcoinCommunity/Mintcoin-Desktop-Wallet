@@ -10,17 +10,19 @@
 #include "walletmodeltransaction.h"
 #include "paymentrequestplus.h"
 
-class OptionsModel;
 class AddressTableModel;
+class OptionsModel;
 class TransactionTableModel;
-class CWallet;
+class RecentRequestsTableModel;
 class WalletModelTransaction;
-class CKeyID;
-class CPubKey;
-class COutput;
-class COutPoint;
-class uint256;
+
 class CCoinControl;
+class CKeyID;
+class COutPoint;
+class COutput;
+class CPubKey;
+class CWallet;
+class uint256;
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -82,6 +84,7 @@ public:
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
+    RecentRequestsTableModel *getRecentRequestsTableModel();
 
     qint64 getBalance() const;
     qint64 getStake() const;
@@ -137,7 +140,7 @@ public:
     };
 
     UnlockContext requestUnlock();
-	
+
     bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
     void listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const;
@@ -155,6 +158,7 @@ private:
 
     AddressTableModel *addressTableModel;
     TransactionTableModel *transactionTableModel;
+    RecentRequestsTableModel *recentRequestsTableModel;
 
     // Cache some values to be able to detect changes
     qint64 cachedBalance;
