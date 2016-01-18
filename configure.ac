@@ -161,9 +161,9 @@ BITCOIN_QT_PATH_PROGS([MOC], [moc-qt4 moc4 moc],, $qt_bin_path:$PATH)
 BITCOIN_QT_PATH_PROGS([UIC], [uic-qt4 uic4 uic],, $qt_bin_path:$PATH)
 BITCOIN_QT_PATH_PROGS([RCC], [rcc-qt4 rcc4 rcc],, $qt_bin_path:$PATH)
 BITCOIN_QT_PATH_PROGS([LRELEASE], [lrelease-qt4 lrelease4 lrelease],, $qt_bin_path:$PATH)
-BITCOIN_QT_PATH_PROGS([LUPDATE], [lupdate-qt4 lupdate4 lupdate],, $qt_bin_path:$PATH)
 BITCOIN_QT_PATH_PROGS([PROTOC], [protoc],, $protoc_bin_path:$PATH)
 AC_PATH_PROG(CCACHE,ccache)
+AC_PATH_PROGS([LUPDATE], [lupdate-qt4 lupdate4 lupdate],, $qt_bin_path:$PATH)
 AC_PATH_PROG(XGETTEXT,xgettext)
 PKG_PROG_PKG_CONFIG
 
