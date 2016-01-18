@@ -22,8 +22,7 @@ SignVerifyMessageDialog::SignVerifyMessageDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-#if (QT_VERSION >= 0x040700)
-    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
+#if QT_VERSION >= 0x040700
     ui->addressIn_SM->setPlaceholderText(tr("Enter a valid MintCoin address"));
     ui->signatureOut_SM->setPlaceholderText(tr("Click \"Sign Message\" to generate signature"));
 
@@ -70,7 +69,6 @@ void SignVerifyMessageDialog::setAddress_VM(QString address)
 void SignVerifyMessageDialog::showTab_SM(bool fShow)
 {
     ui->tabWidget->setCurrentIndex(0);
-
     if (fShow)
         this->show();
 }
@@ -161,7 +159,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
 
 void SignVerifyMessageDialog::on_copySignatureButton_SM_clicked()
 {
-    QApplication::clipboard()->setText(ui->signatureOut_SM->text());
+    GUIUtil::setClipboard(ui->signatureOut_SM->text());
 }
 
 void SignVerifyMessageDialog::on_clearButton_SM_clicked()

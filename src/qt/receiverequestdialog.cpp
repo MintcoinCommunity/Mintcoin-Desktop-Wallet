@@ -1,3 +1,7 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "receiverequestdialog.h"
 #include "ui_receiverequestdialog.h"
 
@@ -7,11 +11,11 @@
 #include "optionsmodel.h"
 #include "walletmodel.h"
 
-#include <QPixmap>
 #include <QClipboard>
-#include <QMouseEvent>
 #include <QDrag>
 #include <QMimeData>
+#include <QMouseEvent>
+#include <QPixmap>
 #if QT_VERSION < 0x050000
 #include <QUrl>
 #endif
@@ -173,13 +177,10 @@ void ReceiveRequestDialog::update()
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked()
 {
-    QString uri = GUIUtil::formatBitcoinURI(info);
-    QApplication::clipboard()->setText(uri, QClipboard::Clipboard);
-    QApplication::clipboard()->setText(uri, QClipboard::Selection);
+    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(info));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked()
 {
-    QApplication::clipboard()->setText(info.address, QClipboard::Clipboard);
-    QApplication::clipboard()->setText(info.address, QClipboard::Selection);
+    GUIUtil::setClipboard(info.address);
 }
