@@ -48,7 +48,7 @@ public slots:
     void accept();
     SendCoinsEntry *addEntry();
     void addRecurring();
-    void updateRemoveEnabled();
+    void updateTabsAndLabels();
     void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance, qint64 mintedBalance);
 
 private:
