@@ -5,7 +5,8 @@
 #include "bitcoingui.h"
 
 #include "aboutdialog.h"
-#include "bitcoinrpc.h"
+#include "rpcclient.h"
+#include "rpcserver.h"
 #include "bitcoinunits.h"
 #include "clientmodel.h"
 #include "guiconstants.h"
