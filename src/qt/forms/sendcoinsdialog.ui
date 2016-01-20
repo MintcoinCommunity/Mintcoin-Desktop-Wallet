@@ -39,7 +39,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayoutCoinControl2">
       <property name="spacing">
-       <number>6</number>
+       <number>0</number>
       </property>
       <property name="leftMargin">
        <number>0</number>
@@ -228,12 +228,6 @@
                </item>
                <item row="0" column="1">
                 <widget class="QLabel" name="labelCoinControlQuantity">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -263,12 +257,6 @@
                </item>
                <item row="1" column="1">
                 <widget class="QLabel" name="labelCoinControlBytes">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -317,12 +305,6 @@
                </item>
                <item row="0" column="1">
                 <widget class="QLabel" name="labelCoinControlAmount">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -349,12 +331,6 @@
                </item>
                <item row="1" column="1">
                 <widget class="QLabel" name="labelCoinControlPriority">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -403,12 +379,6 @@
                </item>
                <item row="0" column="1">
                 <widget class="QLabel" name="labelCoinControlFee">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -435,12 +405,6 @@
                </item>
                <item row="1" column="1">
                 <widget class="QLabel" name="labelCoinControlLowOutput">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -489,12 +453,6 @@
                </item>
                <item row="0" column="1">
                 <widget class="QLabel" name="labelCoinControlAfterFee">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -521,12 +479,6 @@
                </item>
                <item row="1" column="1">
                 <widget class="QLabel" name="labelCoinControlChange">
-                 <property name="font">
-                  <font>
-                   <family>Monospace</family>
-                   <pointsize>10</pointsize>
-                  </font>
-                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -564,13 +516,16 @@
           </property>
           <item>
            <widget class="QCheckBox" name="checkBoxCoinControlChange">
+            <property name="toolTip">
+             <string>If this is activated, but the change address is empty or invalid, change will be sent to a newly generated address.</string>
+            </property>
             <property name="text">
-             <string>custom change address</string>
+             <string>Custom change address</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEditCoinControlChange">
+           <widget class="QValidatedLineEdit" name="lineEditCoinControlChange">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -887,6 +842,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QValidatedLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qvalidatedlineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../bitcoin.qrc"/>
  </resources>
