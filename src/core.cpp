@@ -5,6 +5,7 @@
 
 #include "core.h"
 
+#include "scrypt_mine.h"
 #include "util.h"
 
 std::string COutPoint::ToString() const
@@ -182,6 +183,18 @@ uint64_t CTxOutCompressor::DecompressAmount(uint64_t x)
         e--;
     }
     return n;
+}
+
+uint256 CBlockHeader::GetHash() const
+{
+    uint256 thash;
+    void * scratchbuff = scrypt_buffer_alloc();
+
+    scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+
+    scrypt_buffer_free(scratchbuff);
+
+    return thash;
 }
 
 uint256 CBlock::BuildMerkleTree() const

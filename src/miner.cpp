@@ -8,6 +8,7 @@
 #include "core.h"
 #include "main.h"
 #include "net.h"
+#include "scrypt_mine.h"
 #include "wallet.h"
 
 double dHashesPerSec = 0.0;

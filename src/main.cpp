@@ -18,7 +18,6 @@
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "scrypt_mine.h"
 
 
 #include <inttypes.h>
@@ -115,17 +114,6 @@ bool CCoins::IsCoinStake(uint256 hash) const {
     return tx.IsCoinStake();
 }
 
-uint256 CBlockHeader::GetHash() const
-{
-    uint256 thash;
-    void * scratchbuff = scrypt_buffer_alloc();
-
-    scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
-
-    scrypt_buffer_free(scratchbuff);
-
-    return thash;
-}
 
 
 //////////////////////////////////////////////////////////////////////////////
