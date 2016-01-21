@@ -121,6 +121,7 @@ void Shutdown()
     GenerateBitcoins(false, NULL);
 #endif
     StopNode();
+    UnregisterNodeSignals(GetNodeSignals());
     {
         LOCK(cs_main);
 #ifdef ENABLE_WALLET
