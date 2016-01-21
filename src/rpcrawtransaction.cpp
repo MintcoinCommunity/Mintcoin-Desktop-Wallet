@@ -26,47 +26,15 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
-//
-// Utilities: convert hex-encoded Values
-// (throws error if not hex).
-//
-uint256 ParseHashV(const Value& v, string strName)
-{
-    string strHex;
-    if (v.type() == str_type)
-        strHex = v.get_str();
-    if (!IsHex(strHex)) // Note: IsHex("") is false
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strName+" must be hexadecimal string (not '"+strHex+"')");
-    uint256 result;
-    result.SetHex(strHex);
-    return result;
-}
-uint256 ParseHashO(const Object& o, string strKey)
-{
-    return ParseHashV(find_value(o, strKey), strKey);
-}
-vector<unsigned char> ParseHexV(const Value& v, string strName)
-{
-    string strHex;
-    if (v.type() == str_type)
-        strHex = v.get_str();
-    if (!IsHex(strHex))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strName+" must be hexadecimal string (not '"+strHex+"')");
-    return ParseHex(strHex);
-}
-vector<unsigned char> ParseHexO(const Object& o, string strKey)
-{
-    return ParseHexV(find_value(o, strKey), strKey);
-}
-
-void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out)
+void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex)
 {
     txnouttype type;
     vector<CTxDestination> addresses;
     int nRequired;
 
     out.push_back(Pair("asm", scriptPubKey.ToString()));
-    out.push_back(Pair("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end())));
+    if (fIncludeHex)
+        out.push_back(Pair("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end())));
 
     if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired))
     {
@@ -116,7 +84,7 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
         out.push_back(Pair("n", (boost::int64_t)i));
         Object o;
-        ScriptPubKeyToJSON(txout.scriptPubKey, o);
+        ScriptPubKeyToJSON(txout.scriptPubKey, o, false);
         out.push_back(Pair("scriptPubKey", o));
         vout.push_back(out);
     }
@@ -495,6 +463,47 @@ Value decoderawtransaction(const Array& params, bool fHelp)
     TxToJSON(tx, 0, result);
 
     return result;
+}
+
+Value decodescript(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "decodescript \"hex\"\n"
+            "\nDecode a hex-encoded script.\n"
+            "\nArguments:\n"
+            "1. \"hex\"     (string) the hex encoded script\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"asm\":\"asm\",   (string) Script public key\n"
+            "  \"hex\":\"hex\",   (string) hex encoded public key\n"
+            "  \"type\":\"type\", (string) The output type\n"
+            "  \"reqSigs\": n,    (numeric) The required signatures\n"
+            "  \"addresses\": [   (json array of string)\n"
+            "     \"address\"     (string) bitcoin address\n"
+            "     ,...\n"
+            "  ],\n"
+            "  \"p2sh\",\"address\" (string) script address\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("decodescript", "\"hexstring\"")
+            + HelpExampleRpc("decodescript", "\"hexstring\"")
+        );
+
+    RPCTypeCheck(params, list_of(str_type));
+
+    Object r;
+    CScript script;
+    if (params[0].get_str().size() > 0){
+        vector<unsigned char> scriptData(ParseHexV(params[0], "argument"));
+        script = CScript(scriptData.begin(), scriptData.end());
+    } else {
+        // Empty scripts are valid
+    }
+    ScriptPubKeyToJSON(script, r, false);
+
+    r.push_back(Pair("p2sh", CBitcoinAddress(script.GetID()).ToString()));
+    return r;
 }
 
 Value signrawtransaction(const Array& params, bool fHelp)
