@@ -275,6 +275,7 @@ static const CRPCCommand vRPCCommands[] =
     { "validateaddress",        &validateaddress,        true,      false,      false },
     { "validatepubkey",         &validatepubkey,         true,      false,		false },
     { "getbalance",             &getbalance,             false,     false,      true },
+    { "getunconfirmedbalance",  &getunconfirmedbalance,  false,     false,      true },
     { "move",                   &movecmd,                false,     false,      true },
     { "sendfrom",               &sendfrom,               false,     false,      true },
     { "sendmany",               &sendmany,               false,     false,      true },
