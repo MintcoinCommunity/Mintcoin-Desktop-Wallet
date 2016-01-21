@@ -4,7 +4,6 @@
 
 #include "notificator.h"
 
-
 #include <QApplication>
 #include <QByteArray>
 #include <QIcon>
