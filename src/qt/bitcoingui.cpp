@@ -76,27 +76,31 @@ BitcoinGUI::BitcoinGUI(bool fIsTestnet, QWidget *parent) :
 {
     GUIUtil::restoreWindowGeometry("nWindow", QSize(940, 550), this);
 
-#ifndef Q_OS_MAC
     if (!fIsTestnet)
     {
         setWindowTitle(tr("MintCoin") + " - " + tr("Wallet"));
+#ifndef Q_OS_MAC
         QApplication::setWindowIcon(QIcon(":icons/bitcoin"));
         setWindowIcon(QIcon(":icons/bitcoin"));
+#else
+        MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin"));
+#endif
     }
     else
     {
         setWindowTitle(tr("MintCoin") + " - " + tr("Wallet") + " " + tr("[testnet]"));
+#ifndef Q_OS_MAC
         QApplication::setWindowIcon(QIcon(":icons/bitcoin_testnet"));
         setWindowIcon(QIcon(":icons/bitcoin_testnet"));
-    }
 #else
-    setUnifiedTitleAndToolBarOnMac(true);
-    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
-
-    if (!fIsTestnet)
-        MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin"));
-    else
         MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
+#endif
+    }
+
+#if defined(Q_OS_MAC) && QT_VERSION < 0x050000
+    // This property is not implemented in Qt 5. Setting it has no effect.
+    // A replacement API (QtMacUnifiedToolBar) is available in QtMacExtras.
+    setUnifiedTitleAndToolBarOnMac(true);
 #endif
 
     // Create wallet frame and make it the central widget
