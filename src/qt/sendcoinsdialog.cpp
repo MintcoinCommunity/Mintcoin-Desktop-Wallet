@@ -391,11 +391,13 @@ void SendCoinsDialog::updateTabsAndLabels()
 
 void SendCoinsDialog::removeEntry(SendCoinsEntry* entry)
 {
-    entry->deleteLater();
+    entry->hide();
 
-    // If the last entry was removed add an empty one
-    if (!ui->entries->count())
+    // If the last entry is about to be removed add an empty one
+    if (ui->entries->count() == 1)
         addEntry();
+
+    entry->deleteLater();
 
     updateTabsAndLabels();
 }
@@ -665,7 +667,7 @@ void SendCoinsDialog::coinControlChangeChecked(int state)
 }
 
 // Coin Control: custom change address changed
-void SendCoinsDialog::coinControlChangeEdited(const QString & text)
+void SendCoinsDialog::coinControlChangeEdited(const QString& text)
 {
     if (model)
     {
