@@ -20,7 +20,8 @@
 using namespace json_spirit;
 using namespace std;
 
-// Key used by getwork/getblocktemplate miners.
+#ifdef ENABLE_WALLET
+// Key used by getwork miners.
 // Allocated in InitRPCMining, free'd in ShutdownRPCMining
 static CReserveKey* pMiningKey = NULL;
 
@@ -40,7 +41,16 @@ void ShutdownRPCMining()
 
     delete pMiningKey; pMiningKey = NULL;
 }
+#else
+void InitRPCMining()
+{
+}
+void ShutdownRPCMining()
+{
+}
+#endif
 
+#ifdef ENABLE_WALLET
 Value getgenerate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -103,7 +113,6 @@ Value setgenerate(const Array& params, bool fHelp)
     return Value::null;
 }
 
-
 Value gethashespersec(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -122,6 +131,7 @@ Value gethashespersec(const Array& params, bool fHelp)
         return (boost::int64_t)0;
     return (boost::int64_t)dHashesPerSec;
 }
+#endif
 
 
 Value getmininginfo(const Array& params, bool fHelp)
@@ -154,12 +164,14 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
     obj.push_back(Pair("difficulty",       (double)GetDifficulty()));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
-    obj.push_back(Pair("generate",         getgenerate(params, false)));
     obj.push_back(Pair("genproclimit",     (int)GetArg("-genproclimit", -1)));
-    obj.push_back(Pair("hashespersec",     gethashespersec(params, false)));
     obj.push_back(Pair("networkhashps",    getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",          TestNet()));
+#ifdef ENABLE_WALLET
+    obj.push_back(Pair("generate",         getgenerate(params, false)));
+    obj.push_back(Pair("hashespersec",     gethashespersec(params, false)));
+#endif
     return obj;
 }
 
@@ -329,7 +341,7 @@ Value getworkex(const Array& params, bool fHelp)
     }
 }
 
-
+#ifdef ENABLE_WALLET
 Value getwork(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
@@ -456,7 +468,7 @@ Value getwork(const Array& params, bool fHelp)
         return CheckWork(pblock, *pwalletMain, *pMiningKey);
     }
 }
-
+#endif
 
 Value getblocktemplate(const Array& params, bool fHelp)
 {

@@ -11,9 +11,6 @@
 #include "scrypt_mine.h"
 #include "wallet.h"
 
-double dHashesPerSec = 0.0;
-int64_t nHPSTimerStart = 0;
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitcoinMiner
@@ -447,6 +444,13 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
     memcpy(phash1, &tmp.hash1, 64);
 }
 
+#ifdef ENABLE_WALLET
+//////////////////////////////////////////////////////////////////////////////
+//
+// Internal miner
+//
+double dHashesPerSec = 0.0;
+int64_t nHPSTimerStart = 0;
 
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
@@ -684,5 +688,6 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, bool fProofOfStake)
         minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet, fProofOfStake));
 }
 
+#endif
 
 

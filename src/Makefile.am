@@ -49,9 +49,11 @@ libbitcoin_server_a_SOURCES = \
   keystore.cpp \
   leveldbwrapper.cpp \
   main.cpp \
+  miner.cpp \
   net.cpp \
   noui.cpp \
   rpcblockchain.cpp \
+  rpcmining.cpp \
   rpcnet.cpp \
   rpcrawtransaction.cpp \
   txdb.cpp \
@@ -62,9 +64,7 @@ libbitcoin_server_a_SOURCES = \
 libbitcoin_wallet_a_SOURCES = \
   db.cpp \
   crypter.cpp \
-  miner.cpp \
   rpcdump.cpp \
-  rpcmining.cpp \
   rpcwallet.cpp \
   wallet.cpp \
   walletdb.cpp \

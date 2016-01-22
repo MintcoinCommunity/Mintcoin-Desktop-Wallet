@@ -249,11 +249,13 @@ static const CRPCCommand vRPCCommands[] =
     { "gettxout",               &gettxout,               true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
 
-#ifdef ENABLE_WALLET
-    { "getgenerate",            &getgenerate,            true,      false,      false },
-    { "setgenerate",            &setgenerate,            true,      false,      true },
-    { "gethashespersec",        &gethashespersec,        true,      false,      false },
+    /* Mining */
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
+    { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
+    { "submitblock",            &submitblock,            false,     false,      false },
+
+#ifdef ENABLE_WALLET
+    /* Wallet */
     { "getnewaddress",          &getnewaddress,          true,      false,      true },
     { "getnewpubkey",           &getnewpubkey,           true,      false,		true },
     { "getaccountaddress",      &getaccountaddress,      true,      false,      true },
@@ -286,11 +288,7 @@ static const CRPCCommand vRPCCommands[] =
     { "listaddressgroupings",   &listaddressgroupings,   false,     false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
     { "verifymessage",          &verifymessage,          false,     false,      false },
-    { "getwork",                &getwork,                true,      false,      true },
-    { "getworkex",              &getworkex,              true,      false,		true },
     { "listaccounts",           &listaccounts,           false,     false,      true },
-    { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
-    { "submitblock",            &submitblock,            false,     false,      false },
     { "listsinceblock",         &listsinceblock,         false,     false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
@@ -306,6 +304,13 @@ static const CRPCCommand vRPCCommands[] =
     { "sendalert",              &sendalert,              false,     false,      true },
     { "lockunspent",            &lockunspent,            false,     false,      true },
     { "listlockunspent",        &listlockunspent,        false,     false,      true },
+
+    /* Wallet-enabled mining */
+    { "getgenerate",            &getgenerate,            true,      false,      false },
+    { "setgenerate",            &setgenerate,            true,      false,      true },
+    { "gethashespersec",        &gethashespersec,        true,      false,      false },
+    { "getwork",                &getwork,                true,      false,      true },
+    { "getworkex",              &getworkex,              true,      false,		true },
 #endif // ENABLE_WALLET
 };
 
