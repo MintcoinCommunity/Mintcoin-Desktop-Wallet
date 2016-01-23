@@ -35,9 +35,6 @@ private:
     CWalletTx *walletTransaction;
     CReserveKey *keyChange;
     qint64 fee;
-
-public slots:
-
 };
 
 #endif // WALLETMODELTRANSACTION_H
