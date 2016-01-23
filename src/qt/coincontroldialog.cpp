@@ -7,6 +7,7 @@
 
 #include "addresstablemodel.h"
 #include "bitcoinunits.h"
+#include "guiutil.h"
 #include "init.h"
 #include "optionsmodel.h"
 #include "walletmodel.h"
@@ -18,7 +19,6 @@
 #include <QClipboard>
 #include <QColor>
 #include <QCursor>
-#include <QDateTime>
 #include <QDialogButtonBox>
 #include <QFlags>
 #include <QIcon>
@@ -697,7 +697,7 @@ void CoinControlDialog::updateView()
             itemOutput->setText(COLUMN_AMOUNT_int64_t, strPad(QString::number(out.tx->vout[out.i].nValue), 15, " ")); // padding so that sorting works correctly
 
             // date
-            itemOutput->setText(COLUMN_DATE, QDateTime::fromTime_t(out.tx->GetTxTime()).toUTC().toString("yy-MM-dd hh:mm"));
+            itemOutput->setText(COLUMN_DATE, GUIUtil::dateTimeStr(out.tx->GetTxTime()));
             
             // immature PoS reward
             if (out.tx->IsCoinStake() && out.tx->GetBlocksToMaturity() > 0 && out.tx->GetDepthInMainChain() > 0) {
