@@ -124,8 +124,6 @@ extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
 extern bool fHaveGUI;
 
-// Settings
-extern int64_t nTransactionFee;
 extern bool fUseFastIndex;
 
 // Minimum disk space required - used in CheckDiskSpace()

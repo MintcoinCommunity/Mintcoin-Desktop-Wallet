@@ -54,6 +54,7 @@ libbitcoin_server_a_SOURCES = \
   noui.cpp \
   rpcblockchain.cpp \
   rpcmining.cpp \
+  rpcmisc.cpp \
   rpcnet.cpp \
   rpcrawtransaction.cpp \
   txdb.cpp \

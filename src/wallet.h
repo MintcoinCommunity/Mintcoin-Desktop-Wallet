@@ -23,7 +23,10 @@
 #include <utility>
 #include <vector>
 
+// Settings
+extern int64_t nTransactionFee;
 extern bool fWalletUnlockMintOnly;
+
 class CAccountingEntry;
 class CCoinControl;
 class COutput;

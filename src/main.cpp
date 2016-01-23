@@ -78,8 +78,6 @@ CScript COINBASE_FLAGS;
 
 const string strMessageMagic = "MintCoin Signed Message:\n";
 
-// Settings
-int64_t nTransactionFee = CTransaction::nMinTxFee;
 
 // Internal stuff
 namespace {

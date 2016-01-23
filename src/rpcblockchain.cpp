@@ -177,27 +177,6 @@ Value getdifficulty(const Array& params, bool fHelp)
 }
 
 
-Value settxfee(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 1 || params.size() > 1 || AmountFromValue(params[0]) < CTransaction::nMinTxFee)
-        throw runtime_error(
-            "settxfee amount\n"
-            "\nSet the transaction fee. 'amount' is a real and is rounded to the nearest 0.000001\n"
-            "\nArguments:\n"
-            "1. amount         (numeric, required) The transaction fee in btc rounded to the nearest 0.000001\n"
-            "\nResult\n"
-            "true|false        (boolean) Returns true if successful\n"
-            "\nExamples:\n"
-            + HelpExampleCli("settxfee", "0.00001")
-            + HelpExampleRpc("settxfee", "0.00001")
-        );
-
-    nTransactionFee = AmountFromValue(params[0]);
-    nTransactionFee = (nTransactionFee / CENT) * CENT;  // round to cent
-
-    return true;
-}
-
 Value getrawmempool(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)

@@ -238,7 +238,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getblock",               &getblock,               false,     false,      false },
     { "getblockbynumber",       &getblockbynumber,       false,     false,		false },
     { "getblockhash",           &getblockhash,           false,     false,      false },
-    { "settxfee",               &settxfee,               false,     false,      true },
     { "getrawtransaction",      &getrawtransaction,      false,     false,      false },
     { "createrawtransaction",   &createrawtransaction,   false,     false,      false },
     { "decoderawtransaction",   &decoderawtransaction,   false,     false,      false },
@@ -253,6 +252,9 @@ static const CRPCCommand vRPCCommands[] =
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
     { "submitblock",            &submitblock,            false,     false,      false },
+    { "validateaddress",        &validateaddress,        true,      false,      false },
+    { "createmultisig",         &createmultisig,         true,      true ,      false },
+    { "verifymessage",          &verifymessage,          false,     false,      false },
 
 #ifdef ENABLE_WALLET
     /* Wallet */
@@ -274,7 +276,6 @@ static const CRPCCommand vRPCCommands[] =
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "encryptwallet",          &encryptwallet,          false,     false,      true },
-    { "validateaddress",        &validateaddress,        true,      false,      false },
     { "validatepubkey",         &validatepubkey,         true,      false,		false },
     { "getbalance",             &getbalance,             false,     false,      true },
     { "getunconfirmedbalance",  &getunconfirmedbalance,  false,     false,      true },
@@ -282,12 +283,10 @@ static const CRPCCommand vRPCCommands[] =
     { "sendfrom",               &sendfrom,               false,     false,      true },
     { "sendmany",               &sendmany,               false,     false,      true },
     { "addmultisigaddress",     &addmultisigaddress,     false,     false,      true },
-    { "createmultisig",         &createmultisig,         true,      true ,      false },
     { "gettransaction",         &gettransaction,         false,     false,      true },
     { "listtransactions",       &listtransactions,       false,     false,      true },
     { "listaddressgroupings",   &listaddressgroupings,   false,     false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
-    { "verifymessage",          &verifymessage,          false,     false,      false },
     { "listaccounts",           &listaccounts,           false,     false,      true },
     { "listsinceblock",         &listsinceblock,         false,     false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
@@ -304,6 +303,7 @@ static const CRPCCommand vRPCCommands[] =
     { "sendalert",              &sendalert,              false,     false,      true },
     { "lockunspent",            &lockunspent,            false,     false,      true },
     { "listlockunspent",        &listlockunspent,        false,     false,      true },
+    { "settxfee",               &settxfee,               false,     false,      true },
 
     /* Wallet-enabled mining */
     { "getgenerate",            &getgenerate,            true,      false,      false },
