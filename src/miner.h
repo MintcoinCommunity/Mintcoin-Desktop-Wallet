@@ -5,8 +5,14 @@
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
 
-#include "core.h"
-#include "wallet.h"
+#include <stdint.h>
+
+class CBlock;
+class CBlockIndex;
+class CBlockTemplate;
+class CReserveKey;
+class CScript;
+class CWallet;
 
 /** Run the miner threads */
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, bool fProofOfStake = false);
@@ -22,6 +28,6 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 
 extern double dHashesPerSec;
-extern int64 nHPSTimerStart;
+extern int64_t nHPSTimerStart;
 
 #endif // BITCOIN_MINER_H

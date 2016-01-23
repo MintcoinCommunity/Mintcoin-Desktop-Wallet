@@ -4,10 +4,16 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "miner.h"
+
+#include "core.h"
 #include "main.h"
+#include "net.h"
+#include "wallet.h"
+
+#include <stdint.h>
 
 double dHashesPerSec = 0.0;
-int64 nHPSTimerStart = 0;
+int64_t nHPSTimerStart = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -75,9 +81,9 @@ public:
 };
 
 
-uint64 nLastBlockTx = 0;
-uint64 nLastBlockSize = 0;
-int64 nLastCoinStakeSearchInterval = 0;
+uint64_t nLastBlockTx = 0;
+uint64_t nLastBlockSize = 0;
+int64_t nLastCoinStakeSearchInterval = 0;
 
 // We want to sort transactions by priority and fee, so:
 typedef boost::tuple<double, double, CTransaction*> TxPriority;
@@ -143,14 +149,14 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
 
     // ppcoin: if coinstake available add coinstake tx
-    static int64 nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
+    static int64_t nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
     CBlockIndex* pindexPrev = chainActive.Tip();
 
     if (fProofOfStake)  // attempt to find a coinstake
     {
         pblock->nBits = GetNextTargetRequired(pindexPrev, true);
         CTransaction txCoinStake;
-        int64 nSearchTime = txCoinStake.nTime; // search to current time
+        int64_t nSearchTime = txCoinStake.nTime; // search to current time
         if (nSearchTime > nLastCoinStakeSearchTime)
         {
 			// printf(">>> OK1\n");
@@ -172,7 +178,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     pblock->nBits = GetNextTargetRequired(pindexPrev, pblock->IsProofOfStake());
 
     // Collect memory pool transactions into the block
-    int64 nFees = 0;
+    int64_t nFees = 0;
     {
         LOCK2(cs_main, mempool.cs);
         CBlockIndex* pindexPrev = chainActive.Tip();
@@ -194,7 +200,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
             COrphan* porphan = NULL;
             double dPriority = 0;
-            int64 nTotalIn = 0;
+            int64_t nTotalIn = 0;
             bool fMissingInputs = false;
             BOOST_FOREACH(const CTxIn& txin, tx.vin)
             {
@@ -228,7 +234,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 }
                 const CCoins &coins = view.GetCoins(txin.prevout.hash);
 
-                int64 nValueIn = coins.vout[txin.prevout.n].nValue;
+                int64_t nValueIn = coins.vout[txin.prevout.n].nValue;
                 nTotalIn += nValueIn;
 
                 int nConf = pindexPrev->nHeight - coins.nHeight + 1;
@@ -256,8 +262,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         }
 
         // Collect transactions into block
-        uint64 nBlockSize = 1000;
-        uint64 nBlockTx = 0;
+        uint64_t nBlockSize = 1000;
+        uint64_t nBlockTx = 0;
         int nBlockSigOps = 100;
         bool fSortedByFee = (nBlockPrioritySize <= 0);
 
@@ -289,7 +295,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 continue;
 
             // ppcoin: simplify transaction fee - allow free = false
-            int64 nMinFee = GetMinFee(tx, nBlockSize, false, GMF_BLOCK);
+            int64_t nMinFee = GetMinFee(tx, nBlockSize, false, GMF_BLOCK);
 
             // Skip free transactions if we're past the minimum block size:
             if (fSortedByFee && (dFeePerKb < CTransaction::nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
@@ -308,7 +314,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             if (!view.HaveInputs(tx))
                 continue;
 
-            int64 nTxFees = view.GetValueIn(tx)-GetValueOut(tx);
+            int64_t nTxFees = view.GetValueIn(tx)-GetValueOut(tx);
             if (nTxFees < nMinFee)
                 continue;
 
@@ -359,7 +365,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         nLastBlockSize = nBlockSize;
 
         if (fDebug && GetBoolArg("-printpriority", false))
-            LogPrintf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
+            LogPrintf("CreateNewBlock(): total size %"PRIu64"\n", nBlockSize);
 
         if (pblock->IsProofOfWork())
             pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees, pindexPrev->GetBlockHash());
@@ -548,7 +554,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         //
         // Search
         //
-        int64 nStart = GetTime();
+        int64_t nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
         unsigned int max_nonce = 0xffff0000;
@@ -594,7 +600,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             }
 
             // Meter hashes/sec
-            static int64 nHashCounter;
+            static int64_t nHashCounter;
             if (nHPSTimerStart == 0)
             {
                 nHPSTimerStart = GetTimeMillis();
@@ -612,7 +618,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                         dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
                         nHPSTimerStart = GetTimeMillis();
                         nHashCounter = 0;
-                        static int64 nLogTime;
+                        static int64_t nLogTime;
                         if (GetTime() - nLogTime > 30 * 60)
                         {
                             nLogTime = GetTime();
@@ -639,7 +645,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             UpdateTime(*pblock, pindexPrev);
             nBlockTime = ByteReverse(pblock->nTime);
 
-            if (pblock->GetBlockTime() >= (int64)pblock->vtx[0].nTime + GetClockDrift(GetAdjustedTime()))
+            if (pblock->GetBlockTime() >= (int64_t)pblock->vtx[0].nTime + GetClockDrift(GetAdjustedTime()))
                 break;  // need to update coinbase timestamp
         }
     } }

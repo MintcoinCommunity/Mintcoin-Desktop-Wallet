@@ -1,37 +1,32 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef BITCOINGUI_H
 #define BITCOINGUI_H
 
 #include <QMainWindow>
+#include <QMap>
 #include <QSystemTrayIcon>
 
-#include "util.h" // for uint64
+#include "util.h" // for uint64_t
 #include "recurringsendpage.h"
 #include <QMap>
 
-class WalletFrame;
-class WalletView;
 class ClientModel;
-class WalletModel;
-class WalletStack;
-class OverviewPage;
 class MerchantPage;
-class SendCoinsDialog;
-class SendCoinsRecipient;
-class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
+class SendCoinsRecipient;
+class WalletFrame;
+class WalletModel;
 
 class CWallet;
 
 QT_BEGIN_NAMESPACE
-class QLabel;
-class QModelIndex;
-class QProgressBar;
-class QStackedWidget;
-class QUrl;
-class QListWidget;
-class QPushButton;
 class QAction;
+class QLabel;
+class QProgressBar;
 QT_END_NAMESPACE
 
 /**
@@ -110,9 +105,9 @@ private:
 
     QMovie *syncIconMovie;
 
-    uint64 nMinMax;
-    uint64 nWeight;
-    uint64 nNetworkWeight;
+    uint64_t nMinMax;
+    uint64_t nWeight;
+    uint64_t nNetworkWeight;
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
 

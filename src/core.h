@@ -2,14 +2,17 @@
 // Copyright (c) 2009-2013 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef BITCOIN_CORE_H
 #define BITCOIN_CORE_H
 
-#include "uint256.h"
-#include "serialize.h"
 #include "script.h"
+#include "serialize.h"
+#include "uint256.h"
 
-#include <stdio.h>
+#include <stdint.h>
+
+#include <boost/foreach.hpp>
 
 class CTransaction;
 
@@ -114,7 +117,7 @@ public:
 class CTxOut
 {
 public:
-    int64 nValue;
+    int64_t nValue;
     CScript scriptPubKey;
 
     CTxOut()
@@ -122,7 +125,7 @@ public:
         SetNull();
     }
 
-    CTxOut(int64 nValueIn, CScript scriptPubKeyIn);
+    CTxOut(int64_t nValueIn, CScript scriptPubKeyIn);
 
     IMPLEMENT_SERIALIZE
     (
@@ -154,7 +157,7 @@ public:
 
     uint256 GetHash() const;
 
-    bool IsDust(int64 nMinRelayTxFee) const
+    bool IsDust(int64_t nMinRelayTxFee) const
     {
         // "Dust" is defined in terms of CTransaction::nMinRelayTxFee,
         // which has units satoshis-per-kilobyte.
@@ -189,8 +192,8 @@ public:
 class CTransaction
 {
 public:
-    static int64 nMinTxFee;
-    static int64 nMinRelayTxFee;
+    static int64_t nMinTxFee;
+    static int64_t nMinRelayTxFee;
     static const int CURRENT_VERSION=1;
     int nVersion;
     unsigned int nTime;
@@ -263,7 +266,7 @@ public:
 
     std::string ToString() const;
     void print() const;
-    bool GetCoinAge(uint64& nCoinAge) const;  // ppcoin: get transaction coin age
+    bool GetCoinAge(uint64_t& nCoinAge) const;  // ppcoin: get transaction coin age
 };
 
 /** wrapper for CTxOut that provides a more compact serialization */
@@ -273,17 +276,17 @@ private:
     CTxOut &txout;
 
 public:
-    static uint64 CompressAmount(uint64 nAmount);
-    static uint64 DecompressAmount(uint64 nAmount);
+    static uint64_t CompressAmount(uint64_t nAmount);
+    static uint64_t DecompressAmount(uint64_t nAmount);
 
     CTxOutCompressor(CTxOut &txoutIn) : txout(txoutIn) { }
 
     IMPLEMENT_SERIALIZE(({
         if (!fRead) {
-            uint64 nVal = CompressAmount(txout.nValue);
+            uint64_t nVal = CompressAmount(txout.nValue);
             READWRITE(VARINT(nVal));
         } else {
-            uint64 nVal = 0;
+            uint64_t nVal = 0;
             READWRITE(VARINT(nVal));
             txout.nValue = DecompressAmount(nVal);
         }
@@ -629,9 +632,9 @@ public:
 
     uint256 GetHash() const;
 
-    int64 GetBlockTime() const
+    int64_t GetBlockTime() const
     {
-        return (int64)nTime;
+        return (int64_t)nTime;
     }
 };
 
@@ -725,11 +728,11 @@ public:
     }
 
     // ppcoin: get max transaction timestamp
-    int64 GetMaxTransactionTime() const
+    int64_t GetMaxTransactionTime() const
     {
-        int64 maxTransactionTime = 0;
+        int64_t maxTransactionTime = 0;
         BOOST_FOREACH(const CTransaction& tx, vtx)
-            maxTransactionTime = std::max(maxTransactionTime, (int64)tx.nTime);
+            maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
         return maxTransactionTime;
     }
 
@@ -748,7 +751,7 @@ public:
         return txOffset;
     }
 
-    bool GetCoinAge(uint64& nCoinAge) const; // ppcoin: calculate total coin age spent in block
+    bool GetCoinAge(uint64_t& nCoinAge) const; // ppcoin: calculate total coin age spent in block
     bool SignBlock(const CKeyStore& keystore);
     bool CheckBlockSignature() const;
 };

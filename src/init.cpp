@@ -8,28 +8,29 @@
 #endif
 
 #include "init.h"
-//#include "main.h"
-#include "core.h"
-#include "chainparams.h"
-#include "txdb.h"
-#include "walletdb.h"
-#include "bitcoinrpc.h"
-#include "net.h"
-#include "util.h"
-#include "miner.h"
-#include "ui_interface.h"
-#include "checkpoints.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/interprocess/sync/file_lock.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <openssl/crypto.h>
+#include "addrman.h"
+#include "bitcoinrpc.h"
+#include "checkpoints.h"
+#include "miner.h"
+#include "net.h"
+#include "txdb.h"
+#include "ui_interface.h"
+#include "util.h"
+#include "wallet.h"
+#include "walletdb.h"
+
+#include <inttypes.h>
+#include <stdint.h>
 
 #ifndef WIN32
 #include <signal.h>
 #endif
+
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/interprocess/sync/file_lock.hpp>
+#include <openssl/crypto.h>
 
 using namespace std;
 using namespace boost;
@@ -519,7 +520,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
     // cost to you of processing a transaction.
     if (mapArgs.count("-mintxfee"))
     {
-        int64 n = 0;
+        int64_t n = 0;
         if (ParseMoney(mapArgs["-mintxfee"], n) && n > 0)
             CTransaction::nMinTxFee = n;
         else
@@ -527,7 +528,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
     }
     if (mapArgs.count("-minrelaytxfee"))
     {
-        int64 n = 0;
+        int64_t n = 0;
         if (ParseMoney(mapArgs["-minrelaytxfee"], n) && n > 0)
             CTransaction::nMinRelayTxFee = n;
         else
@@ -581,7 +582,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
             threadGroup.create_thread(&ThreadScriptCheck);
     }
 
-    int64 nStart;
+    int64_t nStart;
 
     // ********************************************************* Step 5: verify wallet database integrity
 
@@ -591,7 +592,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
     {
         // try moving the database env out of the way
         boost::filesystem::path pathDatabase = GetDataDir() / "database";
-        boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%"PRI64d".bak", GetTime());
+        boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%"PRId64".bak", GetTime());
         try {
             boost::filesystem::rename(pathDatabase, pathDatabaseBak);
             LogPrintf("Moved old %s to %s. Retrying.\n", pathDatabase.string().c_str(), pathDatabaseBak.string().c_str());
@@ -733,7 +734,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
 
     if (mapArgs.count("-reservebalance")) // ppcoin: reserve balance amount
     {
-        int64 nReserveBalance = 0;
+        int64_t nReserveBalance = 0;
         if (!ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
         {
             InitError(_("Invalid amount for -reservebalance=<amount>"));
@@ -864,7 +865,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
                     fReindex = true;
                     fRequestShutdown = false;
                 } else {
-                    printf("Aborted block database rebuild. Exiting.\n");
+                    LogPrintf("Aborted block database rebuild. Exiting.\n");
                     return false;
                 }
             } else {
@@ -881,7 +882,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrintf(" block index %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+    LogPrintf(" block index %15"PRId64"ms\n", GetTimeMillis() - nStart);
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
@@ -974,7 +975,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
     }
 
     LogPrintf("%s", strErrors.str().c_str());
-    LogPrintf(" wallet      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+    LogPrintf(" wallet      %15"PRId64"ms\n", GetTimeMillis() - nStart);
 
     RegisterWallet(pwalletMain);
 
@@ -996,7 +997,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
         LogPrintf("Rescanning last %i blocks (from block %i)...\n", chainActive.Height() - pindexRescan->nHeight, pindexRescan->nHeight);
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
-        LogPrintf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+        LogPrintf(" rescan      %15"PRId64"ms\n", GetTimeMillis() - nStart);
         pwalletMain->SetBestChain(chainActive.GetLocator());
         nWalletDBUpdated++;
     }
@@ -1028,7 +1029,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 
-    LogPrintf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
+    LogPrintf("Loaded %i addresses from peers.dat  %"PRId64"ms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 11: start node

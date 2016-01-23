@@ -1,7 +1,9 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef PAYMENTSERVER_H
 #define PAYMENTSERVER_H
-
-//
 // This class handles payment requests from clicking on
 // bitcoin: URIs
 //
@@ -28,13 +30,13 @@
 // and, if a server is running in another process,
 // sends them to the server.
 //
-#include <QObject>
-#include <QString>
 
 #include "paymentrequestplus.h"
 #include "walletmodel.h"
 
-class CWallet;
+#include <QObject>
+#include <QString>
+
 class OptionsModel;
 
 QT_BEGIN_NAMESPACE
@@ -46,6 +48,8 @@ class QNetworkReply;
 class QSslError;
 class QUrl;
 QT_END_NAMESPACE
+
+class CWallet;
 
 class PaymentServer : public QObject
 {

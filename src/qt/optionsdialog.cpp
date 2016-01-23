@@ -7,8 +7,9 @@
 
 #include "bitcoinunits.h"
 #include "monitoreddatamapper.h"
-#include "netbase.h"
 #include "optionsmodel.h"
+
+#include "netbase.h"
 
 #include <QDir>
 #include <QIntValidator>

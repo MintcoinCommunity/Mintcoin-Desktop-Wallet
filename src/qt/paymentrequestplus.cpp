@@ -1,18 +1,22 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 //
 // Wraps dumb protocol buffer paymentRequest
 // with some extra methods
 //
 
+#include "paymentrequestplus.h"
+
+#include <stdexcept>
+
+#include <openssl/x509.h>
+#include <openssl/x509_vfy.h>
 #include <QDateTime>
 #include <QDebug>
 #include <QSslCertificate>
 
-#include <openssl/x509.h>
-#include <openssl/x509_vfy.h>
-
-#include <stdexcept>
-
-#include "paymentrequestplus.h"
 
 class SSLVerifyError : public std::runtime_error
 {

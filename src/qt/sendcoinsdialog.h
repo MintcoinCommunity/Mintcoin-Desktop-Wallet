@@ -1,16 +1,16 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef SENDCOINSDIALOG_H
 #define SENDCOINSDIALOG_H
 
 #include "walletmodel.h"
 
 #include <QDialog>
-#include <QVariant>
-#include <QPair>
 #include <QString>
 
-namespace Ui {
-    class SendCoinsDialog;
-}
+class OptionsModel;
 class WalletView;
 class SendCoinsEntry;
 class SendCoinsRecipient;
@@ -18,6 +18,10 @@ class SendCoinsRecipient;
 QT_BEGIN_NAMESPACE
 class QUrl;
 QT_END_NAMESPACE
+
+namespace Ui {
+    class SendCoinsDialog;
+}
 
 /** Dialog for sending bitcoins */
 class SendCoinsDialog : public QDialog

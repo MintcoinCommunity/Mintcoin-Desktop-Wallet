@@ -1,14 +1,19 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef OPTIONSDIALOG_H
 #define OPTIONSDIALOG_H
 
 #include <QDialog>
 
+class MonitoredDataMapper;
+class OptionsModel;
+class QValidatedLineEdit;
+
 namespace Ui {
 class OptionsDialog;
 }
-class OptionsModel;
-class MonitoredDataMapper;
-class QValidatedLineEdit;
 
 /** Preferences dialog. */
 class OptionsDialog : public QDialog

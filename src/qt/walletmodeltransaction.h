@@ -3,7 +3,13 @@
 
 #include "walletmodel.h"
 
+#include <QObject>
+
 class SendCoinsRecipient;
+
+class CReserveKey;
+class CWallet;
+class CWalletTx;
 
 /** Data model for a walletmodel transaction. */
 class WalletModelTransaction

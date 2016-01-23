@@ -1,21 +1,25 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "clientmodel.h"
 
 #include "guiconstants.h"
-#include "optionsmodel.h"
-#include "addresstablemodel.h"
-#include "transactiontablemodel.h"
 
-#include "chainparams.h"
 #include "alert.h"
-#include "main.h"
+#include "chainparams.h"
 #include "checkpoints.h"
+#include "main.h"
+#include "net.h"
 #include "ui_interface.h"
 
-#include <QDateTime>
-#include <QTimer>
-#include <QDebug>
+#include <stdint.h>
 
-static const int64 nClientStartupTime = GetTime();
+#include <QDateTime>
+#include <QDebug>
+#include <QTimer>
+
+static const int64_t nClientStartupTime = GetTime();
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), optionsModel(optionsModel),

@@ -2,12 +2,23 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "net.h"
+
+
 #include "bitcoinrpc.h"
+#include "net.h"
+#include "netbase.h"
+#include "protocol.h"
+#include "sync.h"
+#include "util.h"
 #include "alert.h"
 #include "wallet.h"
 #include "db.h"
 #include "walletdb.h"
+
+#include <inttypes.h>
+
+#include <boost/foreach.hpp>
+#include "json/json_spirit_value.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -72,7 +83,7 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("addr", stats.addrName));
         if (!(stats.addrLocal.empty()))
             obj.push_back(Pair("addrlocal", stats.addrLocal));
-        obj.push_back(Pair("services", strprintf("%08"PRI64x, stats.nServices)));
+        obj.push_back(Pair("services", strprintf("%08"PRIx64, stats.nServices)));
         obj.push_back(Pair("lastsend", (boost::int64_t)stats.nLastSend));
         obj.push_back(Pair("lastrecv", (boost::int64_t)stats.nLastRecv));
         obj.push_back(Pair("conntime", (boost::int64_t)stats.nTimeConnected));

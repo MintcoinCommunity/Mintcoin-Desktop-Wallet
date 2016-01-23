@@ -1,13 +1,17 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "bitcoinamountfield.h"
 
-#include "qvaluecombobox.h"
 #include "bitcoinunits.h"
 #include "guiconstants.h"
+#include "qvaluecombobox.h"
 
+#include <QApplication>
+#include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QKeyEvent>
-#include <QDoubleSpinBox>
-#include <QApplication>
 #include <qmath.h> // for qPow()
 
 BitcoinAmountField::BitcoinAmountField(QWidget *parent):

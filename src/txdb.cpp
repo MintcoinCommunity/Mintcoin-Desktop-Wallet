@@ -13,8 +13,11 @@
 #include "checkpoints.h"
 #include "txdb.h"
 #include "kernel.h"
-#include "hash.h"
-#include "chainparams.h"
+
+#include "core.h"
+#include "uint256.h"
+
+#include <stdint.h>
 
 using namespace std;
 using namespace boost;
@@ -146,7 +149,7 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
     CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
     stats.hashBlock = GetBestBlock()->GetBlockHash();
     ss << stats.hashBlock;
-    int64 nTotalAmount = 0;
+    int64_t nTotalAmount = 0;
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         try {

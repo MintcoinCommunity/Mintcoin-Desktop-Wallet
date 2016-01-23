@@ -16,8 +16,8 @@
 #undef ADVISORY
 #endif
 
-class uint256;
 class CBlockIndex;
+class uint256;
 class CSyncCheckpoint;
 class CValidationState;
 

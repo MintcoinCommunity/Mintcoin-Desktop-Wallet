@@ -1,19 +1,23 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef GUIUTIL_H
 #define GUIUTIL_H
 
-#include <QString>
-#include <QObject>
 #include <QMessageBox>
+#include <QObject>
+#include <QString>
 
 class SendCoinsRecipient;
 
 QT_BEGIN_NAMESPACE
+class QAbstractItemView;
+class QDateTime;
 class QFont;
 class QLineEdit;
-class QWidget;
-class QDateTime;
 class QUrl;
-class QAbstractItemView;
+class QWidget;
 QT_END_NAMESPACE
 
 /** Utility functions used by the Bitcoin Qt UI.

@@ -6,8 +6,8 @@
 #include "optionsmodel.h"
 #include "guiconstants.h"
 
-#include "wallet.h"
 #include "base58.h"
+#include "wallet.h"
 
 #include <QFont>
 #include <QDebug>
@@ -28,12 +28,12 @@ struct AddressTableEntry
     bool updated;
     QString label;
     QString address;
-    int64 amount;
+    int64_t amount;
 
     AddressTableEntry() {}
     AddressTableEntry(Type type, const QString &label, const QString &address):
         type(type), label(label), address(address) {}
-    AddressTableEntry(Type type, const QString &label, const QString &address, uint64 amount):
+    AddressTableEntry(Type type, const QString &label, const QString &address, uint64_t amount):
         type(type), label(label), address(address), amount(amount) {}
 };
 
@@ -99,7 +99,7 @@ public:
 
                 CKeyID addressCKeyID;
                 address.GetKeyID(addressCKeyID);
-                int64 amount=0;
+                int64_t amount=0;
                 BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
                 {
                     QString sWalletAddress = coins.first;

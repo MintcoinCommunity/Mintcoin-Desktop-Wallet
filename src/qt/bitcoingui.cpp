@@ -1,61 +1,60 @@
-/*
- * Qt4 bitcoin GUI.
- *
- * W.J. van der Laan 2011-2012
- * The Bitcoin Developers 2011-2012
- */
-
-#include <QApplication>
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "bitcoingui.h"
 
-#include "optionsdialog.h"
 #include "aboutdialog.h"
+#include "bitcoinrpc.h"
+#include "bitcoinunits.h"
 #include "clientmodel.h"
-#include "walletmodel.h"
-#include "walletframe.h"
+#include "guiconstants.h"
+#include "guiutil.h"
+#include "notificator.h"
+#include "optionsdialog.h"
 #include "optionsmodel.h"
 #include "repairwalletdialog.h"
-#include "bitcoinunits.h"
-#include "guiconstants.h"
-#include "notificator.h"
-#include "guiutil.h"
 #include "rpcconsole.h"
-#include "bitcoinrpc.h"
-#include "ui_interface.h"
-#include "init.h"
-#include "wallet.h"
-#include "chainparams.h"
+#include "walletframe.h"
+#include "walletmodel.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
 #endif
 
-#include <QMenuBar>
-#include <QMenu>
-#include <QIcon>
-#include <QVBoxLayout>
-#include <QToolBar>
-#include <QStatusBar>
-#include <QLabel>
-#include <QMessageBox>
-#include <QProgressBar>
-#include <QStackedWidget>
+#include "init.h"
+#include "ui_interface.h"
+//#include "chainparams.h"
+
+#include <iostream>
+
+#include <QApplication>
 #include <QDateTime>
-#include <QMovie>
-#include <QFileDialog>
-#include <QDesktopServices>
-#include <QTimer>
+#include <QDesktopWidget>
 #include <QDragEnterEvent>
+#include <QIcon>
+#include <QLabel>
+#include <QListWidget>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QMovie>
+#include <QProgressBar>
+#include <QSettings>
+#include <QStackedWidget>
+#include <QStatusBar>
+#include <QStyle>
+#include <QTimer>
+#include <QToolBar>
+#include <QVBoxLayout>
+
 #if QT_VERSION < 0x050000
 #include <QUrl>
 #include <QTextDocument>
+#else
+#include <QUrlQuery>
 #endif
-#include <QMimeData>
-#include <QStyle>
-#include <QListWidget>
-
-#include <iostream>
 
 extern CWallet *pwalletMain;
 extern bool fWalletUnlockMintOnly;
@@ -525,7 +524,7 @@ void BitcoinGUI::aboutClicked()
 void BitcoinGUI::checkWallet()
 {
   int nMismatchSpent;
-  int64 nBalanceInQuestion;
+  int64_t nBalanceInQuestion;
   pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, true);
   if (nMismatchSpent == 0)
   {
@@ -1016,7 +1015,7 @@ void BitcoinGUI::updateMintingIcon()
     }
     else if (nLastCoinStakeSearchInterval)
     {
-        uint64 nEstimateTime = Params().StakeTargetSpacing() * nNetworkWeight / nWeight;
+        uint64_t nEstimateTime = Params().StakeTargetSpacing() * nNetworkWeight / nWeight;
 
         QString text;
         if (nEstimateTime < 60)

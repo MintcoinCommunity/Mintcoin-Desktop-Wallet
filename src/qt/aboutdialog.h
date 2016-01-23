@@ -3,10 +3,11 @@
 
 #include <QDialog>
 
+class ClientModel;
+
 namespace Ui {
     class AboutDialog;
 }
-class ClientModel;
 
 /** "About" dialog box */
 class AboutDialog : public QDialog

@@ -1,12 +1,15 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "sendcoinsentry.h"
 #include "ui_sendcoinsentry.h"
 
-#include "guiutil.h"
-#include "bitcoinunits.h"
 #include "addressbookpage.h"
-#include "walletmodel.h"
-#include "optionsmodel.h"
 #include "addresstablemodel.h"
+#include "guiutil.h"
+#include "optionsmodel.h"
+#include "walletmodel.h"
 
 #include <QApplication>
 #include <QClipboard>

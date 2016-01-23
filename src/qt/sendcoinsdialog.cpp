@@ -1,13 +1,19 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "sendcoinsdialog.h"
 #include "ui_sendcoinsdialog.h"
-#include "init.h"
+//#include "init.h"
 #include "bitcoinunits.h"
+//#include "addressbookpage.h"
 #include "addresstablemodel.h"
-#include "addressbookpage.h"
+#include "guiutil.h"
 #include "optionsmodel.h"
 #include "sendcoinsentry.h"
-#include "guiutil.h"
 #include "askpassphrasedialog.h"
+
+#include "base58.h"
 #include "ui_interface.h"
 #include "coincontrol.h"
 #include "coincontroldialog.h"
@@ -16,8 +22,8 @@
 #include "walletview.h"
 
 #include <QMessageBox>
-#include <QTextDocument>
 #include <QScrollBar>
+#include <QTextDocument>
 #include <QClipboard>
 
 SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
@@ -467,7 +473,7 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient &rv)
     if (rv.paymentRequest.IsInitialized()) {
         // Expired payment request?
         const payments::PaymentDetails& details = rv.paymentRequest.getDetails();
-        if (details.has_expires() && (int64)details.expires() < GetTime())
+        if (details.has_expires() && (int64_t)details.expires() < GetTime())
         {
             emit message(strSendCoins, tr("Payment request expired"),
                 CClientUIInterface::MSG_WARNING);

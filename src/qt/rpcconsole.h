@@ -1,12 +1,17 @@
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef RPCCONSOLE_H
 #define RPCCONSOLE_H
 
 #include <QDialog>
 
+class ClientModel;
+
 namespace Ui {
     class RPCConsole;
 }
-class ClientModel;
 
 /** Local Bitcoin RPC console. */
 class RPCConsole: public QDialog
