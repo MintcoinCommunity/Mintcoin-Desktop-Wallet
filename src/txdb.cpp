@@ -229,57 +229,57 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
     while (pcursor->Valid())
     {
         boost::this_thread::interruption_point();
-        // Unpack keys and values.
-        leveldb::Slice slKey = pcursor->key();
-        CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-        
-        char chType;
-        ssKey >> chType;
+        try {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            char chType;
+            ssKey >> chType;
+            if (chType == 'b') {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                CDiskBlockIndex diskindex;
+                ssValue >> diskindex;
 
-        if (chType != 'b')
-            break;
-        
-        leveldb::Slice slValue = pcursor->value();
-        CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-        
-        CDiskBlockIndex diskindex;
-        ssValue >> diskindex;
+                // Construct block index object
+                CBlockIndex* pindexNew    = InsertBlockIndex(diskindex.GetBlockHash());
+                pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
+                pindexNew->nHeight        = diskindex.nHeight;
+                pindexNew->nFile          = diskindex.nFile;
+                pindexNew->nDataPos       = diskindex.nDataPos;
+                pindexNew->nUndoPos       = diskindex.nUndoPos;
+                pindexNew->nMint          = diskindex.nMint;
+                pindexNew->nMoneySupply   = diskindex.nMoneySupply;
+                pindexNew->nFlags         = diskindex.nFlags;
+                pindexNew->nStakeModifier = diskindex.nStakeModifier;
+                pindexNew->prevoutStake   = diskindex.prevoutStake;
+                pindexNew->nStakeTime     = diskindex.nStakeTime;
+                pindexNew->hashProofOfStake = diskindex.hashProofOfStake;
+                pindexNew->nVersion       = diskindex.nVersion;
+                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
+                pindexNew->nTime          = diskindex.nTime;
+                pindexNew->nBits          = diskindex.nBits;
+                pindexNew->nNonce         = diskindex.nNonce;
+                pindexNew->nStatus        = diskindex.nStatus;
+                pindexNew->nTx            = diskindex.nTx;
 
-        // Construct block index object
-        CBlockIndex* pindexNew    = InsertBlockIndex(diskindex.GetBlockHash());
-        pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-        pindexNew->nFile          = diskindex.nFile;
-        pindexNew->nHeight        = diskindex.nHeight;
-        pindexNew->nDataPos       = diskindex.nDataPos;
-        pindexNew->nUndoPos       = diskindex.nUndoPos;
-        pindexNew->nMint          = diskindex.nMint;
-        pindexNew->nMoneySupply   = diskindex.nMoneySupply;
-        pindexNew->nFlags         = diskindex.nFlags;
-        pindexNew->nStakeModifier = diskindex.nStakeModifier;
-        pindexNew->prevoutStake   = diskindex.prevoutStake;
-        pindexNew->nStakeTime     = diskindex.nStakeTime;
-        pindexNew->hashProofOfStake = diskindex.hashProofOfStake;
-        pindexNew->nVersion       = diskindex.nVersion;
-        pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
-        pindexNew->nTime          = diskindex.nTime;
-        pindexNew->nBits          = diskindex.nBits;
-        pindexNew->nNonce         = diskindex.nNonce;
-        pindexNew->nStatus        = diskindex.nStatus;
-        pindexNew->nTx            = diskindex.nTx;
+                if (!pindexNew->CheckIndex()) {
+                    delete pcursor;
+                    return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString().c_str());
+                }
 
-        /*if (!pindexNew->CheckIndex()) {
-            delete pcursor;
-            return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString().c_str());
-        }*/
+                // NovaCoin: build setStakeSeen
+                if (pindexNew->IsProofOfStake())
+                    setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
 
-        // NovaCoin: build setStakeSeen
-        if (pindexNew->IsProofOfStake())
-            setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
-
-        pcursor->Next();
+                pcursor->Next();
+            } else {
+                break; // if shutdown requested or finished loading block index
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __PRETTY_FUNCTION__, e.what());
+        }
     }
-
     delete pcursor;
+
     return true;
 }
-
