@@ -9,8 +9,9 @@
 #include "main.h"
 #include "net.h"
 #include "scrypt_mine.h"
+#ifdef ENABLE_WALLET
 #include "wallet.h"
-
+#endif
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitcoinMiner

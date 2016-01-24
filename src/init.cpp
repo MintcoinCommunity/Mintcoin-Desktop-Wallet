@@ -10,15 +10,15 @@
 #include "init.h"
 
 #include "addrman.h"
-#include "db.h"
-#include "rpcserver.h"
 #include "checkpoints.h"
 #include "miner.h"
 #include "net.h"
+#include "rpcserver.h"
 #include "txdb.h"
 #include "ui_interface.h"
 #include "util.h"
 #ifdef ENABLE_WALLET
+#include "db.h"
 #include "wallet.h"
 #include "walletdb.h"
 #endif
