@@ -58,9 +58,9 @@ void OptionsModel::Init()
     bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
     fMinimizeToTray = settings.value("fMinimizeToTray", false).toBool();
     fMinimizeOnClose = settings.value("fMinimizeOnClose", false).toBool();
-    fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
     language = settings.value("language", "").toString();
+    fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     bShowShopDonate = settings.value("bShowShopDonate", true).toBool();
     bShowOverviewNews = settings.value("bShowOverviewNews", true).toBool();
     sRecurringSendEntries = settings.value("sRecurringSendEntries","").toString();
@@ -163,7 +163,7 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
 #endif
         case MinimizeOnClose:
             return QVariant(fMinimizeOnClose);
-        case ProxyUse:{
+        case ProxyUse: {
             proxyType proxy;
             return QVariant(GetProxy(NET_IPV4, proxy));
         }
@@ -181,7 +181,7 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             else
                 return QVariant(9050);
         }
-        case ProxySocksVersion:{
+        case ProxySocksVersion: {
             proxyType proxy;
             if (GetProxy(NET_IPV4, proxy))
                 return QVariant(proxy.second);

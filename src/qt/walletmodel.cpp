@@ -42,8 +42,19 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-qint64 WalletModel::getBalance() const
+qint64 WalletModel::getBalance(const CCoinControl *coinControl) const
 {
+    if (coinControl)
+    {
+        qint64 nBalance = 0;
+        std::vector<COutput> vCoins;
+        wallet->AvailableCoins(vCoins, true, coinControl);
+        BOOST_FOREACH(const COutput& out, vCoins)
+            nBalance += out.tx->vout[out.i].nValue;
+
+        return nBalance;
+    }
+
     return wallet->GetBalance();
 }
 
@@ -207,12 +218,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         return DuplicateAddress;
     }
 
-    int64_t nBalance = 0;
-    std::vector<COutput> vCoins;
-    wallet->AvailableCoins(vCoins, true, coinControl);
+    qint64 nBalance = getBalance(coinControl);
 
-    BOOST_FOREACH(const COutput& out, vCoins)
-        nBalance += out.tx->vout[out.i].nValue;
     if(total > nBalance)
     {
         return AmountExceedsBalance;
@@ -238,7 +245,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
         if(!fCreated)
         {
-            if((total + nFeeRequired) > nBalance) // FIXME: could cause collisions in the future
+            if((total + nFeeRequired) > nBalance)
             {
                 return SendCoinsReturn(AmountWithFeeExceedsBalance);
             }
@@ -509,7 +516,9 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 {
     std::vector<COutput> vCoins;
     wallet->AvailableCoins(vCoins);
+
     std::vector<COutPoint> vLockedCoins;
+    wallet->ListLockedCoins(vLockedCoins);
 
     // add locked coins
     BOOST_FOREACH(const COutPoint& outpoint, vLockedCoins)
@@ -537,20 +546,20 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 
 bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const
 {
-   return false;
+    return wallet->IsLockedCoin(hash, n);
 }
 
 void WalletModel::lockCoin(COutPoint& output)
 {
-   return;
+    wallet->LockCoin(output);
 }
 
 void WalletModel::unlockCoin(COutPoint& output)
 {
-   return;
+    wallet->UnlockCoin(output);
 }
 
 void WalletModel::listLockedCoins(std::vector<COutPoint>& vOutpts)
 {
-    return;
+    wallet->ListLockedCoins(vOutpts);
 }
