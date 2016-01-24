@@ -268,6 +268,8 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     merchantAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
     tabGroup->addAction(merchantAction);
 
+    // These showNormalIfMinimized are needed because Send Coins and Receive Coins
+    // can be triggered from the tray menu, and need to show the GUI to be useful.
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -401,9 +403,10 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(overviewAction);
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(receiveCoinsAction);
-    toolbar->addAction(recurringSendAction);
     toolbar->addAction(historyAction);
+    toolbar->addAction(recurringSendAction);
     toolbar->addAction(merchantAction);
+    overviewAction->setChecked(true);
 
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
