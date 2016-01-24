@@ -243,10 +243,7 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
     strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be solved instantly.") + "\n";
     strUsage += "                         " + _("This is intended for regression testing tools and app development.") + "\n";
-    if (hmm == HMM_BITCOIN_QT)
-    {
-        strUsage += "  -server                " + _("Accept command line and JSON-RPC commands") + "\n";
-    }
+    strUsage += "  -server                " + _("Accept command line and JSON-RPC commands") + "\n";
 
     if (hmm == HMM_BITCOIND)
     {
@@ -357,7 +354,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
+bool AppInit2(boost::thread_group& threadGroup)
 {
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
@@ -481,11 +478,7 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
     else if (nScriptCheckThreads > MAX_SCRIPTCHECK_THREADS)
         nScriptCheckThreads = MAX_SCRIPTCHECK_THREADS;
 
-    if (fDaemon || fForceServer)
-        fServer = true;
-    else
-        fServer = GetBoolArg("-server", false);
-
+    fServer = GetBoolArg("-server", false);
     fPrintToConsole = GetBoolArg("-printtoconsole", false);
     fLogTimestamps = GetBoolArg("-logtimestamps", true);
 #ifdef ENABLE_WALLET
@@ -566,9 +559,6 @@ bool AppInit2(boost::thread_group& threadGroup, bool fForceServer)
     LogPrintf("Using data directory %s\n", strDataDir.c_str());
     LogPrintf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
     std::ostringstream strErrors;
-
-    if (fDaemon)
-        fprintf(stdout, "MintCoin server starting\n");
 
     if (nScriptCheckThreads) {
         LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads);

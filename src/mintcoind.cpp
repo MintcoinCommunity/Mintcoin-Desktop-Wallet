@@ -14,6 +14,8 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 
+static bool fDaemon;
+
 void DetectShutdownThread(boost::thread_group* threadGroup)
 {
     bool fShutdown = ShutdownRequested();
@@ -91,6 +93,8 @@ bool AppInit(int argc, char* argv[])
         fDaemon = GetBoolArg("-daemon", false);
         if (fDaemon)
         {
+            fprintf(stdout, "Mintcoin server starting\n");
+
             // Daemonize
             pid_t pid = fork();
             if (pid < 0)
@@ -110,9 +114,10 @@ bool AppInit(int argc, char* argv[])
                 fprintf(stderr, "Error: setsid() returned %d errno %d\n", sid, errno);
         }
 #endif
+        SoftSetBoolArg("-server", true);
 
         detectShutdownThread = new boost::thread(boost::bind(&DetectShutdownThread, &threadGroup));
-        fRet = AppInit2(threadGroup, true);
+        fRet = AppInit2(threadGroup);
     }
     catch (std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");
