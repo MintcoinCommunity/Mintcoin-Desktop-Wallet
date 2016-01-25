@@ -32,37 +32,77 @@ QT_TS = locale/bitcoin_en.ts locale/bitcoin_ru.ts
   #locale/bitcoin_uk.ts locale/bitcoin_vi.ts locale/bitcoin_vi_VN.ts \
   #locale/bitcoin_zh_CN.ts locale/bitcoin_zh_TW.ts
 
-QT_FORMS_UI = forms/aboutdialog.ui forms/addressbookpage.ui \
-  forms/askpassphrasedialog.ui forms/editaddressdialog.ui forms/intro.ui \
+QT_FORMS_UI = \
+  forms/aboutdialog.ui \
+  forms/addressbookpage.ui \
+  forms/askpassphrasedialog.ui \
+  forms/coincontroldialog.ui \
+  forms/editaddressdialog.ui \
+  forms/intro.ui \
   forms/openuridialog.ui \
-  forms/optionsdialog.ui forms/overviewpage.ui forms/receiverequestdialog.ui \
+  forms/optionsdialog.ui \
+  forms/overviewpage.ui \
+  forms/receiverequestdialog.ui \
   forms/receivecoinsdialog.ui \
-  forms/rpcconsole.ui forms/sendcoinsdialog.ui forms/sendcoinsentry.ui \
-  forms/signverifymessagedialog.ui forms/transactiondescdialog.ui \
-  forms/recurringSend.ui forms/recurringEntry.ui forms/merchants.ui \
-  forms/repairwalletdialog.ui forms/coincontroldialog.ui
+  forms/rpcconsole.ui \
+  forms/sendcoinsdialog.ui \
+  forms/sendcoinsentry.ui \
+  forms/signverifymessagedialog.ui \
+  forms/transactiondescdialog.ui \
+  forms/recurringSend.ui \
+  forms/recurringEntry.ui \
+  forms/merchants.ui \
+  forms/repairwalletdialog.ui
 
-QT_MOC_CPP = moc_aboutdialog.cpp moc_addressbookpage.cpp \
-  moc_addresstablemodel.cpp moc_askpassphrasedialog.cpp \
-  moc_bitcoinaddressvalidator.cpp moc_bitcoinamountfield.cpp \
-  moc_bitcoingui.cpp moc_bitcoinunits.cpp moc_clientmodel.cpp \
-  moc_csvmodelwriter.cpp moc_editaddressdialog.cpp moc_guiutil.cpp \
-  moc_intro.cpp moc_macdockiconhandler.cpp moc_macnotificationhandler.cpp \
-  moc_monitoreddatamapper.cpp moc_notificator.cpp \
+QT_MOC_CPP = \
+  moc_aboutdialog.cpp \
+  moc_addressbookpage.cpp \
+  moc_addresstablemodel.cpp \
+  moc_askpassphrasedialog.cpp \
+  moc_bitcoinaddressvalidator.cpp \
+  moc_bitcoinamountfield.cpp \
+  moc_bitcoingui.cpp \
+  moc_bitcoinunits.cpp \
+  moc_clientmodel.cpp \
+  moc_coincontroldialog.cpp \
+  moc_coincontroltreewidget.cpp \
+  moc_csvmodelwriter.cpp \
+  moc_editaddressdialog.cpp \
+  moc_guiutil.cpp \
+  moc_intro.cpp \
+  moc_macdockiconhandler.cpp \
+  moc_macnotificationhandler.cpp \
+  moc_monitoreddatamapper.cpp \
+  moc_notificator.cpp \
   moc_openuridialog.cpp \
   moc_optionsdialog.cpp \
-  moc_optionsmodel.cpp moc_overviewpage.cpp moc_paymentserver.cpp \
-  moc_receiverequestdialog.cpp moc_qvalidatedlineedit.cpp moc_qvaluecombobox.cpp \
+  moc_optionsmodel.cpp \
+  moc_overviewpage.cpp \
+  moc_paymentserver.cpp \
+  moc_receiverequestdialog.cpp \
+  moc_qvalidatedlineedit.cpp \
+  moc_qvaluecombobox.cpp \
   moc_receivecoinsdialog.cpp \
   moc_recentrequeststablemodel.cpp \
-  moc_rpcconsole.cpp moc_sendcoinsdialog.cpp moc_sendcoinsentry.cpp \
-  moc_signverifymessagedialog.cpp moc_splashscreen.cpp moc_trafficgraphwidget.cpp moc_transactiondesc.cpp \
-  moc_transactiondescdialog.cpp moc_transactionfilterproxy.cpp \
-  moc_transactiontablemodel.cpp moc_transactionview.cpp moc_walletframe.cpp \
-  moc_walletmodel.cpp moc_walletview.cpp \
-  moc_merchantpage.cpp moc_recurringsendpage.cpp moc_recurringsendentry.cpp \
-  moc_repairwalletdialog.cpp moc_webviewhandler.cpp moc_coincontroldialog.cpp \
-  moc_coincontroltreewidget.cpp
+  moc_rpcconsole.cpp \
+  moc_sendcoinsdialog.cpp \
+  moc_sendcoinsentry.cpp \
+  moc_signverifymessagedialog.cpp \
+  moc_splashscreen.cpp \
+  moc_trafficgraphwidget.cpp \
+  moc_transactiondesc.cpp \
+  moc_transactiondescdialog.cpp \
+  moc_transactionfilterproxy.cpp \
+  moc_transactiontablemodel.cpp \
+  moc_transactionview.cpp \
+  moc_walletframe.cpp \
+  moc_walletmodel.cpp \
+  moc_walletview.cpp \
+  moc_merchantpage.cpp \
+  moc_recurringsendpage.cpp \
+  moc_recurringsendentry.cpp \
+  moc_repairwalletdialog.cpp \
+  moc_webviewhandler.cpp
 
 BITCOIN_MM = macdockiconhandler.mm macnotificationhandler.mm
 
@@ -75,39 +115,99 @@ PROTOBUF_CC = paymentrequest.pb.cc
 PROTOBUF_H = paymentrequest.pb.h
 PROTOBUF_PROTO = paymentrequest.proto
 
-BITCOIN_QT_H  = aboutdialog.h addressbookpage.h addresstablemodel.h \
-  askpassphrasedialog.h bitcoinaddressvalidator.h bitcoinamountfield.h \
-  bitcoingui.h bitcoinunits.h clientmodel.h csvmodelwriter.h \
-  editaddressdialog.h guiconstants.h guiutil.h intro.h macdockiconhandler.h \
-  macnotificationhandler.h monitoreddatamapper.h notificator.h \
+BITCOIN_QT_H = \
+  aboutdialog.h \
+  addressbookpage.h \
+  addresstablemodel.h \
+  askpassphrasedialog.h \
+  bitcoinaddressvalidator.h \
+  bitcoinamountfield.h \
+  bitcoingui.h \
+  bitcoinunits.h \
+  clientmodel.h \
+  coincontroldialog.h \
+  coincontroltreewidget.h \
+  csvmodelwriter.h \
+  editaddressdialog.h \
+  guiconstants.h \
+  guiutil.h \
+  intro.h \
+  macdockiconhandler.h \
+  macnotificationhandler.h \
+  monitoreddatamapper.h \
+  notificator.h \
   openuridialog.h \
   optionsdialog.h \
-  optionsmodel.h overviewpage.h paymentrequestplus.h paymentserver.h \
+  optionsmodel.h \
+  overviewpage.h \
+  paymentrequestplus.h \
+  paymentserver.h \
   receivecoinsdialog.h \
   recentrequeststablemodel.h \
-  receiverequestdialog.h qvalidatedlineedit.h qvaluecombobox.h rpcconsole.h \
-  sendcoinsdialog.h sendcoinsentry.h signverifymessagedialog.h splashscreen.h \
-  trafficgraphwidget.h transactiondescdialog.h transactiondesc.h transactionfilterproxy.h \
-  transactionrecord.h transactiontablemodel.h transactionview.h walletframe.h \
-  walletmodel.h walletmodeltransaction.h walletview.h \
-  merchantpage.h recurringsendentry.h recurringsendpage.h repairwalletdialog.h \
-  webviewhandler.h coincontroldialog.h coincontroltreewidget.h
+  receiverequestdialog.h \
+  qvalidatedlineedit.h \
+  qvaluecombobox.h \
+  rpcconsole.h \
+  sendcoinsdialog.h \
+  sendcoinsentry.h \
+  signverifymessagedialog.h \
+  splashscreen.h \
+  trafficgraphwidget.h \
+  transactiondescdialog.h \
+  transactiondesc.h \
+  transactionfilterproxy.h \
+  transactionrecord.h \
+  transactiontablemodel.h \
+  transactionview.h \
+  walletframe.h \
+  walletmodel.h \
+  walletmodeltransaction.h \
+  walletview.h \
+  merchantpage.h \
+  recurringsendentry.h \
+  recurringsendpage.h \
+  repairwalletdialog.h \
+  webviewhandler.h
 
-RES_ICONS = res/icons/MintCoin.png res/icons/address-book.png \
-  res/icons/quit.png res/icons/send.png \
-  res/icons/connect0_16.png res/icons/connect1_16.png \
-  res/icons/connect2_16.png res/icons/connect3_16.png \
-  res/icons/connect4_16.png res/icons/transaction0.png \
-  res/icons/transaction2.png res/icons/clock1.png res/icons/clock2.png \
-  res/icons/clock3.png res/icons/clock4.png res/icons/clock5.png \
-  res/icons/configure.png res/icons/receive.png res/icons/editpaste.png \
-  res/icons/editcopy.png res/icons/add.png \
-  res/icons/edit.png res/icons/history.png \
-  res/icons/overview.png res/icons/export.png res/icons/synced.png \
-  res/icons/remove.png res/icons/tx_mined.png res/icons/tx_input.png \
-  res/icons/tx_output.png res/icons/tx_inout.png res/icons/lock_closed.png \
-  res/icons/lock_open.png res/icons/key.png res/icons/filesave.png \
-  res/icons/qrcode.png res/icons/debugwindow.png res/icons/MintCoin.ico
+RES_ICONS = \
+  res/icons/MintCoin.png \
+  res/icons/address-book.png \
+  res/icons/quit.png \
+  res/icons/send.png \
+  res/icons/connect0_16.png \
+  res/icons/connect1_16.png \
+  res/icons/connect2_16.png \
+  res/icons/connect3_16.png \
+  res/icons/connect4_16.png \
+  res/icons/transaction0.png \
+  res/icons/transaction2.png \
+  res/icons/clock1.png \
+  res/icons/clock2.png \
+  res/icons/clock3.png \
+  res/icons/clock4.png \
+  res/icons/clock5.png \
+  res/icons/configure.png \
+  res/icons/receive.png \
+  res/icons/editpaste.png \
+  res/icons/editcopy.png \
+  res/icons/add.png \
+  res/icons/edit.png \
+  res/icons/history.png \
+  res/icons/overview.png \
+  res/icons/export.png \
+  res/icons/synced.png \
+  res/icons/remove.png \
+  res/icons/tx_mined.png \
+  res/icons/tx_input.png \
+  res/icons/tx_output.png \
+  res/icons/tx_inout.png \
+  res/icons/lock_closed.png \
+  res/icons/lock_open.png \
+  res/icons/key.png \
+  res/icons/filesave.png \
+  res/icons/qrcode.png \
+  res/icons/debugwindow.png \
+  res/icons/MintCoin.ico
 
 BITCOIN_QT_CPP = \
   aboutdialog.cpp \
