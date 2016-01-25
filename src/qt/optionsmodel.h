@@ -38,6 +38,8 @@ public:
         ShowOverviewNews,  		// bool
         PasswordOnSend,    		// bool
         recurringSendEntries,	//string
+        ThreadsScriptVerif,     // int
+        DatabaseCache,          // int
         OptionIDRowCount,
     };
 
@@ -45,7 +47,7 @@ public:
     void Reset();
 
     /* Migrate settings from wallet.dat after app initialization */
-    bool Upgrade(); /* returns true if settings upgraded */
+    void Upgrade();
 
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -62,23 +64,30 @@ public:
     bool getPasswordOnSend();
     void setRecurringSendEntries(QString recurringSendEntries);
 
-    QString getLanguage() { return language; }
     bool getProxySettings(QString& proxyIP, quint16 &proxyPort) const;
     bool getCoinControlFeatures() { return fCoinControlFeatures; }
+    const QString& getOverriddenByCommandLine() { return strOverriddenByCommandLine; }
+
+    /* Restart flag helper */
+    void setRestartRequired(bool fRequired);
+    bool isRestartRequired();
 
     bool isLocked;
 
 private:
-    int nDisplayUnit;
-    bool bDisplayAddresses;
+    /* Qt-only settings */
     bool fMinimizeToTray;
     bool fMinimizeOnClose;
+    QString language;
+    int nDisplayUnit;
+    bool bDisplayAddresses;
     bool fCoinControlFeatures;
+    /* settings that were overriden by command-line */
+    QString strOverriddenByCommandLine;
     bool bShowShopDonate;
     bool bShowOverviewNews;
     bool bPasswordOnSend;
     QString sRecurringSendEntries;
-    QString language;
 
 signals:
     void displayUnitChanged(int unit);
