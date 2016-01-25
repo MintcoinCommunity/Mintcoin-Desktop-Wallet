@@ -15,6 +15,7 @@
 #include "coincontroldialog.h"
 #include "bitcoingui.h"
 #include "guiconstants.h"
+#include "walletview.h"
 
 #include <QMessageBox>
 #include <QTextDocument>
@@ -27,7 +28,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
     model(0)
 {
     ui->setupUi(this);
-    bitcoinGui=(BitcoinGUI*) parent;
+    walletView=(WalletView*) parent;
 
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     ui->addButton->setIcon(QIcon());
@@ -303,11 +304,11 @@ void SendCoinsDialog::addRecurring()
   }
   if(valid)
   {
-      bitcoinGui->recurringSendPage->addRecurringEntry(from , repeatDays);
+      walletView->recurringSendPage->addRecurringEntry(from , repeatDays);
       for(int i = 0; i < ui->entries->count(); ++i)
       {
           SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
-          bitcoinGui->recurringSendPage->addRecurringRecipient(entry->getValue());
+          walletView->recurringSendPage->addRecurringRecipient(entry->getValue());
       }
       accept();
   }

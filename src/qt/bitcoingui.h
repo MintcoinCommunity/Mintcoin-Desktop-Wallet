@@ -6,10 +6,14 @@
 
 #include "util.h" // for uint64
 #include "recurringsendpage.h"
+#include <QMap>
 
 class TransactionTableModel;
+class WalletFrame;
+class WalletView;
 class ClientModel;
 class WalletModel;
+class WalletStack;
 class TransactionView;
 class OverviewPage;
 class AddressBookPage;
@@ -19,11 +23,17 @@ class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
 
+class CWallet;
+
 QT_BEGIN_NAMESPACE
 class QLabel;
 class QModelIndex;
 class QProgressBar;
 class QStackedWidget;
+class QUrl;
+class QListWidget;
+class QPushButton;
+class QAction;
 QT_END_NAMESPACE
 
 /**
@@ -35,6 +45,8 @@ class BitcoinGUI : public QMainWindow
     Q_OBJECT
 
 public:
+    static const QString DEFAULT_WALLET;
+    
     explicit BitcoinGUI(bool fIsTestnet = false, QWidget *parent = 0);
     ~BitcoinGUI();
 
@@ -46,8 +58,21 @@ public:
         The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
-    void setWalletModel(WalletModel *walletModel);
-    RecurringSendPage *recurringSendPage;
+
+    bool addWallet(const QString& name, WalletModel *walletModel);
+    bool setCurrentWallet(const QString& name);
+
+    void removeAllWallets();
+
+    /** Used by WalletView to allow access to needed QActions */
+    QAction * getOverviewAction() { return overviewAction; }
+    QAction * getHistoryAction() { return historyAction; }
+    QAction * getAddressBookAction() { return addressBookAction; }
+    QAction * getRecurringSendAction() { return recurringSendAction; }
+    QAction * getMerchantAction() { return merchantAction; }
+    QAction * getReceiveCoinsAction() { return receiveCoinsAction; }
+    QAction * getSendCoinsAction() { return sendCoinsAction; }
+    QAction * getExportAction() { return exportAction; }
 
 protected:
     void changeEvent(QEvent *e);
@@ -58,17 +83,7 @@ protected:
 
 private:
     ClientModel *clientModel;
-    WalletModel *walletModel;
-
-    QStackedWidget *centralWidget;
-
-    OverviewPage *overviewPage;
-    QWidget *transactionsPage;
-    AddressBookPage *addressBookPage;
-    AddressBookPage *receiveCoinsPage;
-    SendCoinsDialog *sendCoinsPage;
-    MerchantPage *merchantPage;
-    SignVerifyMessageDialog *signVerifyMessageDialog;
+    WalletFrame *walletFrame;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelMintingIcon;
@@ -159,6 +174,9 @@ public slots:
     void askFee(qint64 nFeeRequired, bool *payFee);
     void handleURI(QString strURI);
 
+    /** Show incoming transaction notification for new transactions. */
+    void incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address);
+
 private slots:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
@@ -190,23 +208,8 @@ private slots:
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
-    /** Show incoming transaction notification for new transactions.
-
-        The new items are those between start and end inclusive, under the given parent item.
-    */
-    void incomingTransaction(const QModelIndex& parent, int start, int /*end*/);
-    /** Encrypt the wallet */
-    void encryptWallet(bool status);
-    /** Backup the wallet */
-    void backupWallet();
     /** Repair the wallet **/
     void repairWallet();
-    /** Change encrypted wallet passphrase */
-    void changePassphrase();
-    /** Ask for passphrase to unlock wallet temporarily */
-    void unlockWallet();
-    /** Toggle unlocking wallet */
-    void lockWalletToggle();
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);

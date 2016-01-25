@@ -7,7 +7,7 @@
 namespace Ui {
     class SendCoinsDialog;
 }
-class BitcoinGUI;
+class WalletView;
 class WalletModel;
 class SendCoinsEntry;
 class SendCoinsRecipient;
@@ -48,7 +48,7 @@ private:
     Ui::SendCoinsDialog *ui;
     WalletModel *model;
     bool fNewRecipientAllowed;
-    BitcoinGUI *bitcoinGui;
+    WalletView *walletView;
 
     void updateBalance(qint64 balance);
 
