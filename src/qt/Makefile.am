@@ -109,23 +109,61 @@ RES_ICONS = res/icons/MintCoin.png res/icons/address-book.png \
   res/icons/lock_open.png res/icons/key.png res/icons/filesave.png \
   res/icons/qrcode.png res/icons/debugwindow.png res/icons/MintCoin.ico
 
-BITCOIN_QT_CPP = aboutdialog.cpp addressbookpage.cpp \
-  addresstablemodel.cpp askpassphrasedialog.cpp bitcoinaddressvalidator.cpp \
-  bitcoinamountfield.cpp bitcoin.cpp bitcoingui.cpp \
-  bitcoinunits.cpp clientmodel.cpp csvmodelwriter.cpp editaddressdialog.cpp \
-  guiutil.cpp intro.cpp monitoreddatamapper.cpp notificator.cpp \
+BITCOIN_QT_CPP = \
+  aboutdialog.cpp \
+  bitcoinaddressvalidator.cpp \
+  bitcoinamountfield.cpp \
+  bitcoin.cpp \
+  bitcoingui.cpp \
+  bitcoinunits.cpp \
+  clientmodel.cpp \
+  csvmodelwriter.cpp \
+  guiutil.cpp \
+  intro.cpp \
+  monitoreddatamapper.cpp \
+  notificator.cpp \
+  optionsdialog.cpp \
+  optionsmodel.cpp \
+  qvalidatedlineedit.cpp \
+  qvaluecombobox.cpp \
+  rpcconsole.cpp \
+  signverifymessagedialog.cpp \
+  splashscreen.cpp \
+  trafficgraphwidget.cpp
+
+if ENABLE_WALLET
+BITCOIN_QT_CPP += \
+  addressbookpage.cpp \
+  addresstablemodel.cpp \
+  askpassphrasedialog.cpp \
+  coincontroldialog.cpp \
+  coincontroltreewidget.cpp \
+  editaddressdialog.cpp \
   openuridialog.cpp \
-  optionsdialog.cpp optionsmodel.cpp overviewpage.cpp paymentrequestplus.cpp \
-  paymentserver.cpp qvalidatedlineedit.cpp qvaluecombobox.cpp \
-  receivecoinsdialog.cpp receiverequestdialog.cpp \
+  overviewpage.cpp \
+  paymentrequestplus.cpp \
+  paymentserver.cpp \
+  receivecoinsdialog.cpp \
+  receiverequestdialog.cpp \
   recentrequeststablemodel.cpp \
-  rpcconsole.cpp sendcoinsdialog.cpp sendcoinsentry.cpp \
-  signverifymessagedialog.cpp splashscreen.cpp trafficgraphwidget.cpp transactiondesc.cpp \
-  transactiondescdialog.cpp transactionfilterproxy.cpp transactionrecord.cpp \
-  transactiontablemodel.cpp transactionview.cpp walletframe.cpp \
-  walletmodel.cpp walletmodeltransaction.cpp walletview.cpp \
-  webviewhandler.cpp coincontroldialog.cpp coincontroltreewidget.cpp \
-  merchantpage.cpp recurringsendpage.cpp recurringsendentry.cpp repairwalletdialog.cpp
+  sendcoinsdialog.cpp \
+  sendcoinsentry.cpp \
+  transactiondesc.cpp \
+  transactiondescdialog.cpp \
+  transactionfilterproxy.cpp \
+  transactionrecord.cpp \
+  transactiontablemodel.cpp \
+  transactionview.cpp \
+  walletframe.cpp \
+  walletmodel.cpp \
+  walletmodeltransaction.cpp \
+  walletview.cpp \
+  webviewhandler.cpp \
+  merchantpage.cpp \
+  recurringsendpage.cpp \
+  recurringsendentry.cpp \
+  repairwalletdialog.cpp
+endif
 
 RES_IMAGES = res/images/about.png res/images/splash.png
 
@@ -160,7 +198,11 @@ endif
 MintCoin_qt_CPPFLAGS = $(AM_CPPFLAGS) $(QT_INCLUDES) \
   -I$(top_srcdir)/src/qt/forms
 MintCoin_qt_SOURCES = bitcoin.cpp
-MintCoin_qt_LDADD = libbitcoinqt.a $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
+MintCoin_qt_LDADD = libbitcoinqt.a $(LIBBITCOIN_SERVER)
+if ENABLE_WALLET
+MintCoin_qt_LDADD += $(LIBBITCOIN_WALLET)
+endif
+MintCoin_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
   $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS)
 
 # forms/foo.h -> forms/ui_foo.h
