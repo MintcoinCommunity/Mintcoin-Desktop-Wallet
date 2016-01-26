@@ -103,7 +103,7 @@ extern CScript COINBASE_FLAGS;
 
 
 
-
+struct COrphanBlock;
 
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
@@ -114,7 +114,7 @@ extern uint64_t nLastBlockSize;
 extern int64_t nLastCoinStakeSearchInterval;
 extern const std::string strMessageMagic;
 extern int64_t nTimeBestReceived;
-extern std::map<uint256, CBlock*> mapOrphanBlocks;
+extern std::map<uint256, COrphanBlock*> mapOrphanBlocks;
 extern std::map<uint256, uint256> mapProofOfStake;
 extern bool fImporting;
 extern bool fReindex;
@@ -218,7 +218,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
-uint256 WantedByOrphan(const CBlock* pblockOrphan);
+uint256 WantedByOrphan(const COrphanBlock* pblockOrphan);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 void BitcoinMiner(CWallet *pwallet, bool fProofOfStake);
 void ResendWalletTransactions();
