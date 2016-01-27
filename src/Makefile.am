@@ -54,6 +54,7 @@ BITCOIN_CORE_H = \
   serialize.h \
   sync.h \
   threadsafety.h \
+  tinyformat.h \
   txdb.h \
   txmempool.h \
   ui_interface.h \
