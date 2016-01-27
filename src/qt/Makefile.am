@@ -12,25 +12,68 @@ DIST_SUBDIRS = test
 
 # bitcoin qt core #
 QT_TS = locale/bitcoin_en.ts locale/bitcoin_ru.ts
-#QT_TS = locale/bitcoin_ach.ts locale/bitcoin_af_ZA.ts locale/bitcoin_ar.ts 
-  #locale/bitcoin_be_BY.ts locale/bitcoin_bg.ts locale/bitcoin_bs.ts \
-  #locale/bitcoin_ca_ES.ts locale/bitcoin_ca.ts locale/bitcoin_cs.ts \
-  #locale/bitcoin_cy.ts locale/bitcoin_da.ts locale/bitcoin_de.ts \
-  #locale/bitcoin_el_GR.ts locale/bitcoin_en.ts locale/bitcoin_eo.ts \
-  #locale/bitcoin_es_CL.ts locale/bitcoin_es.ts locale/bitcoin_et.ts \
-  #locale/bitcoin_eu_ES.ts locale/bitcoin_fa_IR.ts locale/bitcoin_fa.ts \
-  #locale/bitcoin_fi.ts locale/bitcoin_fr_CA.ts locale/bitcoin_fr.ts \
-  #locale/bitcoin_gu_IN.ts locale/bitcoin_he.ts locale/bitcoin_hi_IN.ts \
-  #locale/bitcoin_hr.ts locale/bitcoin_hu.ts locale/bitcoin_id_ID.ts \
-  #locale/bitcoin_it.ts locale/bitcoin_ja.ts locale/bitcoin_kk_KZ.ts \
-  #locale/bitcoin_ko_KR.ts locale/bitcoin_la.ts locale/bitcoin_lt.ts \
-  #locale/bitcoin_lv_LV.ts locale/bitcoin_ms_MY.ts locale/bitcoin_nb.ts \
-  #locale/bitcoin_nl.ts locale/bitcoin_pl.ts locale/bitcoin_pt_BR.ts \
-  #locale/bitcoin_pt_PT.ts locale/bitcoin_ro_RO.ts locale/bitcoin_ru.ts \
-  #locale/bitcoin_sk.ts locale/bitcoin_sq.ts locale/bitcoin_sr.ts \
-  #locale/bitcoin_sv.ts locale/bitcoin_th_TH.ts locale/bitcoin_tr.ts \
-  #locale/bitcoin_uk.ts locale/bitcoin_vi.ts locale/bitcoin_vi_VN.ts \
-  #locale/bitcoin_zh_CN.ts locale/bitcoin_zh_TW.ts
+#QT_TS = \
+#  locale/bitcoin_ach.ts \
+#  locale/bitcoin_af_ZA.ts \
+#  locale/bitcoin_ar.ts \
+#  locale/bitcoin_be_BY.ts \
+#  locale/bitcoin_bg.ts \
+#  locale/bitcoin_bs.ts \
+#  locale/bitcoin_ca_ES.ts \
+#  locale/bitcoin_ca.ts \
+#  locale/bitcoin_cs.ts \
+#  locale/bitcoin_cy.ts \
+#  locale/bitcoin_da.ts \
+#  locale/bitcoin_de_AT.ts \
+#  locale/bitcoin_de.ts \
+#  locale/bitcoin_el_GR.ts \
+#  locale/bitcoin_en.ts \
+#  locale/bitcoin_eo.ts \
+#  locale/bitcoin_es_CL.ts \
+#  locale/bitcoin_es_MX.ts \
+#  locale/bitcoin_es.ts \
+#  locale/bitcoin_et.ts \
+#  locale/bitcoin_eu_ES.ts \
+#  locale/bitcoin_fa_IR.ts \
+#  locale/bitcoin_fa.ts \
+#  locale/bitcoin_fi.ts \
+#  locale/bitcoin_fr_CA.ts \
+#  locale/bitcoin_fr.ts \
+#  locale/bitcoin_gl.ts \
+#  locale/bitcoin_gu_IN.ts \
+#  locale/bitcoin_he.ts \
+#  locale/bitcoin_hi_IN.ts \
+#  locale/bitcoin_hr.ts \
+#  locale/bitcoin_hu.ts \
+#  locale/bitcoin_id_ID.ts \
+#  locale/bitcoin_it.ts \
+#  locale/bitcoin_ja.ts \
+#  locale/bitcoin_kk_KZ.ts \
+#  locale/bitcoin_ko_KR.ts \
+#  locale/bitcoin_la.ts \
+#  locale/bitcoin_lt.ts \
+#  locale/bitcoin_lv_LV.ts \
+#  locale/bitcoin_ms_MY.ts \
+#  locale/bitcoin_nb.ts \
+#  locale/bitcoin_nl.ts \
+#  locale/bitcoin_pam.ts \
+#  locale/bitcoin_pl.ts \
+#  locale/bitcoin_pt_BR.ts \
+#  locale/bitcoin_pt_PT.ts \
+#  locale/bitcoin_ro_RO.ts \
+#  locale/bitcoin_ru.ts \
+#  locale/bitcoin_sk.ts \
+#  locale/bitcoin_sl_SI.ts \
+#  locale/bitcoin_sq.ts \
+#  locale/bitcoin_sr.ts \
+#  locale/bitcoin_sv.ts \
+#  locale/bitcoin_th_TH.ts \
+#  locale/bitcoin_tr.ts \
+#  locale/bitcoin_uk.ts \
+#  locale/bitcoin_vi.ts \
+#  locale/bitcoin_vi_VN.ts \
+#  locale/bitcoin_zh_CN.ts \
+#  locale/bitcoin_zh_TW.ts
 
 QT_FORMS_UI = \
   forms/aboutdialog.ui \
@@ -42,8 +85,8 @@ QT_FORMS_UI = \
   forms/openuridialog.ui \
   forms/optionsdialog.ui \
   forms/overviewpage.ui \
-  forms/receiverequestdialog.ui \
   forms/receivecoinsdialog.ui \
+  forms/receiverequestdialog.ui \
   forms/rpcconsole.ui \
   forms/sendcoinsdialog.ui \
   forms/sendcoinsentry.ui \
@@ -79,10 +122,10 @@ QT_MOC_CPP = \
   moc_optionsmodel.cpp \
   moc_overviewpage.cpp \
   moc_paymentserver.cpp \
-  moc_receiverequestdialog.cpp \
   moc_qvalidatedlineedit.cpp \
   moc_qvaluecombobox.cpp \
   moc_receivecoinsdialog.cpp \
+  moc_receiverequestdialog.cpp \
   moc_recentrequeststablemodel.cpp \
   moc_rpcconsole.cpp \
   moc_sendcoinsdialog.cpp \
@@ -104,9 +147,15 @@ QT_MOC_CPP = \
   moc_repairwalletdialog.cpp \
   moc_webviewhandler.cpp
 
-BITCOIN_MM = macdockiconhandler.mm macnotificationhandler.mm
+BITCOIN_MM = \
+  macdockiconhandler.mm \
+  macnotificationhandler.mm
 
-QT_MOC = intro.moc overviewpage.moc rpcconsole.moc bitcoin.moc
+QT_MOC = \
+  bitcoin.moc \
+  intro.moc \
+  overviewpage.moc \
+  rpcconsole.moc
 
 QT_QRC_CPP = qrc_bitcoin.cpp
 QT_QRC = bitcoin.qrc
@@ -142,19 +191,19 @@ BITCOIN_QT_H = \
   overviewpage.h \
   paymentrequestplus.h \
   paymentserver.h \
-  receivecoinsdialog.h \
-  recentrequeststablemodel.h \
-  receiverequestdialog.h \
   qvalidatedlineedit.h \
   qvaluecombobox.h \
+  receivecoinsdialog.h \
+  receiverequestdialog.h \
+  recentrequeststablemodel.h \
   rpcconsole.h \
   sendcoinsdialog.h \
   sendcoinsentry.h \
   signverifymessagedialog.h \
   splashscreen.h \
   trafficgraphwidget.h \
-  transactiondescdialog.h \
   transactiondesc.h \
+  transactiondescdialog.h \
   transactionfilterproxy.h \
   transactionrecord.h \
   transactiontablemodel.h \
@@ -170,50 +219,50 @@ BITCOIN_QT_H = \
   webviewhandler.h
 
 RES_ICONS = \
+  res/icons/add.png \
   res/icons/MintCoin.png \
   res/icons/address-book.png \
-  res/icons/quit.png \
-  res/icons/send.png \
-  res/icons/connect0_16.png \
-  res/icons/connect1_16.png \
-  res/icons/connect2_16.png \
-  res/icons/connect3_16.png \
-  res/icons/connect4_16.png \
-  res/icons/transaction0.png \
-  res/icons/transaction2.png \
+  res/icons/MintCoin.ico \
   res/icons/clock1.png \
   res/icons/clock2.png \
   res/icons/clock3.png \
   res/icons/clock4.png \
   res/icons/clock5.png \
   res/icons/configure.png \
-  res/icons/receive.png \
-  res/icons/editpaste.png \
-  res/icons/editcopy.png \
-  res/icons/add.png \
+  res/icons/connect0_16.png \
+  res/icons/connect1_16.png \
+  res/icons/connect2_16.png \
+  res/icons/connect3_16.png \
+  res/icons/connect4_16.png \
+  res/icons/debugwindow.png \
   res/icons/edit.png \
-  res/icons/history.png \
-  res/icons/overview.png \
+  res/icons/editcopy.png \
+  res/icons/editpaste.png \
   res/icons/export.png \
-  res/icons/synced.png \
-  res/icons/remove.png \
-  res/icons/tx_mined.png \
-  res/icons/tx_input.png \
-  res/icons/tx_output.png \
-  res/icons/tx_inout.png \
+  res/icons/filesave.png \
+  res/icons/history.png \
+  res/icons/key.png \
   res/icons/lock_closed.png \
   res/icons/lock_open.png \
-  res/icons/key.png \
-  res/icons/filesave.png \
+  res/icons/overview.png \
   res/icons/qrcode.png \
-  res/icons/debugwindow.png \
-  res/icons/MintCoin.ico
+  res/icons/quit.png \
+  res/icons/receive.png \
+  res/icons/remove.png \
+  res/icons/send.png \
+  res/icons/synced.png \
+  res/icons/transaction0.png \
+  res/icons/transaction2.png \
+  res/icons/tx_inout.png \
+  res/icons/tx_input.png \
+  res/icons/tx_output.png \
+  res/icons/tx_mined.png
 
 BITCOIN_QT_CPP = \
   aboutdialog.cpp \
+  bitcoin.cpp \
   bitcoinaddressvalidator.cpp \
   bitcoinamountfield.cpp \
-  bitcoin.cpp \
   bitcoingui.cpp \
   bitcoinunits.cpp \
   clientmodel.cpp \
@@ -265,7 +314,9 @@ BITCOIN_QT_CPP += \
   repairwalletdialog.cpp
 endif
 
-RES_IMAGES = res/images/about.png res/images/splash.png
+RES_IMAGES = \
+  res/images/about.png \
+  res/images/splash.png
 
 RES_MOVIES = res/movies/update_spinner.mng
 
