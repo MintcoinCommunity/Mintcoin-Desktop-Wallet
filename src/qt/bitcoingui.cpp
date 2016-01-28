@@ -4,7 +4,6 @@
 
 #include "bitcoingui.h"
 
-#include "aboutdialog.h"
 #include "rpcclient.h"
 #include "rpcserver.h"
 #include "bitcoinunits.h"
@@ -17,6 +16,7 @@
 #include "optionsmodel.h"
 #include "repairwalletdialog.h"
 #include "rpcconsole.h"
+#include "utilitydialog.h"
 #ifdef ENABLE_WALLET
 #include "walletframe.h"
 #include "walletmodel.h"
@@ -610,7 +610,7 @@ void BitcoinGUI::optionsClicked()
 
 void BitcoinGUI::aboutClicked()
 {
-    AboutDialog dlg;
+    AboutDialog dlg(this);
     dlg.setModel(clientModel);
     dlg.exec();
 }

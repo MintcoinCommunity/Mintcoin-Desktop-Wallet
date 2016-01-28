@@ -81,6 +81,7 @@ QT_FORMS_UI = \
   forms/askpassphrasedialog.ui \
   forms/coincontroldialog.ui \
   forms/editaddressdialog.ui \
+  forms/helpmessagedialog.ui \
   forms/intro.ui \
   forms/openuridialog.ui \
   forms/optionsdialog.ui \
@@ -98,7 +99,6 @@ QT_FORMS_UI = \
   forms/repairwalletdialog.ui
 
 QT_MOC_CPP = \
-  moc_aboutdialog.cpp \
   moc_addressbookpage.cpp \
   moc_addresstablemodel.cpp \
   moc_askpassphrasedialog.cpp \
@@ -138,6 +138,7 @@ QT_MOC_CPP = \
   moc_transactionfilterproxy.cpp \
   moc_transactiontablemodel.cpp \
   moc_transactionview.cpp \
+  moc_utilitydialog.cpp \  
   moc_walletframe.cpp \
   moc_walletmodel.cpp \
   moc_walletview.cpp \
@@ -165,7 +166,6 @@ PROTOBUF_H = paymentrequest.pb.h
 PROTOBUF_PROTO = paymentrequest.proto
 
 BITCOIN_QT_H = \
-  aboutdialog.h \
   addressbookpage.h \
   addresstablemodel.h \
   askpassphrasedialog.h \
@@ -208,6 +208,7 @@ BITCOIN_QT_H = \
   transactionrecord.h \
   transactiontablemodel.h \
   transactionview.h \
+  utilitydialog.h \
   walletframe.h \
   walletmodel.h \
   walletmodeltransaction.h \
@@ -259,7 +260,6 @@ RES_ICONS = \
   res/icons/tx_mined.png
 
 BITCOIN_QT_CPP = \
-  aboutdialog.cpp \
   bitcoin.cpp \
   bitcoinaddressvalidator.cpp \
   bitcoinamountfield.cpp \
@@ -278,7 +278,8 @@ BITCOIN_QT_CPP = \
   rpcconsole.cpp \
   signverifymessagedialog.cpp \
   splashscreen.cpp \
-  trafficgraphwidget.cpp
+  trafficgraphwidget.cpp \
+  utilitydialog.cpp
 
 if ENABLE_WALLET
 BITCOIN_QT_CPP += \
