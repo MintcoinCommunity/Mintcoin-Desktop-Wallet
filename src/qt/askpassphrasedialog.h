@@ -25,7 +25,7 @@ public:
         PassToSend   /**< Ask passphrase and send transaction */
     };
 
-    explicit AskPassphraseDialog(Mode mode, QWidget *parent = 0);
+    explicit AskPassphraseDialog(Mode mode, QWidget *parent);
     ~AskPassphraseDialog();
 
     void accept();

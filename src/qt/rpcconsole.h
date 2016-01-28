@@ -19,7 +19,7 @@ class RPCConsole: public QDialog
     Q_OBJECT
 
 public:
-    explicit RPCConsole(QWidget *parent = 0);
+    explicit RPCConsole(QWidget *parent);
     ~RPCConsole();
 
     void setClientModel(ClientModel *model);
@@ -46,7 +46,7 @@ private slots:
     void on_sldGraphRange_valueChanged(int value);
     /** update traffic statistics */
     void updateTrafficStats(quint64 totalBytesIn, quint64 totalBytesOut);
-    
+
 public slots:
     void clear();
     void message(int category, const QString &message, bool html = false);
@@ -58,7 +58,7 @@ public slots:
     void browseHistory(int offset);
     /** Scroll console view to end */
     void scrollToEnd();
-    
+
 signals:
     // For RPC command executor
     void stopExecutor();
