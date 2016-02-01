@@ -1,0 +1,52 @@
+---
+name: "ppcoin"
+suites:
+- "precise"
+architectures:
+- "i386"
+- "amd64"
+packages: 
+- "libqt4-dev"
+- "git-core"
+- "unzip"
+- "pkg-config"
+- "autoconf2.13"
+- "libtool"
+- "automake"
+- "faketime"
+- "bsdmainutils"
+reference_datetime: "2013-06-01 00:00:00"
+remotes:
+- "url": "https://github.com/ppcoin/ppcoin.git"
+  "dir": "ppcoin"
+files:
+- "bitcoin-deps-linux32-gitian-r2.zip"
+- "bitcoin-deps-linux64-gitian-r2.zip"
+- "boost-linux32-1.55.0-gitian-r1.zip"
+- "boost-linux64-1.55.0-gitian-r1.zip"
+script: |
+  STAGING="$HOME/install"
+  OPTFLAGS='-O2'
+  BINDIR="${OUTDIR}/bin/${GBUILD_BITS}" # 32/64 bit build specific output directory
+  export LIBRARY_PATH="$STAGING/lib"
+  mkdir -p ${BINDIR}
+  #
+  mkdir -p $STAGING
+  cd $STAGING
+  unzip ../build/bitcoin-deps-linux${GBUILD_BITS}-gitian-r2.zip
+  unzip ../build/boost-linux${GBUILD_BITS}-1.55.0-gitian-r1.zip
+  cd ../build
+  #
+  cd bitcoin
+  export TAR_OPTIONS=--mtime=`echo $REFERENCE_DATETIME | awk '{ print $1 }'`
+  ./autogen.sh
+  ./configure --prefix=$STAGING --bindir=$BINDIR --with-protoc-bindir=$STAGING/host/bin --with-boost=$STAGING --disable-maintainer-mode --disable-dependency-tracking PKG_CONFIG_PATH="$STAGING/lib/pkgconfig" CPPFLAGS="-I$STAGING/include ${OPTFLAGS}" LDFLAGS="-L$STAGING/lib ${OPTFLAGS}" CXXFLAGS="-frandom-seed=bitcoin ${OPTFLAGS}" BOOST_CHRONO_EXTRALIBS="-lrt"
+  make dist
+  mkdir -p distsrc
+  cd distsrc
+  tar --strip-components=1 -xf ../bitcoin-*.tar.*
+  ./configure --prefix=$STAGING --bindir=$BINDIR --with-protoc-bindir=$STAGING/host/bin --with-boost=$STAGING --disable-maintainer-mode --disable-dependency-tracking PKG_CONFIG_PATH="$STAGING/lib/pkgconfig" CPPFLAGS="-I$STAGING/include ${OPTFLAGS}" LDFLAGS="-L$STAGING/lib ${OPTFLAGS}" CXXFLAGS="-frandom-seed=bitcoin ${OPTFLAGS}" BOOST_CHRONO_EXTRALIBS="-lrt"
+  make $MAKEOPTS
+  make $MAKEOPTS install-strip
+  mkdir -p $OUTDIR/src
+  cp ../bitcoin-*.tar.* $OUTDIR/src
