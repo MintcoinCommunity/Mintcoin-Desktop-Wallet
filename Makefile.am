@@ -6,7 +6,8 @@ GZIP_ENV="-9n"
 
 MINTCOIND_BIN=$(top_builddir)/src/MintCoind$(EXEEXT)
 MINTCOIN_QT_BIN=$(top_builddir)/src/qt/MintCoin-qt$(EXEEXT)
-MINTCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win32-setup$(EXEEXT)
+MINTCOIN_CLI_BIN=$(top_builddir)/src/bitcoin-cli$(EXEEXT)
+MINTCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 
 OSX_APP=MintCoin-Qt.app
 OSX_DMG=MintCoin-Qt.dmg
@@ -14,6 +15,8 @@ OSX_DEPLOY_SCRIPT=$(top_srcdir)/contrib/macdeploy/macdeployqtplus
 OSX_FANCY_PLIST=$(top_srcdir)/contrib/macdeploy/fancy.plist
 OSX_INSTALLER_ICONS=$(top_srcdir)/src/qt/res/icons/MintCoin.icns
 OSX_PLIST=$(top_srcdir)/share/qt/Info.plist #not installed
+
+DIST_DOCS = $(wildcard doc/*.md)
 
 WINDOWS_PACKAGING = $(top_srcdir)/share/pixmaps/bitcoin.ico \
   $(top_srcdir)/share/pixmaps/nsis-header.bmp \
@@ -40,20 +43,16 @@ distcheck-hook:
 distcleancheck:
 	@:
 
-$(MINTCOIND_MINNTCOIN_WIN_INSTALLER): $(MINTCOIND_BIN) $(MINTCOIN_QT_BIN)
-	$(MAKE) distdir
+$(MINTCOIN_WIN_INSTALLER): $(MINTCOIND_BIN) $(MINTCOIN_QT_BIN) $(MINTCOIN_CLI_BIN)
 	$(MKDIR_P) $(top_builddir)/release
-	$(INSTALL_STRIP_PROGRAM) $(top_builddir)/src/mintcoind$(EXEEXT) $(top_builddir)/release
-	$(INSTALL_STRIP_PROGRAM) $(top_builddir)/src/qt/MintCoin-qt$(EXEEXT) $(top_builddir)/release
+	$(INSTALL_STRIP_PROGRAM) $(MINTCOIND_BIN) $(top_builddir)/release
+	$(INSTALL_STRIP_PROGRAM) $(MINTCOIN_QT_BIN) $(top_builddir)/release
+	$(INSTALL_STRIP_PROGRAM) $(MINTCOIN_CLI_BIN) $(top_builddir)/release
 	@test -f $(MAKENSIS) && $(MAKENSIS) $(top_builddir)/share/setup.nsi || \
 	  echo error: could not build $@
 
-$(MINTCOIND_BIN):
-	make -C $(top_srcdir)/src MintCoind$(EXEEXT)
-
-$(MINTCOIN_QT_BIN):
-	make -C $(top_srcdir)/src/qt MintCoin-qt$(EXEEXT)
-
+$(MINTCOIND_BIN) $(MINTCOIN_QT_BIN) $(MINTCOIN_CLI_BIN):
+	make -C $(dir $@) $(notdir $@)
 
 $(OSX_APP)/Contents/PkgInfo:
 	$(MKDIR_P) $(@D)
@@ -149,7 +148,7 @@ check-local:
 	@qa/pull-tester/run-bitcoind-for-test.sh $(JAVA) -Xmx2G -jar $(JAVA_COMPARISON_TOOL) 1 18444
 endif
 
-EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/pull-tester.sh $(WINDOWS_PACKAGING) $(OSX_PACKAGING)
+EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/pull-tester.sh $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING)
 
 CLEANFILES = $(OSX_DMG) $(BITCOIN_WIN_INSTALLER)
 
