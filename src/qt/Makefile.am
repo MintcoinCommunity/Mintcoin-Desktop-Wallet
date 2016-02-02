@@ -338,18 +338,16 @@ BUILT_SOURCES = $(nodist_libbitcoinqt_a_SOURCES)
 $(QT_MOC): $(PROTOBUF_H)
 $(QT_MOC_CPP): $(PROTOBUF_H)
 
-if TARGET_DARWIN
-  libbitcoinqt_a_SOURCES += $(BITCOIN_MM)
-endif
-if TARGET_WINDOWS
-  libbitcoinqt_a_SOURCES += $(BITCOIN_RC)
-endif
-#
-
 # bitcoin-qt binary #
 MintCoin_qt_CPPFLAGS = $(AM_CPPFLAGS) $(QT_INCLUDES) \
   -I$(top_srcdir)/src/qt/forms
 MintCoin_qt_SOURCES = bitcoin.cpp
+if TARGET_DARWIN
+  MintCoin_qt_SOURCES += $(BITCOIN_MM)
+endif
+if TARGET_WINDOWS
+  MintCoin_qt_SOURCES += $(BITCOIN_RC)
+endif
 MintCoin_qt_LDADD = libbitcoinqt.a $(LIBBITCOIN_SERVER)
 if ENABLE_WALLET
 MintCoin_qt_LDADD += $(LIBBITCOIN_WALLET)
