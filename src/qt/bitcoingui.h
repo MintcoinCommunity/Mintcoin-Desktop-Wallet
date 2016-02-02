@@ -104,6 +104,7 @@ private:
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
     QAction *openAction;
+    QAction *showHelpMessageAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
@@ -199,6 +200,8 @@ private slots:
     void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
+    /** Show help message dialog */
+    void showHelpMessageClicked();
 #ifndef Q_OS_MAC
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
