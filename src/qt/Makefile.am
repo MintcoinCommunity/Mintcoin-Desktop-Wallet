@@ -138,7 +138,7 @@ QT_MOC_CPP = \
   moc_transactionfilterproxy.cpp \
   moc_transactiontablemodel.cpp \
   moc_transactionview.cpp \
-  moc_utilitydialog.cpp \  
+  moc_utilitydialog.cpp \
   moc_walletframe.cpp \
   moc_walletmodel.cpp \
   moc_walletview.cpp \
