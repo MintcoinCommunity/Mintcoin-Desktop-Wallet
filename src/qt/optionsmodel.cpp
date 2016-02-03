@@ -89,6 +89,9 @@ void OptionsModel::Init()
 #ifdef ENABLE_WALLET
     if (!settings.contains("nTransactionFee"))
         settings.setValue("nTransactionFee", 0);
+    nTransactionFee = settings.value("nTransactionFee").toLongLong(); // if -paytxfee is set, this will be overridden later in init.cpp
+    if (mapArgs.count("-paytxfee"))
+        strOverriddenByCommandLine += "-paytxfee ";
 #endif
 
     if (!settings.contains("nDatabaseCache"))
@@ -351,13 +354,14 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             }
         }
         break;
-
+#ifdef ENABLE_WALLET
         case Fee: // core option - can be changed on-the-fly
             // Todo: Add is valid check  and warn via message, if not
             nTransactionFee = value.toLongLong();
             settings.setValue("nTransactionFee", (qint64)nTransactionFee);
             emit transactionFeeChanged(nTransactionFee);
             break;
+#endif
         case DisplayUnit:
             nDisplayUnit = value.toInt();
             settings.setValue("nDisplayUnit", nDisplayUnit);
