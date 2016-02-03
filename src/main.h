@@ -73,6 +73,11 @@ static const unsigned int FORK_TIME = 1438444800; // Sat, 01 Aug 2015 16:00:00 G
 
 /** Maximum number of script-checking threads allowed */
 static const int MAX_SCRIPTCHECK_THREADS = 16;
+/** Number of blocks that can be requested at any given time from a single peer. */
+static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
+/** Timeout in seconds before considering a block download peer unresponsive. */
+static const unsigned int BLOCK_DOWNLOAD_TIMEOUT = 60;
+
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
 #else
@@ -214,6 +219,9 @@ bool VerifySignature(const CCoins& txFrom, const CTransaction& txTo, unsigned in
 bool AbortNode(const std::string &msg);
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
+/** Increase a node's misbehavior score. */
+void Misbehaving(NodeId nodeid, int howmuch);
+
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
