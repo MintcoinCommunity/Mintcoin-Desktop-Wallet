@@ -22,6 +22,9 @@ public:
     qint64 value(bool *valid=0) const;
     void setValue(qint64 value);
 
+    /** Set single step in satoshis **/
+    void setSingleStep(qint64 step);
+
     /** Make read-only **/
     void setReadOnly(bool fReadOnly);
 
@@ -52,6 +55,7 @@ private:
     QDoubleSpinBox *amount;
     QValueComboBox *unit;
     int currentUnit;
+    qint64 nSingleStep;
 
     void setText(const QString &text);
     QString text() const;
