@@ -1126,6 +1126,30 @@ uint256 static GetOrphanRoot(const uint256& hash)
     } while(true);
 }
 
+// Remove a random orphan block (which does not have any dependent orphans).
+void static PruneOrphanBlocks()
+{
+    if (mapOrphanBlocksByPrev.size() <= MAX_ORPHAN_BLOCKS)
+        return;
+
+    // Pick a random orphan block.
+    int pos = insecure_rand() % mapOrphanBlocksByPrev.size();
+    std::multimap<uint256, COrphanBlock*>::iterator it = mapOrphanBlocksByPrev.begin();
+    while (pos--) it++;
+
+    // As long as this block has other orphans depending on it, move to one of those successors.
+    do {
+        std::multimap<uint256, COrphanBlock*>::iterator it2 = mapOrphanBlocksByPrev.find(it->second->hashBlock);
+        if (it2 == mapOrphanBlocksByPrev.end())
+            break;
+        it = it2;
+    } while(1);
+
+    uint256 hash = it->second->hashBlock;
+    delete it->second;
+    mapOrphanBlocksByPrev.erase(it);
+    mapOrphanBlocks.erase(hash);
+}
 
 // ppcoin: find block wanted by given orphan block
 uint256 WantedByOrphan(const COrphanBlock* pblockOrphan)
@@ -2674,7 +2698,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
     {
-        LogPrintf("ProcessBlock: ORPHAN BLOCK, prev=%s\n", pblock->hashPrevBlock.ToString().c_str());
+        LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
         CBlock* pblock3 = new CBlock(*pblock);
         // ppcoin: check proof-of-stake
         if (pblock3->IsProofOfStake())
@@ -2690,6 +2714,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom) {
+            PruneOrphanBlocks();
             COrphanBlock* pblock2 = new COrphanBlock();
             {
                 CDataStream ss(SER_DISK, CLIENT_VERSION);
