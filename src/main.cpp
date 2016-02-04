@@ -1762,7 +1762,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
     for(unsigned int i=0; i<block.vtx.size(); i++)
     {
         CTransaction& tx = block.vtx[i];
-        SyncWithWallets(block.GetTxHash(i),tx, &block, false);
+        SyncWithWallets(uint256(0), tx, &block, false);
     }
 
     if (pfClean) {

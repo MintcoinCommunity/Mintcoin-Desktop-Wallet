@@ -530,11 +530,13 @@ bool CWallet::AddToWalletIfInvolvingMe(const uint256 &hash, const CTransaction& 
 void CWallet::SyncTransaction(const uint256 &hash, const CTransaction& tx, const CBlock* pblock,  bool fConnect)
 {
     if (!fConnect)
+    {
         // ppcoin: wallets need to refund inputs when disconnecting coinstake
         if (tx.IsCoinStake())
             if (IsFromMe(tx))
                 DisableTransaction(tx);
         return ;
+    }
     AddToWalletIfInvolvingMe(hash, tx, pblock, true);
 }
 
