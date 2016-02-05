@@ -106,10 +106,6 @@ inline int64_t GetClockDrift(int64_t nTime)
 }
 
 extern CScript COINBASE_FLAGS;
-
-
-
-
 struct COrphanBlock;
 
 extern CCriticalSection cs_main;
@@ -129,7 +125,6 @@ extern bool fBenchmark;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
-extern bool fHaveGUI;
 
 extern bool fUseFastIndex;
 
