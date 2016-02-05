@@ -1,8 +1,8 @@
 #ifndef TRANSACTIONFILTERPROXY_H
 #define TRANSACTIONFILTERPROXY_H
 
-#include <QSortFilterProxyModel>
 #include <QDateTime>
+#include <QSortFilterProxyModel>
 
 /** Filter the transaction list according to pre-specified rules. */
 class TransactionFilterProxy : public QSortFilterProxyModel
@@ -32,6 +32,9 @@ public:
     /** Set maximum number of rows returned, -1 if unlimited. */
     void setLimit(int limit);
 
+    /** Set whether to show conflicted transactions. */
+    void setShowInactive(bool showInactive);
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
 
 protected:
@@ -44,6 +47,7 @@ private:
     quint32 typeFilter;
     qint64 minAmount;
     int limitRows;
+    bool showInactive;
 };
 
 #endif // TRANSACTIONFILTERPROXY_H
