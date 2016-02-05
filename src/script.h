@@ -543,20 +543,11 @@ public:
 
     bool IsPayToScriptHash() const;
 
-    // Called by IsStandardTx
-    bool IsPushOnly() const
-    {
-        const_iterator pc = begin();
-        while (pc < end())
-        {
-            opcodetype opcode;
-            if (!GetOp(pc, opcode))
-                return false;
-            if (opcode > OP_16)
-                return false;
-        }
-        return true;
-    }
+    // Called by IsStandardTx and P2SH VerifyScript (which makes it consensus-critical).
+    bool IsPushOnly() const;
+
+    // Called by IsStandardTx.
+    bool HasCanonicalPushes() const;
 
     // Returns whether the script is guaranteed to fail at execution,
     // regardless of the initial stack. This allows outputs to be pruned
