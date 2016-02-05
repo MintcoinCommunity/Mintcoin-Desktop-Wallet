@@ -44,6 +44,7 @@ public:
         recurringSendEntries,	//string
         ThreadsScriptVerif,     // int
         DatabaseCache,          // int
+        SpendZeroConfChange,    // bool
         OptionIDRowCount,
     };
 
