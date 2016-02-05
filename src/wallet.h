@@ -25,6 +25,7 @@
 
 // Settings
 extern int64_t nTransactionFee;
+extern bool bSpendZeroConfChange;
 extern bool fWalletUnlockMintOnly;
 
 class CAccountingEntry;
