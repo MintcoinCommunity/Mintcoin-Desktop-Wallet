@@ -11,7 +11,7 @@
 #include "optionsmodel.h"
 
 #include "netbase.h"
-#include "main.h"
+#include "txdb.h" // for -dbcache defaults
 
 #include <QDir>
 #include <QIntValidator>
@@ -30,7 +30,8 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     GUIUtil::restoreWindowGeometry("nOptionsDialogWindow", this->size(), this);
 
     /* Main elements init */
-    ui->databaseCache->setMaximum(sizeof(void*) > 4 ? 4096 : 1024);
+    ui->databaseCache->setMinimum(nMinDbCache);
+    ui->databaseCache->setMaximum(nMaxDbCache);
 
     /* Network elements init */
 #ifndef USE_UPNP
