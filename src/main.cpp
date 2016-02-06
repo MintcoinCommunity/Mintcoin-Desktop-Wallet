@@ -2077,8 +2077,8 @@ bool static DisconnectTip(CValidationState &state) {
     // Ressurect mempool transactions from the disconnected block.
     BOOST_FOREACH(const CTransaction &tx, block.vtx) {
         // ignore validation errors in resurrected transactions
-        CValidationState stateDummy; 
-        if (!tx.IsCoinBase())
+        CValidationState stateDummy;
+        if (!tx.IsCoinBase() || tx.IsCoinStake())
             if (!AcceptToMemoryPool(mempool, stateDummy, tx, false, NULL))
                 mempool.remove(tx, true);
     }
