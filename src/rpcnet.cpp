@@ -18,8 +18,6 @@
 #include "db.h"
 #include "walletdb.h"
 
-#include <inttypes.h>
-
 #include <boost/foreach.hpp>
 #include "json/json_spirit_value.h"
 

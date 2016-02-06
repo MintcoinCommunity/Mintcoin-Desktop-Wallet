@@ -20,7 +20,6 @@
 #include "util.h"
 
 
-#include <inttypes.h>
 #include <sstream>
 
 #include <boost/random/mersenne_twister.hpp>
