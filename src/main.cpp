@@ -3257,9 +3257,10 @@ bool static LoadBlockIndexDB()
     if (it == mapBlockIndex.end())
         return true;
     chainActive.SetTip(it->second);
-    LogPrintf("LoadBlockIndexDB(): hashBestChain=%s  height=%d  trust=%s  date=%s\n",
-		chainActive.Tip()->GetBlockHash().ToString().c_str(), chainActive.Height(), CBigNum(chainActive.Tip()->nChainTrust).ToString().c_str(),
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()).c_str());
+    LogPrintf("LoadBlockIndexDB(): hashBestChain=%s  height=%d  trust=%s  date=%s progress=%f\n",
+		chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), CBigNum(chainActive.Tip()->nChainTrust).ToString().c_str(),
+        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
+        Checkpoints::GuessVerificationProgress(chainActive.Tip()));
 
     // NovaCoin: load hashSyncCheckpoint
     if (!pblocktree->ReadSyncCheckpoint(Checkpoints::hashSyncCheckpoint))
