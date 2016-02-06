@@ -58,7 +58,6 @@ static const int64_t CENT = 10000;
 void LogStackTrace();
 #endif
 
-
 /* Format characters for (s)size_t, ptrdiff_t, uint64_t.
  *
  * As the tinyformat-based formatting system is type-safe, no special format
