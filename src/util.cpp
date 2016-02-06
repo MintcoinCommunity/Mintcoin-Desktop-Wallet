@@ -998,15 +998,6 @@ void LogException(std::exception* pex, const char* pszThread)
     LogPrintf("\n%s", message.c_str());
 }
 
-void PrintException(std::exception* pex, const char* pszThread)
-{
-    std::string message = FormatException(pex, pszThread);
-    LogPrintf("\n\n************************\n%s\n", message.c_str());
-    fprintf(stderr, "\n\n************************\n%s\n", message.c_str());
-    strMiscWarning = message;
-    throw;
-}
-
 void LogStackTrace() {
     printf("\n\n******* exception encountered *******\n");
     if (fileout)
@@ -1023,7 +1014,7 @@ void LogStackTrace() {
 void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 {
     std::string message = FormatException(pex, pszThread);
-    LogPrintf("\n\n************************\n%s\n", message.c_str());
+    LogPrintf("\n\n************************\n%s\n", message);
     fprintf(stderr, "\n\n************************\n%s\n", message.c_str());
     strMiscWarning = message;
 }
