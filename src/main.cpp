@@ -1769,17 +1769,16 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
 
-    // ppcoin: clean up wallet after disconnecting coinstake
-    for(unsigned int i=0; i<block.vtx.size(); i++)
-    {
-        CTransaction& tx = block.vtx[i];
-        SyncWithWallets(uint256(0), tx, &block, false);
-    }
-
     if (pfClean) {
         *pfClean = fClean;
         return true;
     } else {
+        // ppcoin: clean up wallet after disconnecting coinstake
+        for(unsigned int i=0; i<block.vtx.size(); i++)
+        {
+            CTransaction& tx = block.vtx[i];
+            SyncWithWallets(uint256(0), tx, &block, false);
+        }
         return fClean;
     }
 }
