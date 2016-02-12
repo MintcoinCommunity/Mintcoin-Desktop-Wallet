@@ -56,18 +56,10 @@ static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
 /** The pre-allocation chunk size for rev?????.dat files (since 0.8) */
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
-/** No amount larger than this (in satoshi) is valid */
-static const int64_t MAX_MONEY = 70000000000ull * COIN;			// 70 bil
-static const int64_t CIRCULATION_MONEY = MAX_MONEY;
-static const double TAX_PERCENTAGE = 0.01;
-static const int64_t MAX_MINT_PROOF_OF_STAKE = 0.05 * COIN;	// 5% annual interest
-static const int CUTOFF_POW_BLOCK = 220000;
-
-static const int64_t MIN_TXOUT_AMOUNT = CTransaction::nMinTxFee;
-
-inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+
+static const int64_t MIN_TXOUT_AMOUNT = CTransaction::nMinTxFee;
 
 static const unsigned int FORK_TIME = 1438444800; // Sat, 01 Aug 2015 16:00:00 GMT
 
@@ -361,11 +353,6 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state);
 bool IsStandardTx(const CTransaction& tx, std::string& reason);
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
-
-/** Amount of bitcoins spent by the transaction.
-    @return sum of all outputs (note: does not include fees)
- */
-int64_t GetValueOut(const CTransaction& tx);
 
 /** Undo information for a CBlock */
 class CBlockUndo

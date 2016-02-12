@@ -598,21 +598,6 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
     return true;
 }
 
-/** Amount of bitcoins spent by the transaction.
-    @return sum of all outputs (note: does not include fees)
- */
-int64_t GetValueOut(const CTransaction& tx)
-{
-    int64_t nValueOut = 0;
-    BOOST_FOREACH(const CTxOut& txout, tx.vout)
-    {
-        nValueOut += txout.nValue;
-        if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
-            throw std::runtime_error("GetValueOut() : value out of range");
-    }
-    return nValueOut;
-}
-
 //
 // Check transaction inputs, and make sure any
 // pay-to-script-hash transactions are evaluating IsStandard scripts
@@ -885,7 +870,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         return false;
 
     // Check for conflicts with in-memory transactions
-    CTransaction* ptxOld = NULL;
     {
     LOCK(pool.cs); // protect pool.mapNextTx
     for (unsigned int i = 0; i < tx.vin.size(); i++)
@@ -895,22 +879,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         {
             // Disable replacement feature for now
             return false;
-
-            // Allow replacing with a newer version of the same transaction
-            if (i != 0)
-                return false;
-            ptxOld = pool.mapNextTx[outpoint].ptx;
-            if (IsFinalTx(*ptxOld))
-                return false;
-            if (!tx.IsNewerThan(*ptxOld))
-                return false;
-            for (unsigned int i = 0; i < tx.vin.size(); i++)
-            {
-                COutPoint outpoint = tx.vin[i].prevout;
-                if (!pool.mapNextTx.count(outpoint) || pool.mapNextTx[outpoint].ptx != ptxOld)
-                    return false;
-            }
-            break;
         }
     }
     }
@@ -959,8 +927,13 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         // you should add code here to check that the transaction does a
         // reasonable number of ECDSA signature verifications.
 
-        int64_t nFees = view.GetValueIn(tx)-GetValueOut(tx);
-        unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+        int64_t nValueIn = view.GetValueIn(tx);
+        int64_t nValueOut = tx.GetValueOut();
+        int64_t nFees = nValueIn-nValueOut;
+        double dPriority = view.GetPriority(tx, chainActive.Height());
+
+        CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height());
+        unsigned int nSize = entry.GetTxSize();
 
         // Don't accept it if it can't get into a block
         int64_t txMinFee = GetMinFee(tx, 1000, true, GMF_RELAY, nSize);
@@ -1004,22 +977,10 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         {
             return error("AcceptToMemoryPool: : ConnectInputs failed %s", hash.ToString().c_str());
         }
+        // Store transaction in memory
+        pool.addUnchecked(hash, entry);
     }
 
-    // Store transaction in memory
-    {
-        if (ptxOld)
-        {
-            LogPrint("mempool", "AcceptToMemoryPool: : replacing tx %s with new version\n", ptxOld->GetHash().ToString().c_str());
-            pool.remove(*ptxOld);
-        }
-        pool.addUnchecked(hash, tx);
-    }
-
-    ///// are we sure this is ok when loading transactions or restoring block txes
-    // If updated, erase old tx from wallet
-    if (ptxOld)
-        g_signals.EraseTransaction(ptxOld->GetHash());
     g_signals.SyncTransaction(hash, tx, NULL, true);
 
     return true;
@@ -1656,19 +1617,19 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
             if (!tx.GetCoinAge(nCoinAge))
                 return state.Invalid(error("ConnectInputs() : %s unable to get coin age for coinstake", tx.GetHash().ToString().substr(0,10).c_str()),
                              REJECT_INVALID, "no coin age");
-            int64_t nStakeReward = GetValueOut(tx) - nValueIn;
+            int64_t nStakeReward = tx.GetValueOut() - nValueIn;
             if (nStakeReward > GetProofOfStakeReward(nCoinAge, pindexBlock->nBits, tx.nTime, pindexBlock->nHeight) - GetMinFee(tx) + CTransaction::nMinTxFee)
                 return state.DoS(100, error("ConnectInputs() : %s stake reward exceeded", tx.GetHash().ToString().substr(0,10).c_str()),
                              REJECT_INVALID, "stake reward exceeded");
         }
         else
         {
-            if (nValueIn < GetValueOut(tx))
+            if (nValueIn < tx.GetValueOut())
                 return state.DoS(100, error("ConnectInputs() : %s value in < value out", tx.GetHash().ToString().substr(0,10).c_str()),
                              REJECT_INVALID, "excessive output");
 
             // Tally transaction fees
-            int64_t nTxFee = nValueIn - GetValueOut(tx);
+            int64_t nTxFee = nValueIn - tx.GetValueOut();
             if (nTxFee < 0)
                 return state.DoS(100, error("ConnectInputs() : %s nTxFee < 0", tx.GetHash().ToString().substr(0,10).c_str()),
                              REJECT_INVALID, "fee out of range");
@@ -1881,9 +1842,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         if (nSigOps > MAX_BLOCK_SIGOPS)
             return state.DoS(100, error("ConnectBlock() : too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
-        
+
         if (tx.IsCoinBase())
-            nValueOut += GetValueOut(tx);
+            nValueOut += tx.GetValueOut();
         else
         {
             if (!view.HaveInputs(tx))
@@ -1902,7 +1863,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
             }
 
             int64_t nTxValueIn = view.GetValueIn(tx);
-            int64_t nTxValueOut = GetValueOut(tx);
+            int64_t nTxValueOut = tx.GetValueOut();
             nValueIn += nTxValueIn;
             nValueOut += nTxValueOut;
             if (!tx.IsCoinStake())
@@ -1952,7 +1913,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         // LogPrintf("==> Got prevHash = %s\n", prevHash.ToString().c_str());
     }
 
-    if (GetValueOut(block.vtx[0]) > GetProofOfWorkReward(pindex->nHeight, nFees, prevHash))
+    if (block.vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees, prevHash))
         return false;
     
     // Write undo information to disk

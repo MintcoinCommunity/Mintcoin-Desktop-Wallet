@@ -625,7 +625,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
         int64_t nSigOps = GetLegacySigOpCount(tx);
         if (view.HaveInputs(tx))
         {
-            entry.push_back(Pair("fee", (int64_t)(view.GetValueIn(tx) - GetValueOut(tx))));
+            entry.push_back(Pair("fee", (int64_t)(view.GetValueIn(tx) - tx.GetValueOut())));
             nSigOps += GetP2SHSigOpCount(tx, view);
          }
         entry.push_back(Pair("sigops", nSigOps));

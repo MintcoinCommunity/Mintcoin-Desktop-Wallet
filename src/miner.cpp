@@ -57,12 +57,12 @@ void SHA256Transform(void* pstate, void* pinput, const void* pinit)
 class COrphan
 {
 public:
-    CTransaction* ptx;
+    const CTransaction* ptx;
     set<uint256> setDependsOn;
     double dPriority;
     double dFeePerKb;
 
-    COrphan(CTransaction* ptxIn)
+    COrphan(const CTransaction* ptxIn)
     {
         ptx = ptxIn;
         dPriority = dFeePerKb = 0;
@@ -83,7 +83,7 @@ uint64_t nLastBlockSize = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
 
 // We want to sort transactions by priority and fee, so:
-typedef boost::tuple<double, double, CTransaction*> TxPriority;
+typedef boost::tuple<double, double, const CTransaction*> TxPriority;
 class TxPriorityCompare
 {
     bool byFee;
@@ -189,9 +189,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vecPriority;
         vecPriority.reserve(mempool.mapTx.size());
-        for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
+        for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.mapTx.begin();
+             mi != mempool.mapTx.end(); ++mi)
         {
-            CTransaction& tx = (*mi).second;
+            const CTransaction& tx = mi->second.GetTx();
             if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, pindexPrev->nHeight + 1))
                 continue;
 
@@ -226,7 +227,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                     }
                     mapDependers[txin.prevout.hash].push_back(porphan);
                     porphan->setDependsOn.insert(txin.prevout.hash);
-                    nTotalIn += mempool.mapTx[txin.prevout.hash].vout[txin.prevout.n].nValue;
+                    nTotalIn += mempool.mapTx[txin.prevout.hash].GetTx().vout[txin.prevout.n].nValue;
                     continue;
                 }
                 const CCoins &coins = view.GetCoins(txin.prevout.hash);
@@ -240,14 +241,14 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             }
             if (fMissingInputs) continue;
 
-            // Priority is sum(valuein * age) / txsize
+            // Priority is sum(valuein * age) / modified_txsize
             unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
-            dPriority /= nTxSize;
+            dPriority = tx.ComputePriority(dPriority, nTxSize);
 
             // This is a more accurate fee-per-kilobyte than is used by the client code, because the
             // client code rounds up the size to the nearest 1K. That's good, because it gives an
             // incentive to create smaller transactions.
-            double dFeePerKb =  double(nTotalIn-GetValueOut(tx)) / (double(nTxSize)/1000.0);
+            double dFeePerKb =  double(nTotalIn-tx.GetValueOut()) / (double(nTxSize)/1000.0);
 
             if (porphan)
             {
@@ -255,7 +256,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 porphan->dFeePerKb = dFeePerKb;
             }
             else
-                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &(*mi).second));
+                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &mi->second.GetTx()));
         }
 
         // Collect transactions into block
@@ -272,7 +273,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             // Take highest priority transaction off the priority queue:
             double dPriority = vecPriority.front().get<0>();
             double dFeePerKb = vecPriority.front().get<1>();
-            CTransaction& tx = *(vecPriority.front().get<2>());
+            const CTransaction& tx = *(vecPriority.front().get<2>());
 
             std::pop_heap(vecPriority.begin(), vecPriority.end(), comparer);
             vecPriority.pop_back();
@@ -311,7 +312,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             if (!view.HaveInputs(tx))
                 continue;
 
-            int64_t nTxFees = view.GetValueIn(tx)-GetValueOut(tx);
+            int64_t nTxFees = view.GetValueIn(tx)-tx.GetValueOut();
             if (nTxFees < nMinFee)
                 continue;
 

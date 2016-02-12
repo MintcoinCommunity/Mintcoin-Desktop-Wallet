@@ -13,7 +13,6 @@
 #include "kernel.h"
 #include "chainparams.h"
 
-
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <openssl/rand.h>
@@ -747,7 +746,7 @@ void CWalletTx::GetAmounts(int64_t& nGeneratedImmature, int64_t& nGeneratedMatur
     int64_t nDebit = GetDebit();
     if (nDebit > 0) // debit>0 means we signed/sent this transaction
     {
-        int64_t nValueOut = GetValueOut(*this);
+        int64_t nValueOut = GetValueOut();
         nFee = nDebit - nValueOut;
     }
 
@@ -1133,7 +1132,7 @@ int64_t CWallet::GetMintedBalance() const
         {
             const CWalletTx& pcoin = (*it).second;
             if (pcoin.IsCoinStake() && IsFinalTx(pcoin) && pcoin.IsTrusted())
-                nTotal += GetValueOut(pcoin)-GetDebit(pcoin);
+                nTotal += pcoin.GetValueOut()-GetDebit(pcoin);
         }
     }
     return nTotal;
@@ -1525,7 +1524,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                     strFailReason = _("Transaction too large");
                     return false;
                 }
-                dPriority /= nBytes;
+                dPriority = wtxNew.ComputePriority(dPriority, nBytes);
 
                 // Check that enough fee is included
                 int64_t nPayFee = nTransactionFee * (1 + (int64_t)nBytes / 1000);

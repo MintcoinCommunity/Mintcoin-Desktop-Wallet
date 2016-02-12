@@ -14,6 +14,15 @@
 
 class CTransaction;
 
+/** No amount larger than this (in satoshi) is valid */
+static const int64_t MAX_MONEY = 70000000000ull * COIN;			// 70 bil
+static const int64_t CIRCULATION_MONEY = MAX_MONEY;
+static const double TAX_PERCENTAGE = 0.01;
+static const int64_t MAX_MINT_PROOF_OF_STAKE = 0.05 * COIN;	// 5% annual interest
+static const int CUTOFF_POW_BLOCK = 220000;
+
+inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
 class COutPoint
 {
@@ -50,11 +59,11 @@ public:
 class CInPoint
 {
 public:
-    CTransaction* ptx;
+    const CTransaction* ptx;
     unsigned int n;
 
     CInPoint() { SetNull(); }
-    CInPoint(CTransaction* ptxIn, unsigned int nIn) { ptx = ptxIn; n = nIn; }
+    CInPoint(const CTransaction* ptxIn, unsigned int nIn) { ptx = ptxIn; n = nIn; }
     void SetNull() { ptx = NULL; n = (unsigned int) -1; }
     bool IsNull() const { return (ptx == NULL && n == (unsigned int) -1); }
 };
@@ -230,6 +239,14 @@ public:
 
     uint256 GetHash() const;
     bool IsNewerThan(const CTransaction& old) const;
+
+    // Return sum of txouts.
+    int64_t GetValueOut() const;
+    // GetValueIn() is a method on CCoinsViewCache, because
+    // inputs must be known to compute value in.
+
+    // Compute priority, given priority of inputs and (optionally) tx size
+    double ComputePriority(double dPriorityInputs, unsigned int nTxSize=0) const;
 
     bool IsCoinBase() const
     {
