@@ -30,6 +30,11 @@ OptionsModel::OptionsModel(QObject *parent) :
     Init();
 }
 
+void OptionsModel::addOverriddenOption(const std::string &option)
+{
+    strOverriddenByCommandLine += QString::fromStdString(option) + "=" + QString::fromStdString(mapArgs[option]) + " ";
+}
+
 // Writes all missing QSettings with their default values
 void OptionsModel::Init()
 {
@@ -118,7 +123,7 @@ void OptionsModel::Init()
         settings.setValue("fUseUPnP", false);
 #endif
     if (!SoftSetBoolArg("-upnp", settings.value("fUseUPnP").toBool()))
-        strOverriddenByCommandLine += "-upnp ";
+        addOverriddenOption("-upnp");
 
     if (!settings.contains("fUseProxy"))
         settings.setValue("fUseProxy", false);
@@ -126,18 +131,18 @@ void OptionsModel::Init()
         settings.setValue("addrProxy", "127.0.0.1:9050");
     // Only try to set -proxy, if user has enabled fUseProxy
     if (settings.value("fUseProxy").toBool() && !SoftSetArg("-proxy", settings.value("addrProxy").toString().toStdString()))
-        strOverriddenByCommandLine += "-proxy ";
+        addOverriddenOption("-proxy");
     if (!settings.contains("nSocksVersion"))
         settings.setValue("nSocksVersion", 5);
     // Only try to set -socks, if user has enabled fUseProxy
     if (settings.value("fUseProxy").toBool() && !SoftSetArg("-socks", settings.value("nSocksVersion").toString().toStdString()))
-        strOverriddenByCommandLine += "-socks ";
+        addOverriddenOption("-socks");
 
     // Display
     if (!settings.contains("language"))
         settings.setValue("language", "");
     if (!SoftSetArg("-lang", settings.value("language").toString().toStdString()))
-        strOverriddenByCommandLine += "-lang";
+        addOverriddenOption("-lang");
 
     language = settings.value("language").toString();
 }
