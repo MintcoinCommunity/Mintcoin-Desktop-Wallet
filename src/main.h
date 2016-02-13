@@ -40,10 +40,13 @@ class CWallet;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
-/** The maximum size for mined blocks */
-static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
+/** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/
+static const unsigned int DEFAULT_BLOCK_MAX_SIZE = 750000;
+static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 0;
+/** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/
+static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 /** The maximum size for transactions we're willing to relay/mine */
-static const unsigned int MAX_STANDARD_TX_SIZE = MAX_BLOCK_SIZE_GEN/5;
+static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 /** The maximum number of orphan transactions kept in memory */
@@ -287,12 +290,11 @@ struct CDiskTxPos : public CDiskBlockPos
 
 enum GetMinFee_mode
 {
-    GMF_BLOCK,
     GMF_RELAY,
     GMF_SEND,
 };
 
-int64_t GetMinFee(const CTransaction& tx, unsigned int nBlockSize = 1, bool fAllowFree = true, enum GetMinFee_mode mode = GMF_BLOCK, unsigned int nBytes = 0);
+int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes = 0, enum GetMinFee_mode mode = GMF_SEND);
 
 //
 // Check transaction inputs, and make sure any
