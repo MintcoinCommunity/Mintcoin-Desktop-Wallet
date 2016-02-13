@@ -110,13 +110,12 @@ private:
     Notificator *notificator;
     RPCConsole *rpcConsole;
 
-    QMovie *syncIconMovie;
-
     uint64_t nMinMax;
     uint64_t nWeight;
     uint64_t nNetworkWeight;
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
+    int spinnerFrame;
 
     /** Create the main UI actions. */
     void createActions(bool fIsTestnet);

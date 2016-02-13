@@ -320,7 +320,7 @@ RES_IMAGES = \
   res/images/about.png \
   res/images/splash.png
 
-RES_MOVIES = res/movies/update_spinner.mng
+RES_MOVIES = $(wildcard res/movies/spinner-*.png)
 
 BITCOIN_RC = res/bitcoin-qt-res.rc
 

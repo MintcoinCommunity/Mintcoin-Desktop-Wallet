@@ -34,6 +34,9 @@ static const int MAX_PAYMENT_REQUEST_SIZE = 50000; // bytes
 /* QRCodeDialog -- size of exported QR Code image */
 #define EXPORT_IMAGE_SIZE 256
 
+/* Number of frames in spinner animation */
+#define SPINNER_FRAMES 35
+
 #define QAPP_ORG_NAME "Bitcoin"
 #define QAPP_ORG_DOMAIN "bitcoin.org"
 #define QAPP_APP_NAME_DEFAULT "Bitcoin-Qt"
