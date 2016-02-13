@@ -2578,6 +2578,11 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
             return state.DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %d", nHeight),
                              REJECT_CHECKPOINT, "checkpoint mismatch");
 
+        // Don't accept any forks from the main chain prior to last checkpoint
+        CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
+        if (pcheckpoint && nHeight < pcheckpoint->nHeight)
+            return state.DoS(100, error("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
+
         // ppcoin: check that the block satisfies synchronized checkpoint
         if (!Checkpoints::CheckSync(hash, pindexPrev))
         {
@@ -3636,10 +3641,28 @@ void static ProcessGetData(CNode* pfrom)
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
             {
-                // Send block from disk
+                bool send = false;
                 map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
                 if (mi != mapBlockIndex.end())
                 {
+                    // If the requested block is at a height below our last
+                    // checkpoint, only serve it if it's in the checkpointed chain
+                    int nHeight = mi->second->nHeight;
+                    CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
+                    if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
+                        if (!chainActive.Contains(mi->second))
+                        {
+                            LogPrintf("ProcessGetData(): ignoring request for old block that isn't in the main chain\n");
+                        } else {
+                            send = true;
+                        }
+                    } else {
+                        send = true;
+                    }
+                }
+                if (send)
+                {
+                    // Send block from disk
                     CBlock block;
                     ReadBlockFromDisk(block, (*mi).second);
                     if (inv.type == MSG_BLOCK)
