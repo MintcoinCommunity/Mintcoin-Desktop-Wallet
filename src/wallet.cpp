@@ -598,7 +598,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
 bool CWallet::AddToWalletIfInvolvingMe(const uint256 &hash, const CTransaction& tx, const CBlock* pblock, bool fUpdate)
 {
     {
-        LOCK(cs_wallet);
+        AssertLockHeld(cs_wallet);
         bool fExisted = mapWallet.count(hash);
         if (fExisted && !fUpdate) return false;
         if (fExisted || IsMine(tx) || IsFromMe(tx))
@@ -623,9 +623,8 @@ void CWallet::SyncTransaction(const uint256 &hash, const CTransaction& tx, const
                 DisableTransaction(tx);
         return ;
     }
-    AddToWalletIfInvolvingMe(hash, tx, pblock, true);
-
-    if (mapWallet.count(hash) == 0)
+    LOCK2(cs_main, cs_wallet);
+    if (!AddToWalletIfInvolvingMe(hash, tx, pblock, true))
         return; // Not one of ours
 
     // If a transaction changes 'conflicted' state, that changes the balance
