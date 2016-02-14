@@ -6,6 +6,7 @@
 #define RECEIVECOINSDIALOG_H
 
 #include <QDialog>
+#include <QItemSelection>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QPoint>
@@ -51,6 +52,7 @@ private slots:
     void on_showRequestButton_clicked();
     void on_removeRequestButton_clicked();
     void on_recentRequestsView_doubleClicked(const QModelIndex &index);
+    void recentRequestsView_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void updateDisplayUnit();
     void showMenu(const QPoint &);
     void copyLabel();
