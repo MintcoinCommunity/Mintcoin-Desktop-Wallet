@@ -972,12 +972,6 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
             "UNKNOWN EXCEPTION       \n%s in %s       \n", pszModule, pszThread);
 }
 
-void LogException(std::exception* pex, const char* pszThread)
-{
-    std::string message = FormatException(pex, pszThread);
-    LogPrintf("\n%s", message.c_str());
-}
-
 void LogStackTrace() {
     printf("\n\n******* exception encountered *******\n");
     if (fileout)
