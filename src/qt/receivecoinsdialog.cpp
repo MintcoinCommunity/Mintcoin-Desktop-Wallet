@@ -5,21 +5,21 @@
 #include "receivecoinsdialog.h"
 #include "ui_receivecoinsdialog.h"
 
-#include "walletmodel.h"
-#include "bitcoinunits.h"
 #include "addressbookpage.h"
-#include "optionsmodel.h"
-#include "guiutil.h"
-#include "receiverequestdialog.h"
 #include "addresstablemodel.h"
+#include "bitcoinunits.h"
+#include "guiutil.h"
+#include "optionsmodel.h"
+#include "receiverequestdialog.h"
 #include "recentrequeststablemodel.h"
+#include "walletmodel.h"
 
 #include <QAction>
 #include <QCursor>
 #include <QItemSelection>
 #include <QMessageBox>
-#include <QTextDocument>
 #include <QScrollBar>
+#include <QTextDocument>
 
 ReceiveCoinsDialog::ReceiveCoinsDialog(QWidget *parent) :
     QDialog(parent),
