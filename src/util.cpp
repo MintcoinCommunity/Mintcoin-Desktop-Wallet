@@ -1039,7 +1039,7 @@ boost::filesystem::path GetDefaultDataDir()
 #ifdef MAC_OSX
     // Mac
     pathRet /= "Library/Application Support";
-    fs::create_directory(pathRet);
+    TryCreateDirectory(pathRet);
     return pathRet / "MintCoin";
 #else
     // Unix
@@ -1151,6 +1151,23 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest)
     int rc = std::rename(src.string().c_str(), dest.string().c_str());
     return (rc == 0);
 #endif /* WIN32 */
+}
+
+
+// Ignores exceptions thrown by boost's create_directory if the requested directory exists.
+//   Specifically handles case where path p exists, but it wasn't possible for the user to write to the parent directory.
+bool TryCreateDirectory(const boost::filesystem::path& p)
+{
+    try
+    {
+        return boost::filesystem::create_directory(p);
+    } catch (boost::filesystem::filesystem_error) {
+        if (!boost::filesystem::exists(p) || !boost::filesystem::is_directory(p))
+            throw;
+    }
+
+    // create_directory didn't create the directory, it had to have existed already
+    return false;
 }
 
 void FileCommit(FILE *fileout)
