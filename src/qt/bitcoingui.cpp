@@ -43,6 +43,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressBar>
+#include <QProgressDialog>
 #include <QSettings>
 #include <QStackedWidget>
 #include <QStatusBar>
@@ -485,6 +486,9 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 
         // Receive and report messages from client model
         connect(clientModel, SIGNAL(message(QString,QString,unsigned int)), this, SLOT(message(QString,QString,unsigned int)));
+
+        // Show progress dialog
+        connect(clientModel, SIGNAL(showProgress(QString,int)), this, SLOT(showProgress(QString,int)));
 
         rpcConsole->setClientModel(clientModel);
         walletFrame->setClientModel(clientModel);
@@ -931,7 +935,7 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
 #ifdef ENABLE_WALLET
 void BitcoinGUI::incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address)
 {
-   // On new transaction, make an info balloon
+    // On new transaction, make an info balloon
     message((amount)<0 ? tr("Sent transaction") : tr("Incoming transaction"),
              tr("Date: %1\n"
                 "Amount: %2\n"
@@ -1180,6 +1184,29 @@ void BitcoinGUI::detectShutdown()
             rpcConsole->hide();
         qApp->quit();
     }
+}
+
+void BitcoinGUI::showProgress(const QString &title, int nProgress)
+{
+    if (nProgress == 0)
+    {
+        progressDialog = new QProgressDialog(title, "", 0, 100);
+        progressDialog->setWindowModality(Qt::ApplicationModal);
+        progressDialog->setMinimumDuration(0);
+        progressDialog->setCancelButton(0);
+        progressDialog->setAutoClose(false);
+        progressDialog->setValue(0);
+    }
+    else if (nProgress == 100)
+    {
+        if (progressDialog)
+        {
+            progressDialog->close();
+            progressDialog->deleteLater();
+        }
+    }
+    else if (progressDialog)
+        progressDialog->setValue(nProgress);
 }
 
 static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string& message, const std::string& caption, unsigned int style)

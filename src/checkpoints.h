@@ -54,7 +54,7 @@ namespace Checkpoints
     bool IsMatureSyncCheckpoint();
     bool IsSyncCheckpointTooOld(unsigned int nSeconds);
     bool CheckMasterPubKey(bool reindex);
-    double GuessVerificationProgress(CBlockIndex *pindex);
+    double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks = true);
 }
 
 // ppcoin: synchronized checkpoint
