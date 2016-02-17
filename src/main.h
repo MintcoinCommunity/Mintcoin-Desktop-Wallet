@@ -190,8 +190,6 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned int
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Calculate the minimum amount of stake a received block needs, without knowing its direct parent */
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
-/** Get the number of active peers */
-int GetNumBlocksOfPeers();
 /** Check whether we are doin an inital block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
 /** Format a string that describes several potential problems detected by the core */
