@@ -24,7 +24,6 @@
 #include <QDebug>
 #include <QIcon>
 #include <QList>
-#include <QTimer>
 
 // Amount column is right-aligned it contains numbers
 static int column_alignments[] = {
@@ -187,13 +186,19 @@ public:
         {
             TransactionRecord *rec = &cachedWallet[idx];
 
+            // Get required locks upfront. This avoids the GUI from getting
+            // stuck if the core is holding the locks for a longer time - for
+            // example, during a wallet rescan.
+            //
             // If a status update is needed (blocks came in since last check),
             //  update the status of this transaction from the wallet. Otherwise,
             // simply re-use the cached status.
-            if(rec->statusUpdateNeeded())
+            TRY_LOCK(cs_main, lockMain);
+            if(lockMain)
             {
+                TRY_LOCK(wallet->cs_wallet, lockWallet);
+                if(lockWallet && rec->statusUpdateNeeded())
                 {
-                    LOCK(wallet->cs_wallet);
                     std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(rec->hash);
 
                     if(mi != wallet->mapWallet.end())
