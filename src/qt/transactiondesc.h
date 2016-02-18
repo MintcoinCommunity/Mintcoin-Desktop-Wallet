@@ -1,8 +1,10 @@
 #ifndef TRANSACTIONDESC_H
 #define TRANSACTIONDESC_H
 
-#include <QString>
 #include <QObject>
+#include <QString>
+
+class TransactionRecord;
 
 class CWallet;
 class CWalletTx;
@@ -14,7 +16,7 @@ class TransactionDesc: public QObject
     Q_OBJECT
 
 public:
-    static QString toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int unit);
+    static QString toHTML(CWallet *wallet, CWalletTx &wtx, TransactionRecord *rec, int unit);
 
 private:
     TransactionDesc() {}
