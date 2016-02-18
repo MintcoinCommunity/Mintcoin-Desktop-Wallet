@@ -86,9 +86,9 @@ public:
         }
 
         {
-            LOCK(wallet->cs_wallet);
             std::map<QString, std::vector<COutput> > mapCoins;
             parent->walletModel->listCoins(mapCoins);
+            LOCK(wallet->cs_wallet);
             BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& item, wallet->mapAddressBook)
             {
                 const CBitcoinAddress& address = item.first;
