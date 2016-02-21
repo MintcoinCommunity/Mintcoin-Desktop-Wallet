@@ -10,12 +10,12 @@
 
 std::string COutPoint::ToString() const
 {
-    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10).c_str(), n);
+    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
 }
 
 void COutPoint::print() const
 {
-    LogPrintf("%s\n", ToString().c_str());
+    LogPrintf("%s\n", ToString());
 }
 
 CTxIn::CTxIn(COutPoint prevoutIn, CScript scriptSigIn, unsigned int nSequenceIn)
@@ -38,9 +38,9 @@ std::string CTxIn::ToString() const
     str += "CTxIn(";
     str += prevout.ToString();
     if (prevout.IsNull())
-        str += strprintf(", coinbase %s", HexStr(scriptSig).c_str());
+        str += strprintf(", coinbase %s", HexStr(scriptSig));
     else
-        str += strprintf(", scriptSig=%s", scriptSig.ToString().substr(0,24).c_str());
+        str += strprintf(", scriptSig=%s", scriptSig.ToString().substr(0,24));
     if (nSequence != std::numeric_limits<unsigned int>::max())
         str += strprintf(", nSequence=%u", nSequence);
     str += ")";
@@ -49,7 +49,7 @@ std::string CTxIn::ToString() const
 
 void CTxIn::print() const
 {
-    LogPrintf("%s\n", ToString().c_str());
+    LogPrintf("%s\n", ToString());
 }
 
 CTxOut::CTxOut(int64_t nValueIn, CScript scriptPubKeyIn)
@@ -71,7 +71,7 @@ std::string CTxOut::ToString() const
 
 void CTxOut::print() const
 {
-    LogPrintf("%s\n", ToString().c_str());
+    LogPrintf("%s\n", ToString());
 }
 
 uint256 CTransaction::GetHash() const
@@ -114,8 +114,8 @@ std::string CTransaction::ToString() const
 {
     std::string str;
     str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
-    str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%"PRIszu", vout.size=%"PRIszu", nLockTime=%d)\n",
-        GetHash().ToString().c_str(),
+    str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
+        GetHash().ToString().substr(0,10),
         nTime,
         nVersion,
         vin.size(),
@@ -130,7 +130,7 @@ std::string CTransaction::ToString() const
 
 void CTransaction::print() const
 {
-    LogPrintf("%s", ToString().c_str());
+    LogPrintf("%s", ToString());
 }
 
 // Amount compression:
@@ -251,14 +251,14 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
 
 void CBlock::print() const
 {
-    LogPrintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
-        GetHash().ToString().c_str(),
+    LogPrintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u, vchBlockSig=%s)\n",
+        GetHash().ToString(),
         nVersion,
-        hashPrevBlock.ToString().c_str(),
-        hashMerkleRoot.ToString().c_str(),
+        hashPrevBlock.ToString(),
+        hashMerkleRoot.ToString(),
         nTime, nBits, nNonce,
         vtx.size(),
-        HexStr(vchBlockSig.begin(), vchBlockSig.end()).c_str());
+        HexStr(vchBlockSig.begin(), vchBlockSig.end()));
     for (unsigned int i = 0; i < vtx.size(); i++)
     {
         LogPrintf("  ");

@@ -58,18 +58,6 @@ static const int64_t CENT = 10000;
 void LogStackTrace();
 #endif
 
-/* Format characters for (s)size_t, ptrdiff_t.
- *
- * Define these as empty as the tinyformat-based formatting system is
- * type-safe, no special format characters are needed to specify sizes.
- */
-#define PRIszx    "x"
-#define PRIszu    "u"
-#define PRIszd    "d"
-#define PRIpdx    "x"
-#define PRIpdu    "u"
-#define PRIpdd    "d"
-
 // This is needed because the foreach macro can't get over the comma in pair<t1, t2>
 #define PAIRTYPE(t1, t2)    std::pair<t1, t2>
 
@@ -126,7 +114,6 @@ extern bool fPrintToConsole;
 extern bool fPrintToDebugLog;
 extern bool fServer;
 extern std::string strMiscWarning;
-extern bool fNoListen;
 extern bool fLogTimestamps;
 extern volatile bool fReopenDebugLog;
 

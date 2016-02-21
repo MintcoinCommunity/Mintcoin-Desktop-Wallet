@@ -11,7 +11,6 @@
 #include "sync.h"
 #include "wallet.h"
 
-
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
@@ -81,8 +80,8 @@ bool CWalletDB::WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, c
     return Write(std::make_pair(std::string("key"), vchPubKey), std::make_pair(vchPrivKey, Hash(vchKey.begin(), vchKey.end())), false);
 }
 
-bool CWalletDB::WriteCryptedKey(const CPubKey& vchPubKey, 
-                                const std::vector<unsigned char>& vchCryptedSecret, 
+bool CWalletDB::WriteCryptedKey(const CPubKey& vchPubKey,
+                                const std::vector<unsigned char>& vchCryptedSecret,
                                 const CKeyMetadata &keyMeta)
 {
     const bool fEraseUnencryptedKey = true;
@@ -366,12 +365,12 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                     char fUnused;
                     ssValue >> fTmp >> fUnused >> wtx.strFromAccount;
                     strErr = strprintf("LoadWallet() upgrading tx ver=%d %d '%s' %s",
-                                       wtx.fTimeReceivedIsTxTime, fTmp, wtx.strFromAccount.c_str(), hash.ToString().c_str());
+                                       wtx.fTimeReceivedIsTxTime, fTmp, wtx.strFromAccount, hash.ToString());
                     wtx.fTimeReceivedIsTxTime = fTmp;
                 }
                 else
                 {
-                    strErr = strprintf("LoadWallet() repairing tx ver=%d %s", wtx.fTimeReceivedIsTxTime, hash.ToString().c_str());
+                    strErr = strprintf("LoadWallet() repairing tx ver=%d %s", wtx.fTimeReceivedIsTxTime, hash.ToString());
                     wtx.fTimeReceivedIsTxTime = 0;
                 }
                 wss.vWalletUpgrade.push_back(hash);
@@ -382,12 +381,12 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
 
             pwallet->AddToWallet(wtx, true);
             //// debug print
-            //LogPrintf("LoadWallet  %s\n", wtx.GetHash().ToString().c_str());
+            //LogPrintf("LoadWallet  %s\n", wtx.GetHash().ToString());
             //LogPrintf(" %12d  %s  %s  %s\n",
             //    wtx.vout[0].nValue,
-            //    DateTimeStrFormat("%Y-%m-%d %H:%M:%S", wtx.GetBlockTime()).c_str(),
-            //    wtx.hashBlock.ToString().c_str(),
-            //    wtx.mapValue["message"].c_str());
+            //    DateTimeStrFormat("%Y-%m-%d %H:%M:%S", wtx.GetBlockTime()),
+            //    wtx.hashBlock.ToString(),
+            //    wtx.mapValue["message"]);
         }
         else if (strType == "acentry")
         {
@@ -418,7 +417,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             CKey key;
             CPrivKey pkey;
             uint256 hash = 0;
-            
+
             if (strType == "key")
             {
                 wss.nKeys++;
@@ -428,7 +427,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 ssValue >> wkey;
                 pkey = wkey.vchPrivKey;
             }
-            
+
             // Old wallets store keys as "key" [pubkey] => [privkey]
             // ... which was slow for wallets with lots of keys, because the public key is re-derived from the private key
             // using EC operations as a checksum.
@@ -439,9 +438,9 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 ssValue >> hash;
             }
             catch(...){}
-            
+
             bool fSkipCheck = false;
-            
+
             if (hash != 0)
             {
                 // hash pubkey/privkey to accelerate wallet load
@@ -449,16 +448,16 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 vchKey.reserve(vchPubKey.size() + pkey.size());
                 vchKey.insert(vchKey.end(), vchPubKey.begin(), vchPubKey.end());
                 vchKey.insert(vchKey.end(), pkey.begin(), pkey.end());
-                
+
                 if (Hash(vchKey.begin(), vchKey.end()) != hash)
                 {
                     strErr = "Error reading wallet database: CPubKey/CPrivKey corrupt";
                     return false;
                 }
-                
+
                 fSkipCheck = true;
             }
-            
+
             if (!key.Load(pkey, vchPubKey, fSkipCheck))
             {
                 strErr = "Error reading wallet database: CPrivKey corrupt";
@@ -638,7 +637,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
                 }
             }
             if (!strErr.empty())
-                LogPrintf("%s\n", strErr.c_str());
+                LogPrintf("%s\n", strErr);
         }
         pcursor->close();
     }
@@ -851,10 +850,10 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 #else
                     filesystem::copy_file(pathSrc, pathDest);
 #endif
-                    LogPrintf("copied wallet.dat to %s\n", pathDest.string().c_str());
+                    LogPrintf("copied wallet.dat to %s\n", pathDest.string());
                     return true;
                 } catch(const filesystem::filesystem_error &e) {
-                    LogPrintf("error copying wallet.dat to %s - %s\n", pathDest.string().c_str(), e.what());
+                    LogPrintf("error copying wallet.dat to %s - %s\n", pathDest.string(), e.what());
                     return false;
                 }
             }
@@ -882,10 +881,10 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
     int result = dbenv.dbenv.dbrename(NULL, filename.c_str(), NULL,
                                       newFilename.c_str(), DB_AUTO_COMMIT);
     if (result == 0)
-        LogPrintf("Renamed %s to %s\n", filename.c_str(), newFilename.c_str());
+        LogPrintf("Renamed %s to %s\n", filename, newFilename);
     else
     {
-        LogPrintf("Failed to rename %s to %s\n", filename.c_str(), newFilename.c_str());
+        LogPrintf("Failed to rename %s to %s\n", filename, newFilename);
         return false;
     }
 
@@ -893,10 +892,10 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
     bool allOK = dbenv.Salvage(newFilename, true, salvagedData);
     if (salvagedData.empty())
     {
-        LogPrintf("Salvage(aggressive) found no records in %s.\n", newFilename.c_str());
+        LogPrintf("Salvage(aggressive) found no records in %s.\n", newFilename);
         return false;
     }
-    LogPrintf("Salvage(aggressive) found %"PRIszu" records\n", salvagedData.size());
+    LogPrintf("Salvage(aggressive) found %u records\n", salvagedData.size());
 
     bool fSuccess = allOK;
     Db* pdbCopy = new Db(&dbenv.dbenv, 0);
@@ -908,7 +907,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
                             0);
     if (ret > 0)
     {
-        LogPrintf("Cannot create database file %s\n", filename.c_str());
+        LogPrintf("Cannot create database file %s\n", filename);
         return false;
     }
     CWallet dummyWallet;
@@ -928,7 +927,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
                 continue;
             if (!fReadOK)
             {
-                LogPrintf("WARNING: CWalletDB::Recover skipping %s: %s\n", strType.c_str(), strErr.c_str());
+                LogPrintf("WARNING: CWalletDB::Recover skipping %s: %s\n", strType, strErr);
                 continue;
             }
         }
