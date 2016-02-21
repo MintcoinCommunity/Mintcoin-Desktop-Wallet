@@ -84,7 +84,7 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
         out.push_back(Pair("n", (boost::int64_t)i));
         Object o;
-        ScriptPubKeyToJSON(txout.scriptPubKey, o, false);
+        ScriptPubKeyToJSON(txout.scriptPubKey, o, true);
         out.push_back(Pair("scriptPubKey", o));
         vout.push_back(out);
     }
@@ -780,25 +780,23 @@ Value sendrawtransaction(const Array& params, bool fHelp)
     }
     uint256 hashTx = tx.GetHash();
 
-    bool fHave = false;
     CCoinsViewCache &view = *pcoinsTip;
     CCoins existingCoins;
-    {
-        fHave = view.GetCoins(hashTx, existingCoins);
-        if (!fHave) {
-            // push to local node
-            CValidationState state;
-            if (!AcceptToMemoryPool(mempool, state, tx, false, NULL, !fOverrideFees))
-                throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX rejected"); // TODO: report validation state
+    bool fHaveMempool = mempool.exists(hashTx);
+    bool fHaveChain = view.GetCoins(hashTx, existingCoins) && existingCoins.nHeight < 1000000000;
+    if (!fHaveMempool && !fHaveChain) {
+        // push to local node and sync with wallets
+        CValidationState state;
+        if (AcceptToMemoryPool(mempool, state, tx, false, NULL, !fOverrideFees))
+            SyncWithWallets(hashTx, tx, NULL);
+        else {
+            if(state.IsInvalid())
+                throw JSONRPCError(RPC_TRANSACTION_REJECTED, strprintf("%i: %s", state.GetRejectCode(), state.GetRejectReason()));
+            else
+                throw JSONRPCError(RPC_TRANSACTION_ERROR, state.GetRejectReason());
         }
-    }
-    if (fHave) {
-        if (existingCoins.nHeight < 1000000000)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "transaction already in block chain");
-        // Not in block, but already in the memory pool; will drop
-        // through to re-relay it.
-    } else {
-        SyncWithWallets(hashTx, tx, NULL);
+    } else if (fHaveChain) {
+        throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN, "transaction already in block chain");
     }
     RelayTransaction(tx, hashTx);
 
