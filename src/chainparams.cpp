@@ -10,6 +10,10 @@
 #include "protocol.h"
 #include "util.h"
 
+#include <boost/assign/list_of.hpp>
+
+using namespace boost::assign;
+
 //
 // Main network
 //
@@ -65,9 +69,11 @@ public:
         vSeeds.push_back(CDNSSeedData("mintseed.mintcoinfund.org", "mintseed.mintcoinfund.org"));
         vSeeds.push_back(CDNSSeedData("mintseed.keremhd.name.tr", "mintseed.keremhd.name.tr"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = 51;  // MintCoin: address begin with 'M'
-        base58Prefixes[SCRIPT_ADDRESS] = 8;
-        base58Prefixes[SECRET_KEY] = 128 + base58Prefixes[PUBKEY_ADDRESS];
+        base58Prefixes[PUBKEY_ADDRESS] = list_of(51);  // MintCoin: address begin with 'M'
+        base58Prefixes[SCRIPT_ADDRESS] = list_of(8);
+        base58Prefixes[SECRET_KEY] = list_of((128 + 51));
+        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E);
+        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4);
 
         // Mintcoin:
         nStakeMinAge = 60 * 60 * 24 * 20;  // minimum age for coin age: 20d
@@ -142,9 +148,11 @@ public:
         vSeeds.push_back(CDNSSeedData("bitcoin.petertodd.org", "testnet-seed.bitcoin.petertodd.org"));
         vSeeds.push_back(CDNSSeedData("bluematt.me", "testnet-seed.bluematt.me"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = 111;
-        base58Prefixes[SCRIPT_ADDRESS] = 196;
-        base58Prefixes[SECRET_KEY] = 239;
+        base58Prefixes[PUBKEY_ADDRESS] = list_of(111);
+        base58Prefixes[SCRIPT_ADDRESS] = list_of(196);
+        base58Prefixes[SECRET_KEY]     = list_of(239);
+        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF);
+        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94);
 
         // Mintcoin:
         //bnProofOfStakeLimit; // 0x00000fff PoS base target is fixed in testnet
@@ -182,10 +190,6 @@ public:
         assert(hashGenesisBlock == uint256("0xaf4ac34e7ef10a08fe2ba692eb9a9c08cf7e89fcf352f9ea6f0fd73ba3e5d03c"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
-
-        base58Prefixes[PUBKEY_ADDRESS] = 51;
-        base58Prefixes[SCRIPT_ADDRESS] = 5;
-        base58Prefixes[SECRET_KEY] = 128;
     }
 
     virtual bool RequireRPCPassword() const { return false; }

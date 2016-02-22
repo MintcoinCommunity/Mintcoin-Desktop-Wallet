@@ -46,6 +46,8 @@ public:
         PUBKEY_ADDRESS,
         SCRIPT_ADDRESS,
         SECRET_KEY,
+        EXT_PUBLIC_KEY,
+        EXT_SECRET_KEY,
 
         MAX_BASE58_TYPES
     };
@@ -61,7 +63,7 @@ public:
     const string& DataDir() const { return strDataDir; }
     virtual Network NetworkID() const = 0;
     const vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
-    int Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
+    const std::vector<unsigned char> &Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     int RPCPort() const { return nRPCPort; }
 
@@ -83,7 +85,7 @@ protected:
     CBigNum bnProofOfStakeLimit;
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
-    int base58Prefixes[MAX_BASE58_TYPES];
+    std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
 
     // Mintcoin:
     unsigned int nStakeMinAge;
