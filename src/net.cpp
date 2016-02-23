@@ -1248,6 +1248,7 @@ static const char *strDNSSeed[][2] = {
     {"seed.mintcoinofficial.com", "seed.mintcoinofficial.com"},
     {"mintseed.mintcoinfund.org", "mintseed.mintcoinfund.org"},
     {"mintseed.keremhd.name.tr", "mintseed.keremhd.name.tr"},
+    {"mint.seed.fuzzbawls.pw", "mint.seed.fuzzbawls.pw"},
     {"", ""},
 };
 
