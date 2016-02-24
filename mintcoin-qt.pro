@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = MintCoin-Qt
-VERSION = 2.0.0.0
+VERSION = 2.0.1.1
 INCLUDEPATH += src src/json src/qt
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE BOOST_THREAD_PROVIDES_GENERIC_SHARED_MUTEX_ON_WIN __NO_SYSTEM_INCLUDES
 CONFIG += no_include_pwd
@@ -127,12 +127,12 @@ contains(USE_LEVELDB, -) {
     DEFINES += HAVE_BUILD_INFO
 }
 
-
+*-g++-32 {
     message("32 platform, adding -msse2 flag")
 
     QMAKE_CXXFLAGS += -msse2
     QMAKE_CFLAGS += -msse2
-
+}
 
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
 
