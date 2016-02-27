@@ -29,6 +29,7 @@ public:
         DisplayUnit,       // BitcoinUnits::Unit
         DisplayAddresses,  // bool
         DetachDatabases,   // bool
+        ThirdPartyTxUrls,       // QString
         Language,          // QString
         CoinControlFeatures, // bool
         ShowShopDonate,    // bool
@@ -53,6 +54,7 @@ public:
     bool getMinimizeOnClose();
     int getDisplayUnit();
     bool getDisplayAddresses();
+    QString getThirdPartyTxUrls() { return strThirdPartyTxUrls; }
     bool getCoinControlFeatures();
     bool getShowShopDonate();
     bool getShowOverviewNews();
@@ -66,6 +68,7 @@ public:
 
 private:
     int nDisplayUnit;
+    QString strThirdPartyTxUrls;
     bool bDisplayAddresses;
     bool fMinimizeToTray;
     bool fMinimizeOnClose;
