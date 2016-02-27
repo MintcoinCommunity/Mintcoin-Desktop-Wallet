@@ -5,7 +5,6 @@
 
 #include "script.h"
 
-#include "bignum.h"
 #include "core.h"
 #include "hash.h"
 #include "key.h"
@@ -24,21 +23,12 @@ using namespace boost;
 static const valtype vchFalse(0);
 static const valtype vchZero(0);
 static const valtype vchTrue(1, 1);
-static const CBigNum bnZero(0);
-static const CBigNum bnOne(1);
-static const CBigNum bnFalse(0);
-static const CBigNum bnTrue(1);
-static const size_t nMaxNumSize = 4;
+static const CScriptNum bnZero(0);
+static const CScriptNum bnOne(1);
+static const CScriptNum bnFalse(0);
+static const CScriptNum bnTrue(1);
 
 bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubKey, const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType, int flags);
-
-CBigNum CastToBigNum(const valtype& vch)
-{
-    if (vch.size() > nMaxNumSize)
-        throw runtime_error("CastToBigNum() : overflow");
-    // Get rid of extra leading zeros
-    return CBigNum(CBigNum(vch).getvch());
-}
 
 bool CastToBool(const valtype& vch)
 {
@@ -217,14 +207,13 @@ const char* GetOpName(opcodetype opcode)
     case OP_NOP9                   : return "OP_NOP9";
     case OP_NOP10                  : return "OP_NOP10";
 
-
-
-    // template matching params
-    case OP_PUBKEYHASH             : return "OP_PUBKEYHASH";
-    case OP_PUBKEY                 : return "OP_PUBKEY";
-    case OP_SMALLDATA              : return "OP_SMALLDATA";
-
     case OP_INVALIDOPCODE          : return "OP_INVALIDOPCODE";
+
+    // Note:
+    //  The template matching params OP_SMALLDATA/etc are defined in opcodetype enum
+    //  as kind of implementation hack, they are *NOT* real opcodes.  If found in real
+    //  Script, just let the default: case deal with them.
+
     default:
         return "OP_UNKNOWN";
     }
@@ -308,7 +297,6 @@ bool IsCanonicalSignature(const valtype &vchSig, unsigned int flags) {
 
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType)
 {
-    CAutoBN_CTX pctx;
     CScript::const_iterator pc = script.begin();
     CScript::const_iterator pend = script.end();
     CScript::const_iterator pbegincodehash = script.begin();
@@ -333,6 +321,8 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                 return false;
             if (vchPushValue.size() > MAX_SCRIPT_ELEMENT_SIZE)
                 return false;
+
+            // Note how OP_RESERVED does not count towards the opcode limit.
             if (opcode > OP_16 && ++nOpCount > 201)
                 return false;
 
@@ -380,7 +370,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                 case OP_16:
                 {
                     // ( -- value)
-                    CBigNum bn((int)opcode - (int)(OP_1 - 1));
+                    CScriptNum bn((int)opcode - (int)(OP_1 - 1));
                     stack.push_back(bn.getvch());
                 }
                 break;
@@ -556,7 +546,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                 case OP_DEPTH:
                 {
                     // -- stacksize
-                    CBigNum bn(stack.size());
+                    CScriptNum bn(stack.size());
                     stack.push_back(bn.getvch());
                 }
                 break;
@@ -606,7 +596,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     // (xn ... x2 x1 x0 n - ... x2 x1 x0 xn)
                     if (stack.size() < 2)
                         return false;
-                    int n = CastToBigNum(stacktop(-1)).getint();
+                    int n = CScriptNum(stacktop(-1)).getint();
                     popstack(stack);
                     if (n < 0 || n >= (int)stack.size())
                         return false;
@@ -654,7 +644,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     // (in -- in size)
                     if (stack.size() < 1)
                         return false;
-                    CBigNum bn(stacktop(-1).size());
+                    CScriptNum bn(stacktop(-1).size());
                     stack.push_back(bn.getvch());
                 }
                 break;
@@ -705,7 +695,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     // (in -- out)
                     if (stack.size() < 1)
                         return false;
-                    CBigNum bn = CastToBigNum(stacktop(-1));
+                    CScriptNum bn(stacktop(-1));
                     switch (opcode)
                     {
                     case OP_1ADD:       bn += bnOne; break;
@@ -738,9 +728,9 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     // (x1 x2 -- out)
                     if (stack.size() < 2)
                         return false;
-                    CBigNum bn1 = CastToBigNum(stacktop(-2));
-                    CBigNum bn2 = CastToBigNum(stacktop(-1));
-                    CBigNum bn;
+                    CScriptNum bn1(stacktop(-2));
+                    CScriptNum bn2(stacktop(-1));
+                    CScriptNum bn(0);
                     switch (opcode)
                     {
                     case OP_ADD:
@@ -783,9 +773,9 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     // (x min max -- out)
                     if (stack.size() < 3)
                         return false;
-                    CBigNum bn1 = CastToBigNum(stacktop(-3));
-                    CBigNum bn2 = CastToBigNum(stacktop(-2));
-                    CBigNum bn3 = CastToBigNum(stacktop(-1));
+                    CScriptNum bn1(stacktop(-3));
+                    CScriptNum bn2(stacktop(-2));
+                    CScriptNum bn3(stacktop(-1));
                     bool fValue = (bn2 <= bn1 && bn1 < bn3);
                     popstack(stack);
                     popstack(stack);
@@ -882,7 +872,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     if ((int)stack.size() < i)
                         return false;
 
-                    int nKeysCount = CastToBigNum(stacktop(-i)).getint();
+                    int nKeysCount = CScriptNum(stacktop(-i)).getint();
                     if (nKeysCount < 0 || nKeysCount > 20)
                         return false;
                     nOpCount += nKeysCount;
@@ -893,7 +883,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     if ((int)stack.size() < i)
                         return false;
 
-                    int nSigsCount = CastToBigNum(stacktop(-i)).getint();
+                    int nSigsCount = CScriptNum(stacktop(-i)).getint();
                     if (nSigsCount < 0 || nSigsCount > nKeysCount)
                         return false;
                     int isig = ++i;
@@ -989,62 +979,120 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
 
 
 
+namespace {
+/** Wrapper that serializes like CTransaction, but with the modifications
+ *  required for the signature hash done in-place
+ */
+class CTransactionSignatureSerializer {
+private:
+    const CTransaction &txTo;  // reference to the spending transaction (the one being serialized)
+    const CScript &scriptCode; // output script being consumed
+    const unsigned int nIn;    // input index of txTo being signed
+    const bool fAnyoneCanPay;  // whether the hashtype has the SIGHASH_ANYONECANPAY flag set
+    const bool fHashSingle;    // whether the hashtype is SIGHASH_SINGLE
+    const bool fHashNone;      // whether the hashtype is SIGHASH_NONE
 
+public:
+    CTransactionSignatureSerializer(const CTransaction &txToIn, const CScript &scriptCodeIn, unsigned int nInIn, int nHashTypeIn) :
+        txTo(txToIn), scriptCode(scriptCodeIn), nIn(nInIn),
+        fAnyoneCanPay(!!(nHashTypeIn & SIGHASH_ANYONECANPAY)),
+        fHashSingle((nHashTypeIn & 0x1f) == SIGHASH_SINGLE),
+        fHashNone((nHashTypeIn & 0x1f) == SIGHASH_NONE) {}
 
-uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
+    /** Serialize the passed scriptCode, skipping OP_CODESEPARATORs */
+    template<typename S>
+    void SerializeScriptCode(S &s, int nType, int nVersion) const {
+        CScript::const_iterator it = scriptCode.begin();
+        CScript::const_iterator itBegin = it;
+        opcodetype opcode;
+        unsigned int nCodeSeparators = 0;
+        while (scriptCode.GetOp(it, opcode)) {
+            if (opcode == OP_CODESEPARATOR)
+                nCodeSeparators++;
+        }
+        ::WriteCompactSize(s, scriptCode.size() - nCodeSeparators);
+        it = itBegin;
+        while (scriptCode.GetOp(it, opcode)) {
+            if (opcode == OP_CODESEPARATOR) {
+                s.write((char*)&itBegin[0], it-itBegin-1);
+                itBegin = it;
+            }
+        }
+        s.write((char*)&itBegin[0], it-itBegin);
+    }
+
+    /** Serialize an input of txTo */
+    template<typename S>
+    void SerializeInput(S &s, unsigned int nInput, int nType, int nVersion) const {
+        // In case of SIGHASH_ANYONECANPAY, only the input being signed is serialized
+        if (fAnyoneCanPay)
+            nInput = nIn;
+        // Serialize the prevout
+        ::Serialize(s, txTo.vin[nInput].prevout, nType, nVersion);
+        // Serialize the script
+        if (nInput != nIn)
+            // Blank out other inputs' signatures
+            ::Serialize(s, CScript(), nType, nVersion);
+        else
+            SerializeScriptCode(s, nType, nVersion);
+        // Serialize the nSequence
+        if (nInput != nIn && (fHashSingle || fHashNone))
+            // let the others update at will
+            ::Serialize(s, (int)0, nType, nVersion);
+        else
+            ::Serialize(s, txTo.vin[nInput].nSequence, nType, nVersion);
+    }
+
+    /** Serialize an output of txTo */
+    template<typename S>
+    void SerializeOutput(S &s, unsigned int nOutput, int nType, int nVersion) const {
+        if (fHashSingle && nOutput != nIn)
+            // Do not lock-in the txout payee at other indices as txin
+            ::Serialize(s, CTxOut(), nType, nVersion);
+        else
+            ::Serialize(s, txTo.vout[nOutput], nType, nVersion);
+    }
+
+    /** Serialize txTo */
+    template<typename S>
+    void Serialize(S &s, int nType, int nVersion) const {
+        // Serialize nVersion
+        ::Serialize(s, txTo.nVersion, nType, nVersion);
+        // MintCoin: Serialize nTime
+        ::Serialize(s,txTo.nTime, nType, nVersion);
+        // Serialize vin
+        unsigned int nInputs = fAnyoneCanPay ? 1 : txTo.vin.size();
+        ::WriteCompactSize(s, nInputs);
+        for (unsigned int nInput = 0; nInput < nInputs; nInput++)
+             SerializeInput(s, nInput, nType, nVersion);
+        // Serialize vout
+        unsigned int nOutputs = fHashNone ? 0 : (fHashSingle ? nIn+1 : txTo.vout.size());
+        ::WriteCompactSize(s, nOutputs);
+        for (unsigned int nOutput = 0; nOutput < nOutputs; nOutput++)
+             SerializeOutput(s, nOutput, nType, nVersion);
+        // Serialie nLockTime
+        ::Serialize(s, txTo.nLockTime, nType, nVersion);
+    }
+};
+}
+
+uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
-    if (nIn >= txTo.vin.size())
-    {
+    if (nIn >= txTo.vin.size()) {
         LogPrintf("ERROR: SignatureHash() : nIn=%d out of range\n", nIn);
         return 1;
     }
-    CTransaction txTmp(txTo);
 
-    // In case concatenating two scripts ends up with two codeseparators,
-    // or an extra one at the end, this prevents all those possible incompatibilities.
-    scriptCode.FindAndDelete(CScript(OP_CODESEPARATOR));
-
-    // Blank out other inputs' signatures
-    for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-        txTmp.vin[i].scriptSig = CScript();
-    txTmp.vin[nIn].scriptSig = scriptCode;
-
-    // Blank out some of the outputs
-    if ((nHashType & 0x1f) == SIGHASH_NONE)
-    {
-        // Wildcard payee
-        txTmp.vout.clear();
-
-        // Let the others update at will
-        for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-            if (i != nIn)
-                txTmp.vin[i].nSequence = 0;
-    }
-    else if ((nHashType & 0x1f) == SIGHASH_SINGLE)
-    {
-        // Only lock-in the txout payee at same index as txin
-        unsigned int nOut = nIn;
-        if (nOut >= txTmp.vout.size())
-        {
-            LogPrintf("ERROR: SignatureHash() : nOut=%d out of range\n", nOut);
+    // Check for invalid use of SIGHASH_SINGLE
+    if ((nHashType & 0x1f) == SIGHASH_SINGLE) {
+        if (nIn >= txTo.vout.size()) {
+            LogPrintf("ERROR: SignatureHash() : nOut=%d out of range\n", nIn);
             return 1;
         }
-        txTmp.vout.resize(nOut+1);
-        for (unsigned int i = 0; i < nOut; i++)
-            txTmp.vout[i].SetNull();
-
-        // Let the others update at will
-        for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-            if (i != nIn)
-                txTmp.vin[i].nSequence = 0;
     }
 
-    // Blank out other inputs completely, not recommended for open transactions
-    if (nHashType & SIGHASH_ANYONECANPAY)
-    {
-        txTmp.vin[0] = txTmp.vin[nIn];
-        txTmp.vin.resize(1);
-    }
+    // Wrapper to serialize only the necessary parts of the transaction being signed
+    CTransactionSignatureSerializer txTmp(txTo, scriptCode, nIn, nHashType);
 
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
