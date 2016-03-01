@@ -2,39 +2,49 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-DEPSDIR:=/usr/i586-mingw32msvc
-
-USE_UPNP:=0
-USE_IPV6:=1
-USE_LEVELDB:=1
+DEPSDIR:=/mnt/mxe/usr/$(TARGET_PLATFORM)-w64-mingw32.static
+HOST:=$(TARGET_PLATFORM)-w64-mingw32
+INCDIR:=$(DEPSDIR)/include
+LIBDIR:=$(DEPSDIR)/lib
+AR:=$(TARGET_PLATFORM)-w64-mingw32.static-ar
+CC:=$(TARGET_PLATFORM)-w64-mingw32.static-gcc
+CXX:=$(TARGET_PLATFORM)-w64-mingw32.static-g++
+RANLIB=$(TARGET_PLATFORM)-w64-mingw32.static-ranlib
+STRIP=$(TARGET_PLATFORM)-w64-mingw32.static-strip
 
 INCLUDEPATHS= \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj \
- -I"$(DEPSDIR)/boost_1_50_0" \
- -I"$(DEPSDIR)/db-4.8.30.NC/build_unix" \
- -I"$(DEPSDIR)/openssl-1.0.1h/include" \
- -I"$(DEPSDIR)"
+ -I"$(INCDIR)/boost" \
+ -I"$(INCDIR)/openssl/include" \
+ -I"$(INCDIR)"
 
 LIBPATHS= \
- -L"$(DEPSDIR)/boost_1_50_0/stage/lib" \
- -L"$(DEPSDIR)/db-4.8.30.NC/build_unix" \
- -L"$(DEPSDIR)/openssl-1.0.1h"
+ -L"$(LIBDIR)"
 
 LIBS= \
- -l boost_system-mt-s \
- -l boost_filesystem-mt-s \
- -l boost_program_options-mt-s \
- -l boost_thread_win32-mt-s \
- -l boost_chrono-mt-s \
+ -static-libgcc \
+ -static-libstdc++ \
+ -l boost_system-mt \
+ -l boost_filesystem-mt \
+ -l boost_program_options-mt \
+ -l boost_thread_win32-mt \
+ -l boost_chrono-mt \
  -l db_cxx \
  -l ssl \
- -l crypto
+ -l crypto \
+ -l z
 
-DEFS=-D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -DBOOST_SPIRIT_THREADSAFE
+DEFS=-D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -DBOOST_SPIRIT_THREADSAFE -DCURL_STATICLIB -DMINIUPNP_STATICLIB
 DEBUGFLAGS=-g
-CFLAGS=-O2 -msse2 -w -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
-LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat
+xCXXFLAGS=-O2 -w -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS) $(CXXFLAGS)
+# enable: ASLR, DEP and large address aware
+# nubit: large address only on 32 bits
+ifeq ($(HOST),i686-w64-mingw32)
+xLDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat -Wl,--large-address-aware $(LDFLAGS)
+else
+xLDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat $(LDFLAGS)
+endif
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
@@ -91,20 +101,13 @@ OBJS= \
 
 all: mintcoind.exe
 
-#
-# LevelDB support
-#
-ifeq (${USE_LEVELDB}, 1)
-LIBS += $(CURDIR)/leveldb/libleveldb.lib $(CURDIR)/leveldb/libmemenv.lib
+LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
 DEFS += -I"$(CURDIR)/leveldb/include" -DUSE_LEVELDB
 DEFS += -I"$(CURDIR)/leveldb/helpers"
 OBJS += obj/txdb-leveldb.o
-leveldb/libleveldb.lib:
-	@echo "Building LevelDB ..."; cd leveldb; TARGET_OS=OS_WINDOWS_CROSSCOMPILE make; cd ..
-obj/txdb-leveldb.o: leveldb/libleveldb.lib
-else
-OBJS += obj/txdb-bdb.o
-endif
+leveldb/libleveldb.a:
+	@echo "Building LevelDB ..." && cd leveldb && CC=$(CC) CXX=$(CXX) TARGET_OS=OS_WINDOWS_CROSSCOMPILE OPT="$(xCXXFLAGS)" $(MAKE) libleveldb.a libmemenv.a && $(RANLIB) libleveldb.a && $(RANLIB) libmemenv.a && cd ..
+obj/txdb-leveldb.o: leveldb/libleveldb.a
 
 obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h
@@ -112,24 +115,25 @@ version.cpp: obj/build.h
 DEFS += -DHAVE_BUILD_INFO
 
 obj/%.o: %.cpp $(HEADERS)
-	i586-mingw32msvc-g++ -c $(CFLAGS) -o $@ $<
+	$(CXX) -c $(xCXXFLAGS) -o $@ $<
 
 mintcoind.exe: $(OBJS:obj/%=obj/%)
-	i586-mingw32msvc-g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
+	$(CXX) $(xCXXFLAGS) $(xLDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS) -lshlwapi
+	$(STRIP) mintcoind.exe
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 
 obj-test/%.o: test/%.cpp $(HEADERS)
-	i586-mingw32msvc-g++ -c $(TESTDEFS) $(CFLAGS) -o $@ $<
+	$(CXX) -c $(TESTDEFS) $(xCXXFLAGS) -o $@ $<
 
 test_mintcoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
-	i586-mingw32msvc-g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework-mt-s $(LIBS)
+	$(CXX) $(xCXXFLAGS) $(xLDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework-mt-s $(LIBS)
 
 obj/scrypt-x86.o: scrypt-x86.S
-	i586-mingw32msvc-g++ -c $(CFLAGS) -MMD -o $@ $<
+	$(CXX) -c $(xCXXFLAGS) -MMD -o $@ $<
 
 obj/scrypt-x86_64.o: scrypt-x86_64.S
-	i586-mingw32msvc-g++ -c $(CFLAGS) -MMD -o $@ $<
+	$(CXX) -c $(xCXXFLAGS) -MMD -o $@ $<
 
 clean:
 	-rm -f obj/*.o
@@ -137,5 +141,6 @@ clean:
 	-rm -f obj-test/*.o
 	-rm -f test_mintcoin.exe
 	-rm -f obj/build.h
+	cd leveldb && TARGET_OS=OS_WINDOWS_CROSSCOMPILE $(MAKE) clean && cd ..
 
 FORCE:
