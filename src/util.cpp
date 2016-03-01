@@ -14,6 +14,8 @@
 
 #include <stdarg.h>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #ifndef WIN32
 // for posix_fallocate
 #ifdef __linux_
@@ -1400,7 +1402,7 @@ void runCommand(std::string strCommand)
 {
     int nErr = ::system(strCommand.c_str());
     if (nErr)
-        LogPrintf("runCommand error: system(%s) returned %d\n", strCommand.c_str(), nErr);
+        LogPrintf("runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }
 
 void RenameThread(const char* name)
@@ -1441,3 +1443,12 @@ bool ParseInt32(const std::string& str, int32_t *out)
         n <= std::numeric_limits<int32_t>::max();
 }
 
+std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime)
+{
+    // std::locale takes ownership of the pointer
+    std::locale loc(std::locale::classic(), new boost::posix_time::time_facet(pszFormat));
+    std::stringstream ss;
+    ss.imbue(loc);
+    ss << boost::posix_time::from_time_t(nTime);
+    return ss.str();
+}

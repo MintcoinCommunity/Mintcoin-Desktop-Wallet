@@ -183,7 +183,7 @@ bool RecvLine(SOCKET hSocket, string& strLine)
             {
                 // socket error
                 int nErr = WSAGetLastError();
-                LogPrint("net", "recv failed: %d\n", nErr);
+                LogPrint("net", "recv failed: %s\n", NetworkErrorString(nErr));
                 return false;
             }
         }
@@ -348,7 +348,6 @@ bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const cha
     return error("GetMyExternalIP() : connection closed");
 }
 
-// We now get our external IP from the IRC server first and only use this as a backup
 bool GetMyExternalIP(CNetAddr& ipRet)
 {
     CService addrConnect;
@@ -358,13 +357,13 @@ bool GetMyExternalIP(CNetAddr& ipRet)
     for (int nLookup = 0; nLookup <= 1; nLookup++)
     for (int nHost = 1; nHost <= 2; nHost++)
     {
-        // We should be phasing out our use of sites like these.  If we need
+        // We should be phasing out our use of sites like these. If we need
         // replacements, we should ask for volunteers to put this simple
         // php file on their web server that prints the client IP:
         //  <?php echo $_SERVER["REMOTE_ADDR"]; ?>
         if (nHost == 1)
         {
-            addrConnect = CService("91.198.22.70",80); // checkip.dyndns.org
+            addrConnect = CService("91.198.22.70", 80); // checkip.dyndns.org
 
             if (nLookup == 1)
             {
@@ -437,12 +436,10 @@ CCriticalSection CNode::cs_totalBytesSent;
 
 CNode* FindNode(const CNetAddr& ip)
 {
-    {
-        LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes)
-            if ((CNetAddr)pnode->addr == ip)
-                return (pnode);
-    }
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+        if ((CNetAddr)pnode->addr == ip)
+            return (pnode);
     return NULL;
 }
 
@@ -457,12 +454,10 @@ CNode* FindNode(std::string addrName)
 
 CNode* FindNode(const CService& addr)
 {
-    {
-        LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes)
-            if ((CService)pnode->addr == addr)
-                return (pnode);
-    }
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+        if ((CService)pnode->addr == addr)
+            return (pnode);
     return NULL;
 }
 
@@ -484,7 +479,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
 
     /// debug print
     LogPrint("net", "trying connection %s lastseen=%.1fhrs\n",
-        pszDest ? pszDest : addrConnect.ToString().c_str(),
+        pszDest ? pszDest : addrConnect.ToString(),
         pszDest ? 0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
 
     // Connect
@@ -493,16 +488,16 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
     {
         addrman.Attempt(addrConnect);
 
-        LogPrint("net", "connected %s\n", pszDest ? pszDest : addrConnect.ToString().c_str());
+        LogPrint("net", "connected %s\n", pszDest ? pszDest : addrConnect.ToString());
 
         // Set to non-blocking
 #ifdef WIN32
         u_long nOne = 1;
         if (ioctlsocket(hSocket, FIONBIO, &nOne) == SOCKET_ERROR)
-            LogPrintf("ConnectSocket() : ioctlsocket non-blocking setting failed, error %d\n", WSAGetLastError());
+            LogPrintf("ConnectSocket() : ioctlsocket non-blocking setting failed, error %s\n", NetworkErrorString(WSAGetLastError()));
 #else
         if (fcntl(hSocket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
-            LogPrintf("ConnectSocket() : fcntl non-blocking setting failed, error %d\n", errno);
+            LogPrintf("ConnectSocket() : fcntl non-blocking setting failed, error %s\n", NetworkErrorString(errno));
 #endif
 
         // Add node
@@ -528,7 +523,7 @@ void CNode::CloseSocketDisconnect()
     fDisconnect = true;
     if (hSocket != INVALID_SOCKET)
     {
-        LogPrint("net", "disconnecting node %s\n", addrName.c_str());
+        LogPrint("net", "disconnecting node %s\n", addrName);
         closesocket(hSocket);
         hSocket = INVALID_SOCKET;
     }
@@ -557,7 +552,7 @@ void CNode::PushVersion()
     CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr) ? addr : CAddress(CService("0.0.0.0",0)));
     CAddress addrMe = GetLocalAddress(&addr);
     RAND_bytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
-    LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString().c_str(), addrYou.ToString().c_str(), addr.ToString().c_str());
+    LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
                 nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBestHeight, true);
 }
@@ -630,11 +625,11 @@ void CNode::copyStats(CNodeStats &stats)
     if ((0 != nPingNonceSent) && (0 != nPingUsecStart)) {
         nPingUsecWait = GetTimeMicros() - nPingUsecStart;
     }
-    
+
     // Raw ping time is in microseconds, but show it to user as whole seconds (Bitcoin users should be well used to small numbers with many decimal places by now :)
     stats.dPingTime = (((double)nPingUsecTime) / 1e6);
     stats.dPingWait = (((double)nPingUsecWait) / 1e6);
-    
+
     // Leave string empty if addrLocal invalid (not filled in yet)
     stats.addrLocal = addrLocal.IsValid() ? addrLocal.ToString() : "";
 }
@@ -748,7 +743,7 @@ void SocketSendData(CNode *pnode)
                 int nErr = WSAGetLastError();
                 if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR && nErr != WSAEINPROGRESS)
                 {
-                    LogPrintf("socket send error %d\n", nErr);
+                    LogPrintf("socket send error %s\n", NetworkErrorString(nErr));
                     pnode->CloseSocketDisconnect();
                 }
             }
@@ -908,7 +903,7 @@ void ThreadSocketHandler()
             if (have_fds)
             {
                 int nErr = WSAGetLastError();
-                LogPrintf("socket select error %d\n", nErr);
+                LogPrintf("socket select error %s\n", NetworkErrorString(nErr));
                 for (unsigned int i = 0; i <= hSocketMax; i++)
                     FD_SET(i, &fdsetRecv);
             }
@@ -945,7 +940,7 @@ void ThreadSocketHandler()
             {
                 int nErr = WSAGetLastError();
                 if (nErr != WSAEWOULDBLOCK)
-                    LogPrintf("socket error accept failed: %d\n", nErr);
+                    LogPrintf("socket error accept failed: %s\n", NetworkErrorString(nErr));
             }
             else if (nInbound >= nMaxConnections - MAX_OUTBOUND_CONNECTIONS)
             {
@@ -953,12 +948,12 @@ void ThreadSocketHandler()
             }
             else if (CNode::IsBanned(addr))
             {
-                LogPrintf("connection from %s dropped (banned)\n", addr.ToString().c_str());
+                LogPrintf("connection from %s dropped (banned)\n", addr.ToString());
                 closesocket(hSocket);
             }
             else
             {
-                LogPrint("net", "accepted connection %s\n", addr.ToString().c_str());
+                LogPrint("net", "accepted connection %s\n", addr.ToString());
                 CNode* pnode = new CNode(hSocket, addr, "", true);
                 pnode->AddRef();
                 {
@@ -1019,7 +1014,7 @@ void ThreadSocketHandler()
                             if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR && nErr != WSAEINPROGRESS)
                             {
                                 if (!pnode->fDisconnect)
-                                    LogPrintf("socket recv error %d\n", nErr);
+                                    LogPrintf("socket recv error %s\n", NetworkErrorString(nErr));
                                 pnode->CloseSocketDisconnect();
                             }
                         }
@@ -1139,7 +1134,7 @@ void ThreadMapPort()
 
                 if(r!=UPNPCOMMAND_SUCCESS)
                     LogPrintf("AddPortMapping(%s, %s, %s) failed with code %d (%s)\n",
-                        port.c_str(), port.c_str(), lanaddr, r, strupnperror(r));
+                        port, port, lanaddr, r, strupnperror(r));
                 else
                     LogPrintf("UPnP Port Mapping successful.\n");;
 
@@ -1530,9 +1525,9 @@ void ThreadMessageHandler()
         CNode* pnodeTrickle = NULL;
         if (!vNodesCopy.empty())
             pnodeTrickle = vNodesCopy[GetRand(vNodesCopy.size())];
-        
+
         bool fSleep = true;
-        
+
         BOOST_FOREACH(CNode* pnode, vNodesCopy)
         {
             if (pnode->fDisconnect)
@@ -1545,7 +1540,7 @@ void ThreadMessageHandler()
                 {
                     if (!g_signals.ProcessMessages(pnode))
                         pnode->CloseSocketDisconnect();
-                    
+
                     if (pnode->nSendSize < SendBufferSize())
                     {
                         if (!pnode->vRecvGetData.empty() || (!pnode->vRecvMsg.empty() && pnode->vRecvMsg[0].complete()))
@@ -1571,7 +1566,7 @@ void ThreadMessageHandler()
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->Release();
         }
-        
+
         if (fSleep)
             MilliSleep(100);
     }
@@ -1592,16 +1587,16 @@ bool BindListenPort(const CService &addrBind, string& strError)
     socklen_t len = sizeof(sockaddr);
     if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len))
     {
-        strError = strprintf("Error: bind address family for %s not supported", addrBind.ToString().c_str());
-        LogPrintf("%s\n", strError.c_str());
+        strError = strprintf("Error: bind address family for %s not supported", addrBind.ToString());
+        LogPrintf("%s\n", strError);
         return false;
     }
 
     SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
     if (hListenSocket == INVALID_SOCKET)
     {
-        strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %d)", WSAGetLastError());
-        LogPrintf("%s\n", strError.c_str());
+        strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %s)", NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
         return false;
     }
 
@@ -1624,8 +1619,8 @@ bool BindListenPort(const CService &addrBind, string& strError)
     if (fcntl(hListenSocket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
 #endif
     {
-        strError = strprintf("Error: Couldn't set properties on socket for incoming connections (error %d)", WSAGetLastError());
-        LogPrintf("%s\n", strError.c_str());
+        strError = strprintf("Error: Couldn't set properties on socket for incoming connections (error %s)", NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
         return false;
     }
 
@@ -1653,7 +1648,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
         if (nErr == WSAEADDRINUSE)
             strError = strprintf(_("Unable to bind to %s on this computer. MintCoin is probably already running."), addrBind.ToString());
         else
-            strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString(), nErr, strerror(nErr));
+            strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %s)"), addrBind.ToString(), NetworkErrorString(nErr));
         LogPrintf("%s\n", strError);
         return false;
     }
@@ -1662,7 +1657,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
     // Listen for incoming connections
     if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
     {
-        strError = strprintf(_("Error: Listening for incoming connections failed (listen returned error %d)"), WSAGetLastError());
+        strError = strprintf(_("Error: Listening for incoming connections failed (listen returned error %s)"), NetworkErrorString(WSAGetLastError()));
         LogPrintf("%s\n", strError);
         return false;
     }
@@ -1800,7 +1795,7 @@ public:
         BOOST_FOREACH(SOCKET hListenSocket, vhListenSocket)
             if (hListenSocket != INVALID_SOCKET)
                 if (closesocket(hListenSocket) == SOCKET_ERROR)
-                    LogPrintf("closesocket(hListenSocket) failed with error %d\n", WSAGetLastError());
+                    LogPrintf("closesocket(hListenSocket) failed with error %s\n", NetworkErrorString(WSAGetLastError()));
 
         // clean up some globals (to help leak detection)
         BOOST_FOREACH(CNode *pnode, vNodes)
