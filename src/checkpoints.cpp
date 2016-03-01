@@ -39,13 +39,13 @@ namespace Checkpoints
         (1100001, uint256("0x39cce861debcd4dd14c1629f34269b619d8d6270302141b293c25f646b92281d"))
         (1200001, uint256("0xe29429c36625832a7c0330233a25c51a00ada3b6ca0d9aa476ccbce5c284b69b"))
         (1300001, uint256("0xe2df0c7f58de124f00480fb0319a59b0e721572c9cd7d931472099c7c96b8295"))
-	(1400001, uint256("0x91267213817f12204c7a8bd1e4d8640a5ad497ecae1fd79d326aced14fcfe22e"))
-	(1500001, uint256("0xafd5f4f41b8e9b58bb21dbfe4d4d10dee639959a21968438e32ed2ab067c78d6"))
-	(1600001, uint256("0xe1c32c32d82f4ff7337778aaa5f85365567fbde4327f66e0af376a1a43085fd0"))
-	(1700001, uint256("0xbcbfdb0cf0b12ef78b9f9a7868fbd9c84d0c7471d0ff554397cd519fa697c773"))
-	(1800001, uint256("0x6dbdd401986a6a30b7cd4db8cf5c3a2d01f110ca8da506f3c74858f5c8c94e9c"))
-	(1900001, uint256("0x8b0c60c6316eefc09fe3bcc9c30049eda8b238b9502f2980ed1ca11ccd20fb22"))
-	(2000001, uint256("0x2b6fa424dfaab52b6e89bb7312e0197dc322cb1dc536620ab22e93d0fe4cf768"))
+        (1400001, uint256("0x91267213817f12204c7a8bd1e4d8640a5ad497ecae1fd79d326aced14fcfe22e"))
+        (1500001, uint256("0xafd5f4f41b8e9b58bb21dbfe4d4d10dee639959a21968438e32ed2ab067c78d6"))
+        (1600001, uint256("0xe1c32c32d82f4ff7337778aaa5f85365567fbde4327f66e0af376a1a43085fd0"))
+        (1700001, uint256("0xbcbfdb0cf0b12ef78b9f9a7868fbd9c84d0c7471d0ff554397cd519fa697c773"))
+        (1800001, uint256("0x6dbdd401986a6a30b7cd4db8cf5c3a2d01f110ca8da506f3c74858f5c8c94e9c"))
+        (1900001, uint256("0x8b0c60c6316eefc09fe3bcc9c30049eda8b238b9502f2980ed1ca11ccd20fb22"))
+        (2100001, uint256("0x07b3ab4d6bd9d7ae835b320e9371e1bb4258ffbad975ec0422f71a21d1900017"))
 		;
 
     static MapCheckpoints mapCheckpointsTestnet =
@@ -379,16 +379,6 @@ namespace Checkpoints
         const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
         return (nBestHeight >= pindexSync->nHeight + nCoinbaseMaturity ||
                 pindexSync->GetBlockTime() + nStakeMinAge < GetAdjustedTime());
-    }
-
-    // Is the sync-checkpoint too old?
-    bool IsSyncCheckpointTooOld(unsigned int nSeconds)
-    {
-        LOCK(cs_hashSyncCheckpoint);
-        // sync-checkpoint should always be accepted block
-        assert(mapBlockIndex.count(hashSyncCheckpoint));
-        const CBlockIndex* pindexSync = mapBlockIndex[hashSyncCheckpoint];
-        return (pindexSync->GetBlockTime() + nSeconds < GetAdjustedTime());
     }
 }
 
