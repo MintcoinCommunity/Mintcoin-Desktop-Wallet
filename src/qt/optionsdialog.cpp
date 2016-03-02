@@ -79,6 +79,9 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
 #endif
         }
     }
+#if QT_VERSION >= 0x040700
+    ui->thirdPartyTxUrls->setPlaceholderText("https://example.com/tx/%s");
+#endif
 
     ui->unit->setModel(new BitcoinUnits(this));
 
@@ -122,6 +125,7 @@ void OptionsDialog::setModel(OptionsModel *model)
 
     /* warn only when language selection changes by user action (placed here so init via mapper doesn't trigger this) */
     connect(ui->lang, SIGNAL(valueChanged()), this, SLOT(showRestartWarning_Lang()));
+    connect(ui->thirdPartyTxUrls, SIGNAL(textChanged(const QString &)), this, SLOT(showRestartWarning_TxUrls()));
 
     /* disable apply button after settings are loaded as there is nothing to save */
     disableApplyButton();
@@ -156,6 +160,7 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->showShopDonate, OptionsModel::ShowShopDonate);
     mapper->addMapping(ui->showOverviewNews, OptionsModel::ShowOverviewNews);
     mapper->addMapping(ui->passwordOnSend,OptionsModel::PasswordOnSend);
+    mapper->addMapping(ui->thirdPartyTxUrls, OptionsModel::ThirdPartyTxUrls);
 }
 
 void OptionsDialog::enableApplyButton()
@@ -218,6 +223,15 @@ void OptionsDialog::showRestartWarning_Lang()
     {
         QMessageBox::warning(this, tr("Warning"), tr("This setting will take effect after restarting MintCoin."), QMessageBox::Ok);
         fRestartWarningDisplayed_Lang = true;
+    }
+}
+
+void OptionsDialog::showRestartWarning_TxUrls()
+{
+    if(!fRestartWarningDisplayed_TxUrls)
+    {
+        QMessageBox::warning(this, tr("Warning"), tr("This setting will take effect after restarting MintCoin."), QMessageBox::Ok);
+        fRestartWarningDisplayed_TxUrls = true;
     }
 }
 

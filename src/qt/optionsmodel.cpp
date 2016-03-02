@@ -52,6 +52,7 @@ void OptionsModel::Init()
     bShowOverviewNews = settings.value("bShowOverviewNews", true).toBool();
     sRecurringSendEntries = settings.value("sRecurringSendEntries","").toString();
     bPasswordOnSend = settings.value("bPasswordOnSend", false).toBool();
+    strThirdPartyTxUrls = settings.value("strThirdPartyTxUrls", "").toString();
 
 
     // These are shared with core Bitcoin; we want
@@ -174,6 +175,8 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return QVariant(bDisplayAddresses);
         case DetachDatabases:
             return QVariant(bitdb.GetDetach());
+        case ThirdPartyTxUrls:
+        	return strThirdPartyTxUrls;
         case Language:
             return settings.value("language", "");
         case CoinControlFeatures:
@@ -271,6 +274,12 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             bitdb.SetDetach(fDetachDB);
             settings.setValue("detachDB", fDetachDB);
             }
+            break;
+        case ThirdPartyTxUrls:
+	    if (strThirdPartyTxUrls != value.toString()) {
+	    	strThirdPartyTxUrls = value.toString();
+		settings.setValue("strThirdPartyTxUrls", strThirdPartyTxUrls);
+	    }
             break;
         case Language:
             settings.setValue("language", value);
