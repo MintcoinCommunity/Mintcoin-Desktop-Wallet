@@ -230,7 +230,7 @@ void OptionsDialog::showRestartWarning_TxUrls()
 {
     if(!fRestartWarningDisplayed_TxUrls)
     {
-        QMessageBox::warning(this, tr("Warning"), tr("This setting will take effect after restarting LiteDoge."), QMessageBox::Ok);
+        QMessageBox::warning(this, tr("Warning"), tr("This setting will take effect after restarting MintCoin."), QMessageBox::Ok);
         fRestartWarningDisplayed_TxUrls = true;
     }
 }
