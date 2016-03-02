@@ -1,5 +1,5 @@
-Bitcoin-qt: Qt4 GUI for Bitcoin
-===============================
+MintCoin-Qt: Qt5 GUI for MintCoin
+=================================
 
 Build instructions
 ===================
@@ -7,22 +7,16 @@ Build instructions
 Debian
 -------
 
-First, make sure that the required packages for Qt4 development of your
+First, make sure that the required packages for Qt5 development of your
 distribution are installed.
 
-On recent Ubuntu releases, the `libdb4.8++-dev` package is not in the default
-repositories. However it's in the bitcoin repository, which we can add
-with:
-
-    apt-add-repository ppa:bitcoin/bitcoin
-
-Then we need to make sure our build environment is up to date. For Debian and Ubuntu:
+We need to make sure our build environment is up to date. For Debian and Ubuntu:
 
 ::
 
-    apt-get install qt4-qmake libqt4-dev build-essential libboost-dev libboost-system-dev \
+    apt-get install qt5-qmake libqt5-dev build-essential libboost-dev libboost-system-dev \
         libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev \
-        libssl-dev libdb4.8++-dev libminiupnpc-dev libminiupnpc8
+        libssl-dev libdb5.3++-dev libminiupnpc-dev libminiupnpc8
 
 then execute the following:
 
@@ -31,9 +25,9 @@ then execute the following:
     qmake
     make
 
-Alternatively, install Qt Creator and open the `bitcoin-qt.pro` file.
+Alternatively, install Qt Creator and open the `mintcoin-qt.pro` file.
 
-An executable named `bitcoin-qt` will be built.
+An executable named `mintcoin-qt` will be built.
 
 
 Windows
@@ -67,7 +61,7 @@ Mac OS X
 ::
 
 	sudo port selfupdate
-	sudo port install boost db48 miniupnpc
+	sudo port install boost db53 miniupnpc
 
 - Open the .pro file in Qt Creator and build as normal (cmd-B)
 
@@ -120,7 +114,7 @@ It can be downloaded from http://fukuchi.org/works/qrencode/index.html.en, or in
 flag to qmake to control this:
 
 +--------------+--------------------------------------------------------------------------+
-| USE_QRCODE=0 | (the default) No QRCode support - libarcode not required                 |
+| USE_QRCODE=0 | (the default) No QRCode support - libqrcode not required                 |
 +--------------+--------------------------------------------------------------------------+
 | USE_QRCODE=1 | QRCode support enabled                                                   |
 +--------------+--------------------------------------------------------------------------+
@@ -131,14 +125,7 @@ Berkely DB version warning
 
 A warning for people using the *static binary* version of Bitcoin on a Linux/UNIX-ish system (tl;dr: **Berkely DB databases are not forward compatible**).
 
-The static binary version of Bitcoin is linked against libdb4.8 (see also `this Debian issue`_).
-
-Now the nasty thing is that databases from 5.X are not compatible with 4.X.
-
-If the globally installed development package of Berkely DB installed on your system is 5.X, any source you
-build yourself will be linked against that. The first time you run with a 5.X version the database will be upgraded,
-and 4.X cannot open the new format. This means that you cannot go back to the old statically linked version without
-significant hassle!
+The static binary version of MintCoin is linked against libdb5.3 (see also `this Debian issue`_).
 
 .. _`this Debian issue`: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=621425
 

@@ -1,10 +1,10 @@
 
-Copyright (c) 2013-2014 MintCoin Developers
+Copyright (c) 2013-2016 MintCoin Developers
 
 
-MintCoin 0.3.0 BETA
+MintCoin 2.0.2
 
-Copyright (c) 2013-2014 MintCoin Developers
+Copyright (c) 2013-2016 MintCoin Developers
 Copyright (c) 2013 NovaCoin Developers
 Copyright (c) 2011-2012 Bitcoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
@@ -47,6 +47,6 @@ Start up the new mintcoind.
 
 
 See the documentation/wiki at the MintCoin site:
-  http://mintcoin.cc/
+  http://www.mintcoinofficial.com/
 for help and more information.
 
