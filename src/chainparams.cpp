@@ -35,7 +35,7 @@ public:
         vAlertPubKey = ParseHex("0447776d261ff286dc0a72b63365f1575bd9632e0ded31c58023dd5b00e8d7c1d890c914bfab3451a6d6924137f8e9dd7f1fa5e64172ee172183fd85c84a2b892f");
         nDefaultPort = 12788;
         nRPCPort = 12789;
-        bnProofOfWorkLimit = bnProofOfStakeLimit = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit = bnProofOfStakeLimit = ~uint256(0) >> 20;
 
 
         // Build the genesis block. Note that the output of the genesis coinbase cannot
@@ -180,7 +180,7 @@ public:
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
-        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit = ~uint256(0) >> 1;
         //genesis.nTime = 1296688602;
         //genesis.nBits = 0x207fffff;
         //genesis.nNonce = 2;

@@ -29,7 +29,6 @@ BITCOIN_CORE_H = \
   alert.h \
   allocators.h \
   base58.h \
-  bignum.h \
   bloom.h \
   chainparams.h \
   checkpoints.h \

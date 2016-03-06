@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-class CBigNum;
 class CCoins;
 class uint256;
 
@@ -52,7 +51,6 @@ private:
     void operator=(const CBlockTreeDB&);
 public:
     bool WriteBlockIndex(const CDiskBlockIndex& blockindex);
-    bool WriteBestInvalidTrust(const CBigNum& bnBestInvalidWork);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
     bool WriteBlockFileInfo(int nFile, const CBlockFileInfo &fileinfo);
     bool ReadLastBlockFile(int &nFile);
@@ -71,4 +69,4 @@ public:
     bool LoadBlockIndexGuts();
 };
 
-#endif  // BITCOIN_TXDB_H
+#endif // BITCOIN_TXDB_LEVELDB_H
