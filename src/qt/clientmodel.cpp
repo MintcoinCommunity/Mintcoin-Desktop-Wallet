@@ -167,15 +167,6 @@ double ClientModel::GetDifficulty() const
     return dDiff;
 }
 
-
-QString ClientModel::getNetworkName() const
-{
-    QString netname(QString::fromStdString(Params().DataDir()));
-    if(netname.isEmpty())
-        netname = "main";
-    return netname;
-}
-
 bool ClientModel::inInitialBlockDownload() const
 {
     return IsInitialBlockDownload();

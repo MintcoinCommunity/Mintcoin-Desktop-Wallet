@@ -64,6 +64,8 @@ public:
     const vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
     const std::vector<unsigned char> &Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     virtual const vector<CAddress>& FixedSeeds() const = 0;
+    /* Return the BIP70 network string (main, test or regtest) */
+    std::string NetworkIDString() const { return strNetworkID; }
     int RPCPort() const { return nRPCPort; }
 
     unsigned int StakeMinAge() const { return nStakeMinAge; }
@@ -85,6 +87,7 @@ protected:
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+    std::string strNetworkID;
 
     // Mintcoin:
     unsigned int nStakeMinAge;
