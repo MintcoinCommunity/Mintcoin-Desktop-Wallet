@@ -43,19 +43,14 @@ static const int MAX_OUTBOUND_CONNECTIONS = 12;
 
 
 
-struct LocalServiceInfo {
-    int nScore;
-    int nPort;
-};
-
 //
 // Global state variables
 //
 bool fDiscover = true;
 bool fListen = true;
 uint64_t nLocalServices = NODE_NETWORK;
-static CCriticalSection cs_mapLocalHost;
-static map<CNetAddr, LocalServiceInfo> mapLocalHost;
+CCriticalSection cs_mapLocalHost;
+map<CNetAddr, LocalServiceInfo> mapLocalHost;
 static bool vfReachable[NET_MAX] = {};
 static bool vfLimited[NET_MAX] = {};
 static CNode* pnodeLocalHost = NULL;
@@ -295,12 +290,18 @@ bool IsLocal(const CService& addr)
     return mapLocalHost.count(addr) > 0;
 }
 
+/** check whether a given network is one we can probably connect to */
+bool IsReachable(enum Network net)
+{
+    LOCK(cs_mapLocalHost);
+    return vfReachable[net] && !vfLimited[net];
+}
+
 /** check whether a given address is in a network we can probably connect to */
 bool IsReachable(const CNetAddr& addr)
 {
-    LOCK(cs_mapLocalHost);
     enum Network net = addr.GetNetwork();
-    return vfReachable[net] && !vfLimited[net];
+    return IsReachable(net);
 }
 
 bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const char* pszKeyword, CNetAddr& ipRet)
@@ -489,8 +490,6 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
     {
         addrman.Attempt(addrConnect);
 
-        LogPrint("net", "connected %s\n", pszDest ? pszDest : addrConnect.ToString());
-
         // Set to non-blocking
 #ifdef WIN32
         u_long nOne = 1;
@@ -511,6 +510,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
         }
 
         pnode->nTimeConnected = GetTime();
+
         return pnode;
     }
     else
@@ -524,7 +524,7 @@ void CNode::CloseSocketDisconnect()
     fDisconnect = true;
     if (hSocket != INVALID_SOCKET)
     {
-        LogPrint("net", "disconnecting node %s\n", addrName);
+        LogPrint("net", "disconnecting peer=%d\n", id);
         closesocket(hSocket);
         hSocket = INVALID_SOCKET;
     }
@@ -553,7 +553,10 @@ void CNode::PushVersion()
     CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr) ? addr : CAddress(CService("0.0.0.0",0)));
     CAddress addrMe = GetLocalAddress(&addr);
     RAND_bytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
-    LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
+    if (fLogIPs)
+        LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%d\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), id);
+    else
+        LogPrint("net", "send version message: version %d, blocks=%d, us=%s, peer=%d\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), id);
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
                 nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBestHeight, true);
 }
@@ -954,7 +957,6 @@ void ThreadSocketHandler()
             }
             else
             {
-                LogPrint("net", "accepted connection %s\n", addr.ToString());
                 CNode* pnode = new CNode(hSocket, addr, "", true);
                 pnode->AddRef();
                 {
@@ -1044,7 +1046,7 @@ void ThreadSocketHandler()
             {
                 if (pnode->nLastRecv == 0 || pnode->nLastSend == 0)
                 {
-                    LogPrint("net", "socket no message in first 60 seconds, %d %d\n", pnode->nLastRecv != 0, pnode->nLastSend != 0);
+                    LogPrint("net", "socket no message in first 60 seconds, %d %d from %d\n", pnode->nLastRecv != 0, pnode->nLastSend != 0, pnode->id);
                     pnode->fDisconnect = true;
                 }
                 else if (GetTime() - pnode->nLastSend > 90*60 && GetTime() - pnode->nLastSendEmpty > 90*60)

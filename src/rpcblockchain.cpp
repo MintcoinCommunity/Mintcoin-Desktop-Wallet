@@ -3,8 +3,9 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "rpcserver.h"
+#include "checkpoints.h"
 #include "main.h"
+#include "rpcserver.h"
 #include "sync.h"
 
 #include <stdint.h>
@@ -85,8 +86,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
-    result.push_back(Pair("time", (boost::int64_t)block.GetBlockTime()));
-    result.push_back(Pair("nonce", (boost::uint64_t)block.nNonce));
+    result.push_back(Pair("time", block.GetBlockTime()));
+    result.push_back(Pair("nonce", (uint64_t)block.nNonce));
     result.push_back(Pair("bits", HexBits(block.nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
 
@@ -224,7 +225,7 @@ Value getrawmempool(const Array& params, bool fHelp)
             Object info;
             info.push_back(Pair("size", (int)e.GetTxSize()));
             info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
-            info.push_back(Pair("time", (boost::int64_t)e.GetTime()));
+            info.push_back(Pair("time", e.GetTime()));
             info.push_back(Pair("height", (int)e.GetHeight()));
             info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
             info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
@@ -364,11 +365,11 @@ Value gettxoutsetinfo(const Array& params, bool fHelp)
 
     CCoinsStats stats;
     if (pcoinsTip->GetStats(stats)) {
-        ret.push_back(Pair("height", (boost::int64_t)stats.nHeight));
+        ret.push_back(Pair("height", (int64_t)stats.nHeight));
         ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
-        ret.push_back(Pair("transactions", (boost::int64_t)stats.nTransactions));
-        ret.push_back(Pair("txouts", (boost::int64_t)stats.nTransactionOutputs));
-        ret.push_back(Pair("bytes_serialized", (boost::int64_t)stats.nSerializedSize));
+        ret.push_back(Pair("transactions", (int64_t)stats.nTransactions));
+        ret.push_back(Pair("txouts", (int64_t)stats.nTransactionOutputs));
+        ret.push_back(Pair("bytes_serialized", (int64_t)stats.nSerializedSize));
         ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex()));
         ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
     }
@@ -460,8 +461,8 @@ Value verifychain(const Array& params, bool fHelp)
             "verifychain ( checklevel numblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
-            "1. checklevel   (numeric, optional, default=3) The level\n"
-            "2. numblocks    (numeric, optional, 288) The number of blocks\n"
+            "1. checklevel   (numeric, optional, 0-4, default=3) How thorough the block verification is.\n"
+            "2. numblocks    (numeric, optional, default=500, 0=all) The number of blocks to check.\n"
             "\nResult:\n"
             "true|false       (boolean) Verified or not\n"
             "\nExamples:\n"
@@ -470,13 +471,43 @@ Value verifychain(const Array& params, bool fHelp)
         );
 
     int nCheckLevel = GetArg("-checklevel", 3);
-    int nCheckDepth = GetArg("-checkblocks", 2500);
+    int nCheckDepth = GetArg("-checkblocks", 500);
     if (params.size() > 0)
         nCheckLevel = params[0].get_int();
     if (params.size() > 1)
         nCheckDepth = params[1].get_int();
 
     return CVerifyDB().VerifyDB(nCheckLevel, nCheckDepth);
+}
+
+Value getblockchaininfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getblockchaininfo\n"
+            "Returns an object containing various state info regarding block chain processing.\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"chain\": \"xxxx\",        (string) current network name as defined in BIP70 (main, test, regtest)\n"
+            "  \"blocks\": xxxxxx,         (numeric) the current number of blocks processed in the server\n"
+            "  \"bestblockhash\": \"...\", (string) the hash of the currently best block\n"
+            "  \"difficulty\": xxxxxx,     (numeric) the current difficulty\n"
+            "  \"verificationprogress\": xxxx, (numeric) estimate of verification progress [0..1]\n"
+            "  \"chainwork\": \"xxxx\"     (string) total amount of work in active chain, in hexadecimal\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getblockchaininfo", "")
+            + HelpExampleRpc("getblockchaininfo", "")
+        );
+
+    Object obj;
+    obj.push_back(Pair("chain",                 Params().NetworkIDString()));
+    obj.push_back(Pair("blocks",                (int)chainActive.Height()));
+    obj.push_back(Pair("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex()));
+    obj.push_back(Pair("difficulty",            (double)GetDifficulty()));
+    obj.push_back(Pair("verificationprogress",  Checkpoints::GuessVerificationProgress(chainActive.Tip())));
+    obj.push_back(Pair("chaintrust",             chainActive.Tip()->nChainTrust.GetHex()));
+    return obj;
 }
 
 Value getblockbynumber(const Array& params, bool fHelp)

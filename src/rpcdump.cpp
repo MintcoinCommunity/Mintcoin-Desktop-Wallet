@@ -159,7 +159,7 @@ Value importwallet(const Array& params, bool fHelp)
     if (!file.is_open())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open wallet dump file");
 
-    int64_t nTimeBegin = chainActive.Tip()->nTime;
+    int64_t nTimeBegin = chainActive.Tip()->GetBlockTime();
 
     bool fGood = true;
 
@@ -211,7 +211,7 @@ Value importwallet(const Array& params, bool fHelp)
     file.close();
 
     CBlockIndex *pindex = chainActive.Tip();
-    while (pindex && pindex->pprev && pindex->nTime > nTimeBegin - 7200)
+    while (pindex && pindex->pprev && pindex->GetBlockTime() > nTimeBegin - 7200)
         pindex = pindex->pprev;
 
     if (!pwalletMain->nTimeFirstKey || nTimeBegin < pwalletMain->nTimeFirstKey)
@@ -296,10 +296,10 @@ Value dumpwallet(const Array& params, bool fHelp)
     std::sort(vKeyBirth.begin(), vKeyBirth.end());
 
     // produce output
-    file << strprintf("# Wallet dump created by Bitcoin %s (%s)\n", CLIENT_BUILD.c_str(), CLIENT_DATE.c_str());
-    file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()).c_str());
-    file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString().c_str());
-    file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->nTime).c_str());
+    file << strprintf("# Wallet dump created by Bitcoin %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
+    file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
+    file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString());
+    file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->GetBlockTime()));
     file << "\n";
     for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;
@@ -308,11 +308,11 @@ Value dumpwallet(const Array& params, bool fHelp)
         CKey key;
         if (pwalletMain->GetKey(keyid, key)) {
             if (pwalletMain->mapAddressBook.count(keyid)) {
-                file << strprintf("%s %s label=%s # addr=%s\n", CBitcoinSecret(key).ToString().c_str(), strTime.c_str(), EncodeDumpString(pwalletMain->mapAddressBook[keyid].name).c_str(), strAddr.c_str());
+                file << strprintf("%s %s label=%s # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, EncodeDumpString(pwalletMain->mapAddressBook[keyid].name), strAddr);
             } else if (setKeyPool.count(keyid)) {
-                file << strprintf("%s %s reserve=1 # addr=%s\n", CBitcoinSecret(key).ToString().c_str(), strTime.c_str(), strAddr.c_str());
+                file << strprintf("%s %s reserve=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
             } else {
-                file << strprintf("%s %s change=1 # addr=%s\n", CBitcoinSecret(key).ToString().c_str(), strTime.c_str(), strAddr.c_str());
+                file << strprintf("%s %s change=1 # addr=%s\n", CBitcoinSecret(key).ToString(), strTime, strAddr);
             }
         }
     }

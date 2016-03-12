@@ -71,20 +71,20 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("stake",         ValueFromAmount(pwalletMain->GetStake())));
     obj.push_back(Pair("blocks",        (int)chainActive.Height()));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(chainActive.Tip()->nMoneySupply)));
-    obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
+    obj.push_back(Pair("timeoffset",    GetTimeOffset()));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
-    obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("proxy",         (proxy.IsValid() ? proxy.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
     obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
     obj.push_back(Pair("testnet",       Params().NetworkID() == CChainParams::TESTNET));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
-        obj.push_back(Pair("keypoololdest", (boost::int64_t)pwalletMain->GetOldestKeyPoolTime()));
+        obj.push_back(Pair("keypoololdest", pwalletMain->GetOldestKeyPoolTime()));
         obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
     }
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
     if (pwalletMain && pwalletMain->IsCrypted())
-        obj.push_back(Pair("unlocked_until", (boost::int64_t)nWalletUnlockTime));
+        obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
 #endif
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;

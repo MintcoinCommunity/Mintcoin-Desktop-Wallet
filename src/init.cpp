@@ -187,8 +187,9 @@ bool static Bind(const CService &addr, unsigned int flags) {
 }
 
 // Core-specific options shared between UI, daemon and RPC client
-std::string HelpMessage(HelpMessageMode hmm)
+std::string HelpMessage(HelpMessageMode mode)
 {
+    // When adding new options to the categories, please keep and ensure alphabetical ordering.
     string strUsage = _("Options:") + "\n";
     strUsage += "  -?                     " + _("This help message") + "\n";
     strUsage += "  -alertnotify=<cmd>     " + _("Execute command when a relevant alert is received or we see a really long fork (%s in cmd is replaced by message)") + "\n";
@@ -196,7 +197,7 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification of -checkblocks is (0-4, default: 3)") + "\n";
     strUsage += "  -conf=<file>           " + _("Specify configuration file (default: Mintcoin.conf)") + "\n";
-    if (hmm == HMM_BITCOIND)
+    if (mode == HMM_BITCOIND)
     {
 #if !defined(WIN32)
         strUsage += "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n";
@@ -226,11 +227,10 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -maxreceivebuffer=<n>  " + _("Maximum per-connection receive buffer, <n>*1000 bytes (default: 5000)") + "\n";
     strUsage += "  -maxsendbuffer=<n>     " + _("Maximum per-connection send buffer, <n>*1000 bytes (default: 1000)") + "\n";
     strUsage += "  -onion=<ip:port>       " + _("Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: -proxy)") + "\n";
-    strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (IPv4, IPv6 or Tor)") + "\n";
+    strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)") + "\n";
     strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 12788 or testnet: 22788)") + "\n";
-    strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS proxy") + "\n";
+    strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS5 proxy") + "\n";
     strUsage += "  -seednode=<ip>         " + _("Connect to a node to retrieve peer addresses, and disconnect") + "\n";
-    strUsage += "  -socks=<n>             " + _("Select SOCKS version for -proxy (4 or 5, default: 5)") + "\n";
     strUsage += "  -timeout=<n>           " + _("Specify connection timeout in milliseconds (default: 5000)") + "\n";
 #ifdef USE_UPNP
 #if USE_UPNP
@@ -270,12 +270,13 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "                         " + _("If <category> is not supplied, output all debugging information.") + "\n";
     strUsage += "                         " + _("<category> can be:");
     strUsage +=                                 " addrman, alert, coindb, db, lock, rand, rpc, selectcoins, mempool, net"; // Don't translate these and qt below
-    if (hmm == HMM_BITCOIN_QT)
+    if (mode == HMM_BITCOIN_QT)
         strUsage += ", qt";
     strUsage += ".\n";
     strUsage += "  -gen                   " + _("Generate coins (default: 0)") + "\n";
     strUsage += "  -genproclimit=<n>      " + _("Set the processor limit for when generation is on (-1 = unlimited, default: -1)") + "\n";
     strUsage += "  -help-debug            " + _("Show all debugging options (usage: --help -help-debug)") + "\n";
+    strUsage += "  -logips                " + _("Include IP addresses in debug output (default: 0)") + "\n";
     strUsage += "  -logtimestamps         " + _("Prepend debug output with timestamp (default: 1)") + "\n";
     if (GetBoolArg("-help-debug", false))
     {
@@ -517,6 +518,12 @@ bool AppInit2(boost::thread_group& threadGroup)
     // Check for -debugnet (deprecated)
     if (GetBoolArg("-debugnet", false))
         InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
+    // Check for -socks - as this is a privacy risk to continue, exit here
+    if (mapArgs.count("-socks"))
+        return InitError(_("Error: Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported."));
+    // Check for -tor - as this is a privacy risk to continue, exit here
+    if (GetBoolArg("-tor", false))
+        return InitError(_("Error: Unsupported argument -tor found, use -onion."));
 
     fBenchmark = GetBoolArg("-benchmark", false);
     // Checkmempool defaults to true in regtest mode
@@ -535,6 +542,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     fServer = GetBoolArg("-server", false);
     fPrintToConsole = GetBoolArg("-printtoconsole", false);
     fLogTimestamps = GetBoolArg("-logtimestamps", true);
+    fLogIPs = GetBoolArg("-logips", false);
     setvbuf(stdout, NULL, _IOLBF, 0);
 #ifdef ENABLE_WALLET
     bool fDisableWallet = GetBoolArg("-disablewallet", false);
@@ -681,10 +689,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     RegisterNodeSignals(GetNodeSignals());
 
-    int nSocksVersion = GetArg("-socks", 5);
-    if (nSocksVersion != 4 && nSocksVersion != 5)
-        return InitError(strprintf(_("Unknown -socks proxy version requested: %i"), nSocksVersion));
-
     if (mapArgs.count("-onlynet")) {
         std::set<enum Network> nets;
         BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"]) {
@@ -708,30 +712,24 @@ bool AppInit2(boost::thread_group& threadGroup)
             return InitError(strprintf(_("Invalid -proxy address: '%s'"), mapArgs["-proxy"]));
 
         if (!IsLimited(NET_IPV4))
-            SetProxy(NET_IPV4, addrProxy, nSocksVersion);
-        if (nSocksVersion > 4) {
-            if (!IsLimited(NET_IPV6))
-                SetProxy(NET_IPV6, addrProxy, nSocksVersion);
-            SetNameProxy(addrProxy, nSocksVersion);
-        }
+            SetProxy(NET_IPV4, addrProxy);
+        if (!IsLimited(NET_IPV6))
+            SetProxy(NET_IPV6, addrProxy);
+        SetNameProxy(addrProxy);
         fProxy = true;
     }
 
     // -onion can override normal proxy, -noonion disables tor entirely
-    // -tor here is a temporary backwards compatibility measure
-    if (mapArgs.count("-tor"))
-        printf("Notice: option -tor has been replaced with -onion and will be removed in a later version.\n");
     if (!(mapArgs.count("-onion") && mapArgs["-onion"] == "0") &&
-        !(mapArgs.count("-tor") && mapArgs["-tor"] == "0") &&
-         (fProxy || mapArgs.count("-onion") || mapArgs.count("-tor"))) {
+        (fProxy || mapArgs.count("-onion"))) {
         CService addrOnion;
-        if (!mapArgs.count("-onion") && !mapArgs.count("-tor"))
+        if (!mapArgs.count("-onion"))
             addrOnion = addrProxy;
         else
-            addrOnion = mapArgs.count("-onion")?CService(mapArgs["-onion"], 9050):CService(mapArgs["-tor"], 9050);
+            addrOnion = CService(mapArgs["-onion"], 9050);
         if (!addrOnion.IsValid())
-            return InitError(strprintf(_("Invalid -onion address: '%s'"), mapArgs.count("-onion")?mapArgs["-onion"]:mapArgs["-tor"]));
-        SetProxy(NET_TOR, addrOnion, 5);
+            return InitError(strprintf(_("Invalid -onion address: '%s'"), mapArgs["-onion"]));
+        SetProxy(NET_TOR, addrOnion);
         SetReachable(NET_TOR);
     }
 

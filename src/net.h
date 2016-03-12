@@ -93,6 +93,7 @@ bool AddLocal(const CNetAddr& addr, int nScore = LOCAL_NONE);
 bool SeenLocal(const CService& addr);
 bool IsLocal(const CService& addr);
 bool GetLocal(CService &addr, const CNetAddr *paddrPeer = NULL);
+bool IsReachable(enum Network net);
 bool IsReachable(const CNetAddr &addr);
 void SetReachable(enum Network net, bool fFlag = true);
 CAddress GetLocalAddress(const CNetAddr *paddrPeer = NULL);
@@ -119,6 +120,13 @@ extern CCriticalSection cs_vAddedNodes;
 extern NodeId nLastNodeId;
 extern CCriticalSection cs_nLastNodeId;
 
+struct LocalServiceInfo {
+    int nScore;
+    int nPort;
+};
+
+extern CCriticalSection cs_mapLocalHost;
+extern std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
 
 class CNodeStats
 {
@@ -310,6 +318,11 @@ public:
             id = nLastNodeId++;
         }
 
+        if (fLogIPs)
+            LogPrint("net", "Added connection to %s peer=%d\n", addrName, id);
+        else
+            LogPrint("net", "Added connection peer=%d\n", id);
+
         // Be shy and don't send version until we hear
         if (hSocket != INVALID_SOCKET && !fInbound)
             PushVersion();
@@ -426,7 +439,7 @@ public:
             nRequestTime = it->second;
         else
             nRequestTime = 0;
-        LogPrint("net", "askfor %s   %d (%s)\n", inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
+        LogPrint("net", "askfor %s  %d (%s) peer=%d\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str(), id);
 
         // Make sure not to reuse time indexes to keep things in the same order
         int64_t nNow = GetTimeMicros() - 1000000;
@@ -489,7 +502,7 @@ public:
         assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
         memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
 
-        LogPrint("net", "(%d bytes)\n", nSize);
+        LogPrint("net", "(%d bytes) peer=%d\n", nSize, id);
 
         std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
         ssSend.GetAndClear(*it);
