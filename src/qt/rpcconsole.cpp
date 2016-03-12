@@ -8,6 +8,7 @@
 #include "clientmodel.h"
 #include "guiutil.h"
 
+#include "main.h"
 #include "rpcserver.h"
 #include "rpcclient.h"
 

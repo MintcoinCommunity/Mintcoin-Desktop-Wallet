@@ -297,7 +297,7 @@ namespace Checkpoints
     // Check against synchronized checkpoint
     bool CheckSync(const uint256& hashBlock, const CBlockIndex* pindexPrev)
     {
-        if (TestNet()) return true; // Testnet has no checkpoints
+        if (Params().NetworkID() == CChainParams::TESTNET) return true; // Testnet has no checkpoints
         int nHeight = pindexPrev->nHeight + 1;
 
         LOCK(cs_hashSyncCheckpoint);
@@ -537,7 +537,7 @@ bool Checkpoints::CheckMasterPubKey(bool reindex)
         // write checkpoint master key to db
         if (!pblocktree->WriteCheckpointPubKey(CSyncCheckpoint::strMasterPubKey))
             return error("LoadBlockIndexDB() : failed to write new checkpoint master key to db");
-        if ((!TestNet()) && !Checkpoints::ResetSyncCheckpoint(state))
+        if ((Params().NetworkID() != CChainParams::TESTNET) && !Checkpoints::ResetSyncCheckpoint(state))
             return error("LoadBlockIndexDB() : failed to reset sync-checkpoint");
     }
     

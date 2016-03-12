@@ -856,7 +856,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
-    if (Params().NetworkID() == CChainParams::MAIN && !IsStandardTx(tx, reason))
+    if (Params().RequireStandard() && !IsStandardTx(tx, reason))
         return state.DoS(0,
                          error("AcceptToMemoryPool : nonstandard transaction: %s", reason),
                          REJECT_NONSTANDARD, reason);
@@ -917,7 +917,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         }
 
         // Check for non-standard pay-to-script-hash in inputs
-        if (Params().NetworkID() == CChainParams::MAIN && !AreInputsStandard(tx, view))
+        if (Params().RequireStandard() && !AreInputsStandard(tx, view))
             return error("AcceptToMemoryPool: : nonstandard transaction input");
 
         // Note: if you modify this code to accept non-standard transactions, then
@@ -2675,8 +2675,9 @@ bool AcceptBlockHeader(CBlockHeader& block, CValidationState& state, bool fProof
         }
     }
 
+    int networkId = Params().NetworkID();
     // Reject block.nVersion < 3 blocks since 95% threshold on mainNet and always on testNet:
-    if (block.nVersion < 3 && ((!TestNet() && nHeight > 14060) || (TestNet() && nHeight > 0)))
+    if (block.nVersion < 3 && ((networkId != CChainParams::TESTNET && nHeight > 14060) || (networkId == CChainParams::TESTNET && nHeight > 0)))
         return state.Invalid(error("AcceptBlock() : rejected nVersion < 3 block"));
 
     if (pindex == NULL)
@@ -2786,8 +2787,9 @@ uint256 CBlockIndex::GetBlockTrust() const
     }
 }
 
-bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
+bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired)
 {
+    unsigned int nToCheck = Params().ToCheckBlockUpgradeMajority();
     unsigned int nFound = 0;
     for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
@@ -3656,7 +3658,7 @@ string GetWarnings(string strFor)
 
     // ppcoin: should not enter safe mode for longer invalid chain
     // ppcoin: if sync-checkpoint is too old do not enter safe mode
-    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 365) && !TestNet() && !IsInitialBlockDownload())
+    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 365) && Params().NetworkID() != CChainParams::TESTNET && !IsInitialBlockDownload())
     {
         nPriority = 100;
         strStatusBar = "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers.";

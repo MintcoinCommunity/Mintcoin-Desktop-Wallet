@@ -1196,7 +1196,7 @@ void ThreadDNSAddressSeed()
     const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
     int found = 0;
 
-    if (!TestNet())
+    if (Params().NetworkID() != CChainParams::TESTNET)
     {
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
 
