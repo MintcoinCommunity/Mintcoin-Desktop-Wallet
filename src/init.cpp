@@ -43,7 +43,6 @@ std::string strWalletFile;
 CWallet* pwalletMain;
 #endif
 
-bool fUseFastIndex;
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
 // accessing block files, don't count towards to fd_set size limit
@@ -447,8 +446,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 
     // ********************************************************* Step 2: parameter interactions
-
-	fUseFastIndex = GetBoolArg("-fastindex", true);
 
     if (mapArgs.count("-bind")) {
         // when specifying an explicit binding address, you want to listen on it

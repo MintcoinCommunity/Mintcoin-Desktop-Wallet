@@ -122,8 +122,6 @@ extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
 
-extern bool fUseFastIndex;
-
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
 
@@ -1070,9 +1068,6 @@ public:
 
     uint256 GetBlockHash() const
     {
-		if (fUseFastIndex && (nTime < GetAdjustedTime() - 12 * GetClockDrift(GetAdjustedTime())) && blockHash != 0)
-			return blockHash;
-			
         CBlockHeader block;
         block.nVersion        = nVersion;
         block.hashPrevBlock   = hashPrev;
