@@ -85,8 +85,4 @@
         <file alias="spinner-033">res/movies/spinner-033.png</file>
         <file alias="spinner-034">res/movies/spinner-034.png</file>
     </qresource>
-    <qresource prefix="/translations">
-        <file alias="en">locale/bitcoin_en.qm</file>
-        <file alias="ru">locale/bitcoin_ru.qm</file>
-    </qresource>
 </RCC>
