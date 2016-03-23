@@ -4,6 +4,7 @@
 
 #include "checkpoints.h"
 
+#include "timedata.h"
 #include "txdb.h"
 #include "main.h"
 #include "uint256.h"
@@ -89,9 +90,9 @@ namespace Checkpoints
     };
 */
     const CCheckpointData &Checkpoints() {
-        if (Params().NetworkID() == CChainParams::TESTNET)
+        if (Params().NetworkID() == CBaseChainParams::TESTNET)
             return dataTestnet;
-        else if (Params().NetworkID() == CChainParams::MAIN)
+        else if (Params().NetworkID() == CBaseChainParams::MAIN)
             return data;
         /*else
             return dataRegtest;*/
@@ -297,7 +298,7 @@ namespace Checkpoints
     // Check against synchronized checkpoint
     bool CheckSync(const uint256& hashBlock, const CBlockIndex* pindexPrev)
     {
-        if (Params().NetworkID() == CChainParams::TESTNET) return true; // Testnet has no checkpoints
+        if (Params().NetworkID() == CBaseChainParams::TESTNET) return true; // Testnet has no checkpoints
         int nHeight = pindexPrev->nHeight + 1;
 
         LOCK(cs_hashSyncCheckpoint);
@@ -537,7 +538,7 @@ bool Checkpoints::CheckMasterPubKey(bool reindex)
         // write checkpoint master key to db
         if (!pblocktree->WriteCheckpointPubKey(CSyncCheckpoint::strMasterPubKey))
             return error("LoadBlockIndexDB() : failed to write new checkpoint master key to db");
-        if ((Params().NetworkID() != CChainParams::TESTNET) && !Checkpoints::ResetSyncCheckpoint(state))
+        if ((Params().NetworkID() != CBaseChainParams::TESTNET) && !Checkpoints::ResetSyncCheckpoint(state))
             return error("LoadBlockIndexDB() : failed to reset sync-checkpoint");
     }
     

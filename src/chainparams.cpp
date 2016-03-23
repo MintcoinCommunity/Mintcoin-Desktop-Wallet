@@ -23,7 +23,7 @@ unsigned int pnSeed[] =
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
-        networkID = CChainParams::MAIN;
+        networkID = CBaseChainParams::MAIN;
         strNetworkID = "main";
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -34,7 +34,6 @@ public:
         pchMessageStart[3] = 0xfa;
         vAlertPubKey = ParseHex("0447776d261ff286dc0a72b63365f1575bd9632e0ded31c58023dd5b00e8d7c1d890c914bfab3451a6d6924137f8e9dd7f1fa5e64172ee172183fd85c84a2b892f");
         nDefaultPort = 12788;
-        nRPCPort = 12789;
         bnProofOfWorkLimit = bnProofOfStakeLimit = ~uint256(0) >> 20;
         nEnforceBlockUpgradeMajority = 750;
         nRejectBlockOutdatedMajority = 950;
@@ -120,7 +119,7 @@ static CMainParams mainParams;
 class CTestNetParams : public CMainParams {
 public:
     CTestNetParams() {
-        networkID = CChainParams::TESTNET;
+        networkID = CBaseChainParams::TESTNET;
         strNetworkID = "test";
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -132,11 +131,9 @@ public:
 
         vAlertPubKey = ParseHex("0471dc165db490094d35cde15b1f5d755fa6ad6f2b5ed0f340e3f17f57389c3c2af113a8cbcc885bde73305a553b5640c83021128008ddf882e856336269080496");
         nDefaultPort = 22788;
-        nRPCPort = 22789;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
-        strDataDir = "testnet2";
 
         // TestNet alerts private key
         // "308201130201010420b665cff1884e53da26376fd1b433812c9a5a8a4d5221533b15b9629789bb7e42a081a53081a2020101302c06072a8648ce3d0101022100fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f300604010004010704410479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8022100fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141020101a1440342000471dc165db490094d35cde15b1f5d755fa6ad6f2b5ed0f340e3f17f57389c3c2af113a8cbcc885bde73305a553b5640c83021128008ddf882e856336269080496"
@@ -185,7 +182,7 @@ static CTestNetParams testNetParams;
 class CRegTestParams : public CTestNetParams {
 public:
     CRegTestParams() {
-        networkID = CChainParams::REGTEST;
+        networkID = CBaseChainParams::REGTEST;
         strNetworkID = "regtest";
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;
@@ -202,7 +199,6 @@ public:
         //genesis.nNonce = 2;
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = 18444;
-        strDataDir = "regtest";
         assert(hashGenesisBlock == uint256("0xaf4ac34e7ef10a08fe2ba692eb9a9c08cf7e89fcf352f9ea6f0fd73ba3e5d03c"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
@@ -217,21 +213,23 @@ public:
 };
 static CRegTestParams regTestParams;
 
-static CChainParams *pCurrentParams = &mainParams;
+static CChainParams *pCurrentParams = 0;
 
 const CChainParams &Params() {
+    assert(pCurrentParams);
     return *pCurrentParams;
 }
 
-void SelectParams(CChainParams::Network network) {
+void SelectParams(CBaseChainParams::Network network) {
+    SelectBaseParams(network);
     switch (network) {
-        case CChainParams::MAIN:
+        case CBaseChainParams::MAIN:
             pCurrentParams = &mainParams;
             break;
-        case CChainParams::TESTNET:
+        case CBaseChainParams::TESTNET:
             pCurrentParams = &testNetParams;
             break;
-        case CChainParams::REGTEST:
+        case CBaseChainParams::REGTEST:
             pCurrentParams = &regTestParams;
             break;
         default:
@@ -241,19 +239,9 @@ void SelectParams(CChainParams::Network network) {
 }
 
 bool SelectParamsFromCommandLine() {
-    bool fRegTest = GetBoolArg("-regtest", false);
-    bool fTestNet = GetBoolArg("-testnet", false);
-
-    if (fTestNet && fRegTest) {
+    if (!SelectBaseParamsFromCommandLine())
         return false;
-    }
 
-    if (fRegTest) {
-        SelectParams(CChainParams::REGTEST);
-    } else if (fTestNet) {
-        SelectParams(CChainParams::TESTNET);
-    } else {
-        SelectParams(CChainParams::MAIN);
-    }
+    SelectParams(BaseParams().NetworkID());
     return true;
 }

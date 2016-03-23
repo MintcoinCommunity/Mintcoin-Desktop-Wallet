@@ -4,7 +4,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "rpcserver.h"
-#include "rpcclient.h"
 #include "init.h"
 #include "main.h"
 #include "noui.h"
@@ -47,7 +46,7 @@ bool AppInit(int argc, char* argv[])
         //
         // Parameters
         //
-        // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's main()
+        // If Qt is used, parameters/MintCoin.conf are parsed in qt/bitcoin.cpp's main()
         ParseParameters(argc, argv);
         if (!boost::filesystem::is_directory(GetDataDir(false)))
         {
@@ -61,24 +60,27 @@ bool AppInit(int argc, char* argv[])
             fprintf(stderr,"Error reading configuration file: %s\n", e.what());
             return false;
         }
-        // Check for -testnet or -regtest parameter (TestNet() calls are only valid after this clause)
+        // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
         if (!SelectParamsFromCommandLine()) {
             fprintf(stderr, "Error: Invalid combination of -regtest and -testnet.\n");
             return false;
         }
 
-        if (mapArgs.count("-?") || mapArgs.count("--help"))
+        if (mapArgs.count("-?") || mapArgs.count("-help") || mapArgs.count("-version"))
         {
-            // First part of help message is specific to bitcoind / RPC client
-            std::string strUsage = _("Bitcoin version") + " " + FormatFullVersion() + "\n\n" +
-                _("Usage:") + "\n" +
-                  "  bitcoind [options]                     " + _("Start Bitcoin server") + "\n" +
-                _("Usage (deprecated, use bitcoin-cli):") + "\n" +
-                  "  bitcoind [options] <command> [params]  " + _("Send command to Bitcoin server") + "\n" +
-                  "  bitcoind [options] help                " + _("List commands") + "\n" +
-                  "  bitcoind [options] help <command>      " + _("Get help for a command") + "\n";
+            std::string strUsage = _("MintCoin Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n";
 
-            strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+            if (mapArgs.count("-version"))
+            {
+                strUsage += LicenseInfo();
+            }
+            else
+            {
+                strUsage += "\n" + _("Usage:") + "\n" +
+                      "  MintCoind [options]                     " + _("Start MintCoin Daemon") + "\n";
+
+                strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+            }
 
             fprintf(stdout, "%s", strUsage.c_str());
             return false;
@@ -92,8 +94,8 @@ bool AppInit(int argc, char* argv[])
 
         if (fCommandLine)
         {
-            int ret = CommandLineRPC(argc, argv);
-            exit(ret);
+            fprintf(stderr, "Error: There is no RPC client functionality in Mitcoind anymore. Use the Mitcoin-cli utility instead.\n");
+            exit(1);
         }
 #ifndef WIN32
         fDaemon = GetBoolArg("-daemon", false);

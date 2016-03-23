@@ -67,7 +67,6 @@ QT_TS = qt/locale/bitcoin_en.ts qt/locale/bitcoin_ru.ts
 #  locale/bitcoin_zh_TW.ts
 
 QT_FORMS_UI = \
-  qt/forms/aboutdialog.ui \
   qt/forms/addressbookpage.ui \
   qt/forms/askpassphrasedialog.ui \
   qt/forms/coincontroldialog.ui \

@@ -7,7 +7,7 @@
 #define BITCOIN_UTIL_H
 
 #if defined(HAVE_CONFIG_H)
-#include "bitcoin-config.h"
+#include "config/bitcoin-config.h"
 #endif
 
 #include "compat.h"
@@ -32,7 +32,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/thread.hpp>
 
-class CNetAddr;
 class uint256;
 
 static const int64_t COIN = 1000000;
@@ -206,12 +205,9 @@ uint64_t GetRand(uint64_t nMax);
 uint256 GetRandHash();
 int64_t GetTime();
 void SetMockTime(int64_t nMockTimeIn);
-int64_t GetAdjustedTime();
 long hex2long(const char* hexString);
-int64_t GetTimeOffset();
 std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
-void AddTimeData(const CNetAddr& ip, int64_t nTime);
 void runCommand(std::string strCommand);
 
 
@@ -312,6 +308,7 @@ inline void PrintHex(const std::vector<unsigned char>& vch, const char* pszForma
 {
     LogPrintf(pszFormat, HexStr(vch, fSpaces).c_str());
 }
+std::string FormatParagraph(const std::string in, size_t width=79, size_t indent=0);
 
 inline int64_t GetPerformanceCounter()
 {

@@ -12,6 +12,7 @@
 #include "checkpoints.h"
 #include "kernel.h"
 #include "chainparams.h"
+#include "timedata.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>

@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "bitcoin-config.h"
+#include "config/bitcoin-config.h"
 #endif
 
 #include "bitcoingui.h"
@@ -73,7 +73,7 @@ static void InitMessage(const std::string &message)
  */
 static std::string Translate(const char* psz)
 {
-    return QCoreApplication::translate("bitcoin-core", psz).toStdString();
+    return QCoreApplication::translate("MintCoin", psz).toStdString();
 }
 
 /** Set up translations */
@@ -138,7 +138,7 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, cons
 }
 #endif
 
-/** Class encapsulating Bitcoin Core startup and shutdown.
+/** Class encapsulating MintCoin startup and shutdown.
  * Allows running startup and shutdown in a different thread from the UI thread.
  */
 class BitcoinCore: public QObject
@@ -163,7 +163,7 @@ private:
     void handleRunawayException(std::exception *e);
 };
 
-/** Main Bitcoin application object */
+/** Main MintCoin application object */
 class BitcoinApplication: public QApplication
 {
     Q_OBJECT
@@ -503,9 +503,9 @@ int main(int argc, char *argv[])
 
     // Show help message immediately after parsing command-line options (for "-lang") and setting locale,
     // but before showing splash screen.
-    if (mapArgs.count("-?") || mapArgs.count("--help"))
+    if (mapArgs.count("-?") || mapArgs.count("-help") || mapArgs.count("-version"))
     {
-        HelpMessageDialog help(NULL);
+        HelpMessageDialog help(NULL, mapArgs.count("-version"));
         help.showOrPrint();
         return 1;
     }
@@ -546,7 +546,7 @@ int main(int argc, char *argv[])
     if (!PaymentServer::ipcParseCommandLine(argc, argv))
         exit(0);
 #endif
-    bool isaTestNet = Params().NetworkID() != CChainParams::MAIN;
+    bool isaTestNet = Params().NetworkID() != CBaseChainParams::MAIN;
     // Allow for separate UI settings for testnets
     if (isaTestNet)
         QApplication::setApplicationName(QAPP_APP_NAME_TESTNET);

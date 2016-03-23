@@ -1275,8 +1275,8 @@ int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned int
     return nSubsidy;
 }
 
-static const int64_t nTargetTimespan = 30 * 30;  
-static const int64_t nTargetSpacingWorkMax = 3 * Params().StakeTargetSpacing(); 
+static const int64_t nTargetTimespan = 30 * 30;
+const int64_t nTargetSpacingWorkMax = 3 * 30;
 
 //
 // maximum nBits value could possible be required nTime after
@@ -2673,7 +2673,7 @@ bool AcceptBlockHeader(CBlockHeader& block, CValidationState& state, bool fProof
 
     int networkId = Params().NetworkID();
     // Reject block.nVersion < 3 blocks since 95% threshold on mainNet and always on testNet:
-    if (block.nVersion < 3 && ((networkId != CChainParams::TESTNET && nHeight > 14060) || (networkId == CChainParams::TESTNET && nHeight > 0)))
+    if (block.nVersion < 3 && ((networkId != CBaseChainParams::TESTNET && nHeight > 14060) || (networkId == CBaseChainParams::TESTNET && nHeight > 0)))
         return state.Invalid(error("AcceptBlock() : rejected nVersion < 3 block"));
 
     if (pindex == NULL)
@@ -3654,7 +3654,7 @@ string GetWarnings(string strFor)
 
     // ppcoin: should not enter safe mode for longer invalid chain
     // ppcoin: if sync-checkpoint is too old do not enter safe mode
-    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 365) && Params().NetworkID() != CChainParams::TESTNET && !IsInitialBlockDownload())
+    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 365) && Params().NetworkID() != CBaseChainParams::TESTNET && !IsInitialBlockDownload())
     {
         nPriority = 100;
         strStatusBar = "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers.";

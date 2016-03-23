@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "bitcoin-config.h"
+#include "config/bitcoin-config.h"
 #endif
 
 #include "net.h"
@@ -1198,7 +1198,7 @@ void ThreadDNSAddressSeed()
     const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
     int found = 0;
 
-    if (Params().NetworkID() != CChainParams::TESTNET)
+    if (Params().NetworkID() != CBaseChainParams::TESTNET)
     {
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
 

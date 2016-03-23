@@ -39,6 +39,7 @@ static ssl::context* rpc_ssl_context = NULL;
 static boost::thread_group* rpc_worker_group = NULL;
 static boost::asio::io_service::work *rpc_dummy_work = NULL;
 static std::vector<CSubNet> rpc_allow_subnets; //!< List of subnets to allow RPC connections from
+static std::vector< boost::shared_ptr<ip::tcp::acceptor> > rpc_acceptors;
 
 void RPCTypeCheck(const Array& params,
                   const list<Value_type>& typesExpected,
@@ -443,7 +444,7 @@ template <typename Protocol, typename SocketAcceptorService>
 static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
                              ssl::context& context,
                              bool fUseSSL,
-                             AcceptedConnection* conn,
+                             boost::shared_ptr< AcceptedConnection > conn,
                              const boost::system::error_code& error);
 
 /**
@@ -455,7 +456,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
                    const bool fUseSSL)
 {
     // Accept connection
-    AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL);
+    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL));
 
     acceptor->async_accept(
             conn->sslStream.lowest_layer(),
@@ -465,7 +466,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
                 boost::ref(context),
                 fUseSSL,
                 conn,
-                boost::asio::placeholders::error));
+                _1));
 }
 
 
@@ -476,21 +477,20 @@ template <typename Protocol, typename SocketAcceptorService>
 static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
                              ssl::context& context,
                              const bool fUseSSL,
-                             AcceptedConnection* conn,
+                             boost::shared_ptr< AcceptedConnection > conn,
                              const boost::system::error_code& error)
 {
     // Immediately start accepting new connections, except when we're cancelled or our socket is closed.
     if (error != asio::error::operation_aborted && acceptor->is_open())
         RPCListen(acceptor, context, fUseSSL);
 
-    AcceptedConnectionImpl<ip::tcp>* tcp_conn = dynamic_cast< AcceptedConnectionImpl<ip::tcp>* >(conn);
+    AcceptedConnectionImpl<ip::tcp>* tcp_conn = dynamic_cast< AcceptedConnectionImpl<ip::tcp>* >(conn.get());
 
-    // TODO: Actually handle errors
     if (error)
     {
-        delete conn;
+        // TODO: Actually handle errors
+        LogPrintf("%s: Error: %s\n", __func__, error.message());
     }
-
     // Restrict callers by IP.  It is important to
     // do this before starting client thread, to filter out
     // certain DoS and misbehaving clients.
@@ -499,13 +499,20 @@ static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, 
         // Only send a 403 if we're not using SSL to prevent a DoS during the SSL handshake.
         if (!fUseSSL)
             conn->stream() << HTTPReply(HTTP_FORBIDDEN, "", false) << std::flush;
-        delete conn;
+        conn->close();
     }
     else {
-        ServiceConnection(conn);
+        ServiceConnection(conn.get());
         conn->close();
-        delete conn;
     }
+}
+
+static ip::tcp::endpoint ParseEndpoint(const std::string &strEndpoint, int defaultPort)
+{
+    std::string addr;
+    int port = defaultPort;
+    SplitHostPort(strEndpoint, port, addr);
+    return ip::tcp::endpoint(asio::ip::address::from_string(addr), port);
 }
 
 void StartRPCThreads()
@@ -588,56 +595,74 @@ void StartRPCThreads()
         SSL_CTX_set_cipher_list(rpc_ssl_context->impl(), strCiphers.c_str());
     }
 
-    // Try a dual IPv6/IPv4 socket, falling back to separate IPv4 and IPv6 sockets
-    const bool loopback = !mapArgs.count("-rpcallowip");
-    asio::ip::address bindAddress = loopback ? asio::ip::address_v6::loopback() : asio::ip::address_v6::any();
-    ip::tcp::endpoint endpoint(bindAddress, GetArg("-rpcport", Params().RPCPort()));
-    boost::system::error_code v6_only_error;
-    boost::shared_ptr<ip::tcp::acceptor> acceptor(new ip::tcp::acceptor(*rpc_io_service));
+    std::vector<ip::tcp::endpoint> vEndpoints;
+    bool bBindAny = false;
+    int defaultPort = GetArg("-rpcport", BaseParams().RPCPort());
+    if (!mapArgs.count("-rpcallowip")) // Default to loopback if not allowing external IPs
+    {
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v6::loopback(), defaultPort));
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v4::loopback(), defaultPort));
+        if (mapArgs.count("-rpcbind"))
+        {
+            LogPrintf("WARNING: option -rpcbind was ignored because -rpcallowip was not specified, refusing to allow everyone to connect\n");
+        }
+    } else if (mapArgs.count("-rpcbind")) // Specific bind address
+    {
+        BOOST_FOREACH(const std::string &addr, mapMultiArgs["-rpcbind"])
+        {
+            try {
+                vEndpoints.push_back(ParseEndpoint(addr, defaultPort));
+            }
+            catch(boost::system::system_error &e)
+            {
+                uiInterface.ThreadSafeMessageBox(
+                    strprintf(_("Could not parse -rpcbind value %s as network address"), addr),
+                    "", CClientUIInterface::MSG_ERROR);
+                StartShutdown();
+                return;
+            }
+        }
+    } else { // No specific bind address specified, bind to any
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v6::any(), defaultPort));
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v4::any(), defaultPort));
+        // Prefer making the socket dual IPv6/IPv4 instead of binding
+        // to both addresses seperately.
+        bBindAny = true;
+    }
 
     bool fListening = false;
     std::string strerr;
-    try
+    BOOST_FOREACH(const ip::tcp::endpoint &endpoint, vEndpoints)
     {
-        acceptor->open(endpoint.protocol());
-        acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+        asio::ip::address bindAddress = endpoint.address();
+        LogPrintf("Binding RPC on address %s port %i (IPv4+IPv6 bind any: %i)\n", bindAddress.to_string(), endpoint.port(), bBindAny);
+        boost::system::error_code v6_only_error;
+        boost::shared_ptr<ip::tcp::acceptor> acceptor(new ip::tcp::acceptor(*rpc_io_service));
 
-        // Try making the socket dual IPv6/IPv4 (if listening on the "any" address)
-        acceptor->set_option(boost::asio::ip::v6_only(loopback), v6_only_error);
-
-        acceptor->bind(endpoint);
-        acceptor->listen(socket_base::max_connections);
-
-        RPCListen(acceptor, *rpc_ssl_context, fUseSSL);
-
-        fListening = true;
-    }
-    catch(boost::system::system_error &e)
-    {
-        strerr = strprintf(_("An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s"), endpoint.port(), e.what());
-    }
-
-    try {
-        // If dual IPv6/IPv4 failed (or we're opening loopback interfaces only), open IPv4 separately
-        if (!fListening || loopback || v6_only_error)
-        {
-            bindAddress = loopback ? asio::ip::address_v4::loopback() : asio::ip::address_v4::any();
-            endpoint.address(bindAddress);
-
-            acceptor.reset(new ip::tcp::acceptor(*rpc_io_service));
+        try {
             acceptor->open(endpoint.protocol());
             acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+
+            // Try making the socket dual IPv6/IPv4 when listening on the IPv6 "any" address
+            acceptor->set_option(boost::asio::ip::v6_only(
+                !bBindAny || bindAddress != asio::ip::address_v6::any()), v6_only_error);
+
             acceptor->bind(endpoint);
             acceptor->listen(socket_base::max_connections);
 
             RPCListen(acceptor, *rpc_ssl_context, fUseSSL);
 
             fListening = true;
+            rpc_acceptors.push_back(acceptor);
+            // If dual IPv6/IPv4 bind succesful, skip binding to IPv4 separately
+            if(bBindAny && bindAddress == asio::ip::address_v6::any() && !v6_only_error)
+                break;
         }
-    }
-    catch(boost::system::system_error &e)
-    {
-        strerr = strprintf(_("An error occurred while setting up the RPC port %u for listening on IPv4: %s"), endpoint.port(), e.what());
+        catch(boost::system::system_error &e)
+        {
+            LogPrintf("ERROR: Binding RPC on address %s port %i failed: %s\n", bindAddress.to_string(), endpoint.port(), e.what());
+            strerr = strprintf(_("An error occurred while setting up the RPC address %s port %u for listening: %s"), bindAddress.to_string(), endpoint.port(), e.what());
+        }
     }
 
     if (!fListening) {
@@ -668,6 +693,23 @@ void StopRPCThreads()
 {
     if (rpc_io_service == NULL) return;
 
+    // First, cancel all timers and acceptors
+    // This is not done automatically by ->stop(), and in some cases the destructor of
+    // asio::io_service can hang if this is skipped.
+    boost::system::error_code ec;
+    BOOST_FOREACH(const boost::shared_ptr<ip::tcp::acceptor> &acceptor, rpc_acceptors)
+    {
+        acceptor->cancel(ec);
+        if (ec)
+            LogPrintf("%s: Warning: %s when cancelling acceptor", __func__, ec.message());
+    }
+    rpc_acceptors.clear();
+    BOOST_FOREACH(const PAIRTYPE(std::string, boost::shared_ptr<deadline_timer>) &timer, deadlineTimers)
+    {
+        timer.second->cancel(ec);
+        if (ec)
+            LogPrintf("%s: Warning: %s when cancelling timer", __func__, ec.message());
+    }
     deadlineTimers.clear();
     rpc_io_service->stop();
     if (rpc_worker_group != NULL)
