@@ -1224,13 +1224,13 @@ public:
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
+
+    /** Find the last common block between this chain and a block index entry. */
+    CBlockIndex *FindFork(CBlockIndex *pindex) const;
 };
 
 /** The currently-connected chain of blocks. */
 extern CChain chainActive;
-
-/** The currently best known chain of headers (some of which may be invalid). */
-extern CChain chainMostTrust;
 
 /** Global variable that points to the active CCoinsView (protected by cs_main) */
 extern CCoinsViewCache *pcoinsTip;

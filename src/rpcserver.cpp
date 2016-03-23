@@ -255,7 +255,7 @@ static const CRPCCommand vRPCCommands[] =
     /* Mining */
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
-    { "submitblock",            &submitblock,            false,     false,      false },
+    { "submitblock",            &submitblock,            true,     false,      false },
     { "validateaddress",        &validateaddress,        true,      false,      false },
     { "createmultisig",         &createmultisig,         true,      true ,      false },
     { "verifymessage",          &verifymessage,          false,     false,      false },
@@ -529,7 +529,7 @@ void StartRPCThreads()
             if(!subnet.IsValid())
             {
                 uiInterface.ThreadSafeMessageBox(
-                    strprintf("Invalid -rpcallowip subnet specification: %s", strAllow),
+                    strprintf("Invalid -rpcallowip subnet specification: %s. Valid are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24).", strAllow),
                     "", CClientUIInterface::MSG_ERROR);
                 StartShutdown();
                 return;
@@ -767,8 +767,8 @@ void JSONRequest::parse(const Value& valRequest)
     if (valMethod.type() != str_type)
         throw JSONRPCError(RPC_INVALID_REQUEST, "Method must be a string");
     strMethod = valMethod.get_str();
-    if (strMethod != "getwork" && strMethod != "getblocktemplate")
-        LogPrint("rpc", "ThreadRPCServer method=%s\n", strMethod.c_str());
+    if (strMethod != "getblocktemplate")
+        LogPrint("rpc", "ThreadRPCServer method=%s\n", strMethod);
 
     // Parse params
     Value valParams = find_value(request, "params");

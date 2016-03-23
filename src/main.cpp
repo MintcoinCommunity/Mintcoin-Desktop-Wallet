@@ -49,7 +49,6 @@ set<pair<COutPoint, unsigned int> > setStakeSeen;
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 
 CChain chainActive;
-CChain chainMostTrust;
 int64_t nTimeBestReceived = 0;
 int nScriptCheckThreads = 0;
 bool fImporting = false;
@@ -423,6 +422,12 @@ CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
         }
     }
     return Genesis();
+}
+
+CBlockIndex *CChain::FindFork(CBlockIndex *pindex) const {
+    while (pindex && !Contains(pindex))
+        pindex = pindex->pprev;
+    return pindex;
 }
 
 CCoinsViewCache *pcoinsTip = NULL;
@@ -1416,6 +1421,89 @@ bool IsInitialBlockDownload()
             chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
 }
 
+bool fLargeWorkForkFound = false;
+bool fLargeWorkInvalidChainFound = false;
+CBlockIndex *pindexBestForkTip = NULL, *pindexBestForkBase = NULL;
+
+void CheckForkWarningConditions()
+{
+    AssertLockHeld(cs_main);
+    // Before we get past initial download, we cannot reliably alert about forks
+    // (we assume we don't get stuck on a fork before the last checkpoint)
+    if (IsInitialBlockDownload())
+        return;
+
+    // If our best fork is no longer within 72 blocks (+/- 12 hours if no one mines it)
+    // of our head, drop it
+    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 72)
+        pindexBestForkTip = NULL;
+
+    if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainTrust > chainActive.Tip()->nChainTrust + (chainActive.Tip()->GetBlockTrust() * 6)))
+    {
+        if (!fLargeWorkForkFound)
+        {
+            std::string strCmd = GetArg("-alertnotify", "");
+            if (!strCmd.empty())
+            {
+                std::string warning = std::string("'Warning: Large-work fork detected, forking after block ") +
+                                      pindexBestForkBase->phashBlock->ToString() + std::string("'");
+                boost::replace_all(strCmd, "%s", warning);
+                boost::thread t(runCommand, strCmd); // thread runs free
+            }
+        }
+        if (pindexBestForkTip)
+        {
+            LogPrintf("CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d (%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
+                   pindexBestForkBase->nHeight, pindexBestForkBase->phashBlock->ToString(),
+                   pindexBestForkTip->nHeight, pindexBestForkTip->phashBlock->ToString());
+            fLargeWorkForkFound = true;
+        }
+        else
+        {
+            LogPrintf("CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best chain.\nChain state database corruption likely.\n");
+            fLargeWorkInvalidChainFound = true;
+        }
+    }
+    else
+    {
+        fLargeWorkForkFound = false;
+        fLargeWorkInvalidChainFound = false;
+    }
+}
+
+void CheckForkWarningConditionsOnNewFork(CBlockIndex* pindexNewForkTip)
+{
+    AssertLockHeld(cs_main);
+    // If we are on a fork that is sufficiently large, set a warning flag
+    CBlockIndex* pfork = pindexNewForkTip;
+    CBlockIndex* plonger = chainActive.Tip();
+    while (pfork && pfork != plonger)
+    {
+        while (plonger && plonger->nHeight > pfork->nHeight)
+            plonger = plonger->pprev;
+        if (pfork == plonger)
+            break;
+        pfork = pfork->pprev;
+    }
+
+    // We define a condition which we should warn the user about as a fork of at least 7 blocks
+    // who's tip is within 72 blocks (+/- 12 hours if no one mines it) of ours
+    // We use 7 blocks rather arbitrarily as it represents just under 10% of sustained network
+    // hash rate operating on the fork.
+    // or a chain that is entirely longer than ours and invalid (note that this should be detected by both)
+    // We define it this way because it allows us to only store the highest fork tip (+ base) which meets
+    // the 7-block condition and from this always have the most-likely-to-cause-warning fork
+    if (pfork && (!pindexBestForkTip || (pindexBestForkTip && pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
+            pindexNewForkTip->nChainTrust - pfork->nChainTrust > (pfork->GetBlockTrust() * 7) &&
+            chainActive.Height() - pindexNewForkTip->nHeight < 72)
+    {
+        pindexBestForkTip = pindexNewForkTip;
+        pindexBestForkBase = pfork;
+    }
+
+    CheckForkWarningConditions();
+}
+
 // Requires cs_main.
 void Misbehaving(NodeId pnode, int howmuch)
 {
@@ -1449,6 +1537,7 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
     LogPrintf("InvalidChainFound:  current best=%s  height=%d  trust=%.8g  date=%s\n",
       chainActive.Tip()->GetBlockHash().ToString().c_str(), chainActive.Height(), log(chainActive.Tip()->nChainTrust.getdouble())/log(2.0),
       DateTimeStrFormat("%x %H:%M:%S", chainActive.Tip()->GetBlockTime()).c_str());
+    CheckForkWarningConditions();
 }
 
 void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state) {
@@ -1961,6 +2050,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // Watch for transactions paying to me
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
         g_signals.SyncTransaction(tx, &block, true);
+    // Watch for changes to the previous coinbase transaction.
+    static uint256 hashPrevBestCoinBase;
+    g_signals.UpdatedTransaction(hashPrevBestCoinBase);
+    hashPrevBestCoinBase = block.vtx[0].GetHash();
+
 
     return true;
 }
@@ -2113,23 +2207,17 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
     return true;
 }
 
-// Make chainMostTrust correspond to the chain with the most work in it, that isn't
+// Return the tip of the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
-void static FindMostTrustChain() {
-    CBlockIndex *pindexNew = NULL;
-
-    // In case the current best is invalid, do not consider it.
-    while (chainMostTrust.Tip() && (chainMostTrust.Tip()->nStatus & BLOCK_FAILED_MASK)) {
-        setBlockIndexValid.erase(chainMostTrust.Tip());
-        chainMostTrust.SetTip(chainMostTrust.Tip()->pprev);
-    }
-
+static CBlockIndex* FindMostWorkChain() {
     do {
+        CBlockIndex *pindexNew = NULL;
+
         // Find the best candidate header.
         {
             std::set<CBlockIndex*, CBlockIndexTrustComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
             if (it == setBlockIndexValid.rend())
-                return;
+                return NULL;
             pindexNew = *it;
         }
 
@@ -2153,18 +2241,9 @@ void static FindMostTrustChain() {
             }
             pindexTest = pindexTest->pprev;
         }
-        if (fInvalidAncestor)
-            continue;
-
-        break;
+        if (!fInvalidAncestor)
+            return pindexNew;
     } while(true);
-
-    // Check whether it's actually an improvement.
-    if (chainMostTrust.Tip() && !CBlockIndexTrustComparator()(chainMostTrust.Tip(), pindexNew))
-        return;
-
-    // We have a new best.
-    chainMostTrust.SetTip(pindexNew);
 }
 
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
@@ -2234,55 +2313,105 @@ bool CBlock::GetCoinAge(uint64_t& nCoinAge) const
     return true;
 }
 
-// Try to activate to the most-trust chain (thereby connecting it).
-bool ActivateBestChain(CValidationState &state) {
-    LOCK(cs_main);
+// Try to make some progress towards making pindexMostWork the active block.
+static bool ActivateBestChainStep(CValidationState &state, CBlockIndex *pindexMostWork) {
+    AssertLockHeld(cs_main);
+    bool fInvalidFound = false;
     CBlockIndex *pindexOldTip = chainActive.Tip();
-    bool fComplete = false;
-    while (!fComplete) {
-        FindMostTrustChain();
-        fComplete = true;
+    CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
 
-        // Check whether we have something to do.
-        if (chainMostTrust.Tip() == NULL) break;
+    // Disconnect active blocks which are no longer in the best chain.
+    while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
+        if (!DisconnectTip(state))
+            return false;
+    }
 
-        // Disconnect active blocks which are no longer in the best chain.
-        while (chainActive.Tip() && !chainMostTrust.Contains(chainActive.Tip())) {
-            if (!DisconnectTip(state))
+    // Build list of new blocks to connect.
+    std::vector<CBlockIndex*> vpindexToConnect;
+    vpindexToConnect.reserve(pindexMostWork->nHeight - (pindexFork ? pindexFork->nHeight : -1));
+    while (pindexMostWork && pindexMostWork != pindexFork) {
+        vpindexToConnect.push_back(pindexMostWork);
+        pindexMostWork = pindexMostWork->pprev;
+    }
+
+    // Connect new blocks.
+    BOOST_REVERSE_FOREACH(CBlockIndex *pindexConnect, vpindexToConnect) {
+        if (!ConnectTip(state, pindexConnect)) {
+            if (state.IsInvalid()) {
+                // The block violates a consensus rule.
+                if (!state.CorruptionPossible())
+                    InvalidChainFound(vpindexToConnect.back());
+                state = CValidationState();
+                fInvalidFound = true;
+                break;
+            } else {
+                // A system error occurred (disk space, database error, ...).
                 return false;
-        }
-
-        // Connect new blocks.
-        while (!chainActive.Contains(chainMostTrust.Tip())) {
-            CBlockIndex *pindexConnect = chainMostTrust[chainActive.Height() + 1];
-            if (!ConnectTip(state, pindexConnect)) {
-                if (state.IsInvalid()) {
-                    // The block violates a consensus rule.
-                    if (!state.CorruptionPossible())
-                        InvalidChainFound(chainMostTrust.Tip());
-                    fComplete = false;
-                    state = CValidationState();
-                    break;
-                } else {
-                    // A system error occurred (disk space, database error, ...).
-                    return false;
-                }
+            }
+        } else {
+            if (!pindexOldTip || chainActive.Tip()->nChainTrust > pindexOldTip->nChainTrust) {
+                // We're in a better position than we were. Return temporarily to release the lock.
+                break;
             }
         }
     }
 
-    if (chainActive.Tip() != pindexOldTip) {
-        std::string strCmd = GetArg("-blocknotify", "");
-        if (!IsInitialBlockDownload() && !strCmd.empty())
-        {
-            boost::replace_all(strCmd, "%s", chainActive.Tip()->GetBlockHash().GetHex());
-            boost::thread t(runCommand, strCmd); // thread runs free
-        }
-    }
+    // Callbacks/notifications for a new best chain.
+    if (fInvalidFound)
+        CheckForkWarningConditionsOnNewFork(vpindexToConnect.back());
+    else
+        CheckForkWarningConditions();
+
+    if (!pblocktree->Flush())
+        return state.Abort(_("Failed to sync block index"));
 
     return true;
 }
 
+bool ActivateBestChain(CValidationState &state) {
+    CBlockIndex *pindexNewTip = NULL;
+    CBlockIndex *pindexMostWork = NULL;
+    do {
+        boost::this_thread::interruption_point();
+
+        bool fInitialDownload;
+        {
+            LOCK(cs_main);
+            pindexMostWork = FindMostWorkChain();
+
+            // Whether we have anything to do at all.
+            if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
+                return true;
+
+            if (!ActivateBestChainStep(state, pindexMostWork))
+                return false;
+
+            pindexNewTip = chainActive.Tip();
+            fInitialDownload = IsInitialBlockDownload();
+        }
+        // When we reach this point, we switched to a new tip (stored in pindexNewTip).
+
+        // Notifications/callbacks that can run without cs_main
+        if (!fInitialDownload) {
+            uint256 hashNewTip = pindexNewTip->GetBlockHash();
+            // Relay inventory, but don't relay old inventory during initial block download.
+            int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+                if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
+                    pnode->PushInventory(CInv(MSG_BLOCK, hashNewTip));
+
+            std::string strCmd = GetArg("-blocknotify", "");
+            if (!strCmd.empty()) {
+                boost::replace_all(strCmd, "%s", hashNewTip.GetHex());
+                boost::thread t(runCommand, strCmd); // thread runs free
+            }
+        }
+        uiInterface.NotifyBlocksChanged();
+    } while(pindexMostWork != chainActive.Tip());
+
+    return true;
+}
 
 CBlockIndex* AddToBlockIndex(CBlockHeader& block)
 {
@@ -2368,23 +2497,6 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
     if (!pblocktree->WriteBlockIndex(CDiskBlockIndex(pindexNew)))
         return state.Abort(_("Failed to write block index"));
 
-    // New best?
-    if (!ActivateBestChain(state))
-        return false;
-
-    LOCK(cs_main);
-    if (pindexNew == chainActive.Tip())
-    {
-        // Notify UI to display prev block's coinbase if it was ours
-        static uint256 hashPrevBestCoinBase;
-        g_signals.UpdatedTransaction(hashPrevBestCoinBase);
-        hashPrevBestCoinBase = block.vtx[0].GetHash();
-    }
-
-    if (!pblocktree->Flush())
-        return state.Abort(_("Failed to sync block index"));
-
-    uiInterface.NotifyBlocksChanged();
     return true;
 }
 
@@ -2702,7 +2814,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     }
 
     int nHeight = pindex->nHeight;
-    uint256 hash = pindex->GetBlockHash();
 
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
@@ -2736,16 +2847,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
             return error("AcceptBlock() : ReceivedBlockTransactions failed");
     } catch(std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
-    }
-
-    // Relay inventory, but don't relay old inventory during initial block download
-    int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
-    if (chainActive.Tip()->GetBlockHash() == hash)
-    {
-        LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes)
-            if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
-                pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
 
     // ppcoin: check pending sync-checkpoint
@@ -2810,10 +2911,11 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp)
 {
-    AssertLockHeld(cs_main);
-
     // Check for duplicate
     uint256 hash = pblock->GetHash();
+
+    {
+    LOCK(cs_main);
     if (mapBlockIndex.count(hash))
         return state.Invalid(error("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, hash.ToString()), 0, "duplicate");
     if (mapOrphanBlocks.count(hash))
@@ -2918,7 +3020,10 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         mapOrphanBlocksByPrev.erase(hashPrev);
     }
 
-    LogPrintf("ProcessBlock: ACCEPTED\n");
+    }
+
+    if (!ActivateBestChain(state))
+        return error("ProcessBlock() : ActivateBestChain failed");
 
     // ppcoin: if responsible for sync-checkpoint send it
     if (pfrom && !CSyncCheckpoint::strMasterPrivKey.empty())
@@ -3461,6 +3566,8 @@ bool InitBlockIndex() {
             CBlockIndex *pindex = AddToBlockIndex(block);
             if (!ReceivedBlockTransactions(block, state, pindex, blockPos))
                 return error("LoadBlockIndex() : genesis block not accepted");
+            if (!ActivateBestChain(state))
+                return error("LoadBlockIndex() : genesis block cannot be activated");
 
             // ppcoin: initialize synchronized checkpoint
             if (!Checkpoints::WriteSyncCheckpoint((Params().HashGenesisBlock())))
@@ -3597,7 +3704,6 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 
                 // process block
                 if (nBlockPos >= nStartByte) {
-                    LOCK(cs_main);
                     if (dbp)
                         dbp->nPos = nBlockPos;
                     CValidationState state;
@@ -3658,6 +3764,17 @@ string GetWarnings(string strFor)
     {
         nPriority = 100;
         strStatusBar = "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers.";
+    }
+
+    if (fLargeWorkForkFound)
+    {
+        nPriority = 2000;
+        strStatusBar = strRPC = _("Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.");
+    }
+    else if (fLargeWorkInvalidChainFound)
+    {
+        nPriority = 2000;
+        strStatusBar = strRPC = _("Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.");
     }
 
     // ppcoin: if detected invalid checkpoint enter safe mode
@@ -4324,10 +4441,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CInv inv(MSG_BLOCK, block.GetHash());
         pfrom->AddInventoryKnown(inv);
 
-        LOCK(cs_main);
-        // Remember who we got this block from.
-        mapBlockSource[inv.hash] = pfrom->GetId();
-        MarkBlockAsReceived(inv.hash, pfrom->GetId());
+        {
+            LOCK(cs_main);
+            // Remember who we got this block from.
+            mapBlockSource[inv.hash] = pfrom->GetId();
+            MarkBlockAsReceived(inv.hash, pfrom->GetId());
+        }
 
         CValidationState state;
         ProcessBlock(state, pfrom, &block);

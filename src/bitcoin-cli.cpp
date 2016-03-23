@@ -7,11 +7,11 @@
 #include "init.h"
 #include "rpcclient.h"
 #include "rpcprotocol.h"
-#include "ui_interface.h" /* for _(...) */
-#include "chainparams.h"
 #include "chainparamsbase.h"
 
 #include <boost/filesystem/operations.hpp>
+
+#define _(x) std::string(x) /* Keep the _() around in case gettext or such will be used later to translate non-UI */
 
 using namespace std;
 using namespace boost;
@@ -222,17 +222,17 @@ int main(int argc, char* argv[])
     try
     {
         if(!AppInitRPC(argc, argv))
-            return abs(RPC_MISC_ERROR);
+            return EXIT_FAILURE;
     }
     catch (std::exception& e) {
         PrintExceptionContinue(&e, "AppInitRPC()");
-        return abs(RPC_MISC_ERROR);
+        return EXIT_FAILURE;
     } catch (...) {
         PrintExceptionContinue(NULL, "AppInitRPC()");
-        return abs(RPC_MISC_ERROR);
+        return EXIT_FAILURE;
     }
 
-    int ret = abs(RPC_MISC_ERROR);
+    int ret = EXIT_FAILURE;
     try
     {
         ret = CommandLineRPC(argc, argv);
