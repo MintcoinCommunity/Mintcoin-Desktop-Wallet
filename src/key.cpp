@@ -5,10 +5,10 @@
 #include "key.h"
 
 #include "crypto/sha2.h"
+#include "random.h"
 #include <openssl/bn.h>
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
-#include <openssl/rand.h>
 
 // anonymous namespace with local implementation code (OpenSSL interaction)
 namespace {
@@ -391,7 +391,7 @@ bool CKey::CheckSignatureElement(const unsigned char *vch, int len, bool half) {
 
 void CKey::MakeNewKey(bool fCompressedIn) {
     do {
-        RAND_bytes(vch, sizeof(vch));
+        GetRandBytes(vch, sizeof(vch));
     } while (!Check(vch));
     fValid = true;
     fCompressed = fCompressedIn;
