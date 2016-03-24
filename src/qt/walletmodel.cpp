@@ -14,6 +14,8 @@
 #include <QTimer>
 #include <QDebug>
 
+using namespace std;
+
 extern bool fWalletUnlockMintOnly;
 
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :

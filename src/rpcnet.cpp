@@ -12,10 +12,6 @@
 #include "timedata.h"
 #include "util.h"
 #include "alert.h"
-#ifdef ENABLE_WALLET
-#include "init.h" // for getinfo
-#include "wallet.h" // for getinfo
-#endif
 #include "db.h"
 #include "walletdb.h"
 

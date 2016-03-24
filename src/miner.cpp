@@ -9,6 +9,7 @@
 #include "hash.h"
 #include "main.h"
 #include "net.h"
+#include "pow.h"
 #include "scrypt_mine.h"
 #include "timedata.h"
 #ifdef ENABLE_WALLET

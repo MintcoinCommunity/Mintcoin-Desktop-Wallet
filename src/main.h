@@ -175,16 +175,10 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
-/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
-bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 /** Get the reward amount for blocks solved using Proof-of-Work */
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash);
 /** Get the reward amount for blocks solved using Proof-of-Stake */
 int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight);
-/** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
-unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
-/** Calculate the minimum amount of stake a received block needs, without knowing its direct parent */
-unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
 /** Format a string that describes several potential problems detected by the core */
@@ -1239,7 +1233,6 @@ extern CCoinsViewCache *pcoinsTip;
 extern CBlockTreeDB *pblocktree;
 
 
-unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
 
 
 /** Used to relay blocks as header + vector<merkle branch>
