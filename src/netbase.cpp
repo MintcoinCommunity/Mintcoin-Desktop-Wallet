@@ -3,6 +3,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifdef HAVE_CONFIG_H
+#include "bitcoin-config.h"
+#endif
+
 #include "netbase.h"
 
 #include "hash.h"
@@ -10,7 +14,14 @@
 #include "uint256.h"
 #include "util.h"
 
+#ifdef HAVE_GETADDRINFO_A
+#include <netdb.h>
+#endif
+
 #ifndef WIN32
+#if HAVE_INET_PTON
+#include <arpa/inet.h>
+#endif
 #include <fcntl.h>
 #endif
 
@@ -81,9 +92,30 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
         }
     }
 
+#ifdef HAVE_GETADDRINFO_A
+    struct in_addr ipv4_addr;
+#ifdef HAVE_INET_PTON
+    if (inet_pton(AF_INET, pszName, &ipv4_addr) > 0) {
+        vIP.push_back(CNetAddr(ipv4_addr));
+        return true;
+    }
+
+    struct in6_addr ipv6_addr;
+    if (inet_pton(AF_INET6, pszName, &ipv6_addr) > 0) {
+        vIP.push_back(CNetAddr(ipv6_addr));
+        return true;
+    }
+#else
+    ipv4_addr.s_addr = inet_addr(pszName);
+    if (ipv4_addr.s_addr != INADDR_NONE) {
+        vIP.push_back(CNetAddr(ipv4_addr));
+        return true;
+    }
+#endif
+#endif
+
     struct addrinfo aiHint;
     memset(&aiHint, 0, sizeof(struct addrinfo));
-
     aiHint.ai_socktype = SOCK_STREAM;
     aiHint.ai_protocol = IPPROTO_TCP;
     aiHint.ai_family = AF_UNSPEC;
@@ -92,8 +124,33 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
 #else
     aiHint.ai_flags = fAllowLookup ? AI_ADDRCONFIG : AI_NUMERICHOST;
 #endif
+
     struct addrinfo *aiRes = NULL;
+#ifdef HAVE_GETADDRINFO_A
+    struct gaicb gcb, *query = &gcb;
+    memset(query, 0, sizeof(struct gaicb));
+    gcb.ar_name = pszName;
+    gcb.ar_request = &aiHint;
+    int nErr = getaddrinfo_a(GAI_NOWAIT, &query, 1, NULL);
+    if (nErr)
+        return false;
+
+    do {
+        // Should set the timeout limit to a resonable value to avoid
+        // generating unnecessary checking call during the polling loop,
+        // while it can still response to stop request quick enough.
+        // 2 seconds looks fine in our situation.
+        struct timespec ts = { 2, 0 };
+        gai_suspend(&query, 1, &ts);
+        boost::this_thread::interruption_point();
+
+        nErr = gai_error(query);
+        if (0 == nErr)
+            aiRes = query->ar_result;
+    } while (nErr == EAI_INPROGRESS);
+#else
     int nErr = getaddrinfo(pszName, NULL, &aiHint, &aiRes);
+#endif
     if (nErr)
         return false;
 
@@ -171,7 +228,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     LogPrintf("SOCKS5 connecting %s\n", strDest);
     if (strDest.size() > 255)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Hostname too long");
     }
     char pszSocks5Init[] = "\5\1\0";
@@ -180,18 +237,18 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     ssize_t ret = send(hSocket, pszSocks5Init, nSize, MSG_NOSIGNAL);
     if (ret != nSize)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error sending to proxy");
     }
     char pchRet1[2];
     if (recv(hSocket, pchRet1, 2, 0) != 2)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error reading proxy response");
     }
     if (pchRet1[0] != 0x05 || pchRet1[1] != 0x00)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Proxy failed to initialize");
     }
     string strSocks5("\5\1");
@@ -203,23 +260,23 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     ret = send(hSocket, strSocks5.c_str(), strSocks5.size(), MSG_NOSIGNAL);
     if (ret != (ssize_t)strSocks5.size())
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error sending to proxy");
     }
     char pchRet2[4];
     if (recv(hSocket, pchRet2, 4, 0) != 4)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error reading proxy response");
     }
     if (pchRet2[0] != 0x05)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Proxy failed to accept request");
     }
     if (pchRet2[1] != 0x00)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         switch (pchRet2[1])
         {
             case 0x01: return error("Proxy error: general failure");
@@ -235,7 +292,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     }
     if (pchRet2[2] != 0x00)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error: malformed proxy response");
     }
     char pchRet3[256];
@@ -247,23 +304,23 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         {
             ret = recv(hSocket, pchRet3, 1, 0) != 1;
             if (ret) {
-                closesocket(hSocket);
+                CloseSocket(hSocket);
                 return error("Error reading from proxy");
             }
             int nRecv = pchRet3[0];
             ret = recv(hSocket, pchRet3, nRecv, 0) != nRecv;
             break;
         }
-        default: closesocket(hSocket); return error("Error: malformed proxy response");
+        default: CloseSocket(hSocket); return error("Error: malformed proxy response");
     }
     if (ret)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error reading from proxy");
     }
     if (recv(hSocket, pchRet3, 2, 0) != 2)
     {
-        closesocket(hSocket);
+        CloseSocket(hSocket);
         return error("Error reading from proxy");
     }
     LogPrintf("SOCKS5 connected %s\n", strDest);
@@ -284,27 +341,22 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     SOCKET hSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
     if (hSocket == INVALID_SOCKET)
         return false;
+
 #ifdef SO_NOSIGPIPE
     int set = 1;
+    // Different way of disabling SIGPIPE on BSD
     setsockopt(hSocket, SOL_SOCKET, SO_NOSIGPIPE, (void*)&set, sizeof(int));
 #endif
 
-#ifdef WIN32
-    u_long fNonblock = 1;
-    if (ioctlsocket(hSocket, FIONBIO, &fNonblock) == SOCKET_ERROR)
-#else
-    int fFlags = fcntl(hSocket, F_GETFL, 0);
-    if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == -1)
-#endif
-    {
-        closesocket(hSocket);
-        return false;
-    }
+    // Set to non-blocking
+    if (!SetSocketNonBlocking(hSocket, true))
+        return error("ConnectSocketDirectly: Setting socket to non-blocking failed, error %s\n", NetworkErrorString(WSAGetLastError()));
 
     if (connect(hSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)
     {
+        int nErr = WSAGetLastError();
         // WSAEINVAL is here because some legacy version of winsock uses it
-        if (WSAGetLastError() == WSAEINPROGRESS || WSAGetLastError() == WSAEWOULDBLOCK || WSAGetLastError() == WSAEINVAL)
+        if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK || nErr == WSAEINVAL)
         {
             struct timeval timeout;
             timeout.tv_sec  = nTimeout / 1000;
@@ -317,13 +369,13 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             if (nRet == 0)
             {
                 LogPrint("net", "connection to %s timeout\n", addrConnect.ToString());
-                closesocket(hSocket);
+                CloseSocket(hSocket);
                 return false;
             }
             if (nRet == SOCKET_ERROR)
             {
                 LogPrintf("select() for %s failed: %s\n", addrConnect.ToString(), NetworkErrorString(WSAGetLastError()));
-                closesocket(hSocket);
+                CloseSocket(hSocket);
                 return false;
             }
             socklen_t nRetSize = sizeof(nRet);
@@ -334,13 +386,13 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 #endif
             {
                 LogPrintf("getsockopt() for %s failed: %s\n", addrConnect.ToString(), NetworkErrorString(WSAGetLastError()));
-                closesocket(hSocket);
+                CloseSocket(hSocket);
                 return false;
             }
             if (nRet != 0)
             {
                 LogPrintf("connect() to %s failed after select(): %s\n", addrConnect.ToString(), NetworkErrorString(nRet));
-                closesocket(hSocket);
+                CloseSocket(hSocket);
                 return false;
             }
         }
@@ -351,25 +403,15 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 #endif
         {
             LogPrintf("connect() to %s failed: %s\n", addrConnect.ToString(), NetworkErrorString(WSAGetLastError()));
-            closesocket(hSocket);
+            CloseSocket(hSocket);
             return false;
         }
     }
 
-    // this isn't even strictly necessary
-    // CNode::ConnectNode immediately turns the socket back to non-blocking
-    // but we'll turn it back to blocking just in case
-#ifdef WIN32
-    fNonblock = 0;
-    if (ioctlsocket(hSocket, FIONBIO, &fNonblock) == SOCKET_ERROR)
-#else
-    fFlags = fcntl(hSocket, F_GETFL, 0);
-    if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR)
-#endif
-    {
-        closesocket(hSocket);
-        return false;
-    }
+    // This is required when using SOCKS5 proxy!
+    // CNode::ConnectNode turns the socket back to non-blocking.
+    if (!SetSocketNonBlocking(hSocket, false))
+        return error("ConnectSocketDirectly: Setting socket to blocking failed, error %s\n", NetworkErrorString(WSAGetLastError()));
 
     hSocketRet = hSocket;
     return true;
@@ -1209,3 +1251,45 @@ std::string NetworkErrorString(int err)
     return strprintf("%s (%d)", s, err);
 }
 #endif
+
+bool CloseSocket(SOCKET& hSocket)
+{
+    if (hSocket == INVALID_SOCKET)
+        return false;
+#ifdef WIN32
+    int ret = closesocket(hSocket);
+#else
+    int ret = close(hSocket);
+#endif
+    hSocket = INVALID_SOCKET;
+    return ret != SOCKET_ERROR;
+}
+
+bool SetSocketNonBlocking(SOCKET& hSocket, bool fNonBlocking)
+{
+    if (fNonBlocking) {
+#ifdef WIN32
+        u_long nOne = 1;
+        if (ioctlsocket(hSocket, FIONBIO, &nOne) == SOCKET_ERROR) {
+#else
+        int fFlags = fcntl(hSocket, F_GETFL, 0);
+        if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) {
+#endif
+            CloseSocket(hSocket);
+            return false;
+        }
+    } else {
+#ifdef WIN32
+        u_long nZero = 0;
+        if (ioctlsocket(hSocket, FIONBIO, &nZero) == SOCKET_ERROR) {
+#else
+        int fFlags = fcntl(hSocket, F_GETFL, 0);
+        if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR) {
+#endif
+            CloseSocket(hSocket);
+            return false;
+        }
+    }
+
+    return true;
+}

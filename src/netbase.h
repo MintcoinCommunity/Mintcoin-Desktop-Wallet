@@ -179,5 +179,9 @@ bool ConnectSocket(const CService &addr, SOCKET& hSocketRet, int nTimeout = nCon
 bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest, int portDefault = 0, int nTimeout = nConnectTimeout);
 /** Return readable error string for a network error code */
 std::string NetworkErrorString(int err);
+/** Close socket and set hSocket to INVALID_SOCKET */
+bool CloseSocket(SOCKET& hSocket);
+/** Disable or enable blocking-mode for a socket */
+bool SetSocketNonBlocking(SOCKET& hSocket, bool fNonBlocking);
 
 #endif

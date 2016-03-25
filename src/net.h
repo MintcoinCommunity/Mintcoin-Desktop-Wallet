@@ -36,8 +36,18 @@ namespace boost {
     class thread_group;
 }
 
+/** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
+static const int PING_INTERVAL = 2 * 60;
+/** Time after which to disconnect, after waiting for a ping response (or inactivity). */
+static const int TIMEOUT_INTERVAL = 20 * 60;
 /** The maximum number of entries in an 'inv' protocol message */
 static const unsigned int MAX_INV_SZ = 50000;
+/** -upnp default */
+#ifdef USE_UPNP
+static const bool DEFAULT_UPNP = USE_UPNP;
+#else
+static const bool DEFAULT_UPNP = false;
+#endif
 
 inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 5*1000); }
 inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 1*1000); }
@@ -47,12 +57,13 @@ bool RecvLine(SOCKET hSocket, std::string& strLine);
 bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
+CNode* FindNode(const std::string& addrName);
 CNode* FindNode(const CService& ip);
-bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
+bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 void MapPort(bool fUseUPnP);
 unsigned short GetListenPort();
-bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
+bool BindListenPort(const CService &bindAddr, std::string& strError, bool fWhitelisted = false);
 void StartNode(boost::thread_group& threadGroup);
 bool StopNode();
 void SocketSendData(CNode *pnode);
@@ -144,6 +155,7 @@ public:
     uint64_t nSendBytes;
     uint64_t nRecvBytes;
     bool fSyncNode;
+    bool fWhitelisted;
     double dPingTime;
     double dPingWait;
     std::string addrLocal;
@@ -163,11 +175,14 @@ public:
     CDataStream vRecv;              // received message data
     unsigned int nDataPos;
 
+    int64_t nTime;                  // time (in microseconds) of message receipt.
+
     CNetMessage(int nTypeIn, int nVersionIn) : hdrbuf(nTypeIn, nVersionIn), vRecv(nTypeIn, nVersionIn) {
         hdrbuf.resize(24);
         in_data = false;
         nHdrPos = 0;
         nDataPos = 0;
+        nTime = 0;
     }
 
     bool complete() const
@@ -213,7 +228,6 @@ public:
 
     int64_t nLastSend;
     int64_t nLastRecv;
-    int64_t nLastSendEmpty;
     int64_t nTimeConnected;
     CAddress addr;
     std::string addrName;
@@ -224,6 +238,7 @@ public:
     // store the sanitized version in cleanSubVer. The original should be used when dealing with
     // the network or wire types and the cleaned string used when displayed or logged.
     std::string strSubVer, cleanSubVer;
+    bool fWhitelisted; // This peer can bypass DoS banning.
     bool fOneShot;
     bool fClient;
     bool fInbound;
@@ -247,6 +262,10 @@ protected:
     static std::map<CNetAddr, int64_t> setBanned;
     static CCriticalSection cs_setBanned;
 
+    // Whitelisted ranges. Any node connecting from these is automatically
+    // whitelisted (as well as those connecting to whitelisted binds).
+    static std::vector<CSubNet> vWhitelistedRange;
+    static CCriticalSection cs_vWhitelistedRange;
 
 public:
     uint256 hashContinue;
@@ -268,10 +287,14 @@ public:
     CCriticalSection cs_inventory;
     std::multimap<int64_t, CInv> mapAskFor;
 
-    // Ping time measurement
+    // Ping time measurement:
+    // The pong reply we're expecting, or 0 if no pong expected.
     uint64_t nPingNonceSent;
+    // Time (in usec) the last ping was sent, or 0 if no ping was ever sent.
     int64_t nPingUsecStart;
+    // Last measured round-trip time.
     int64_t nPingUsecTime;
+    // Whether a ping is requested.
     bool fPingQueued;
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION)
@@ -283,12 +306,12 @@ public:
         nLastRecv = 0;
         nSendBytes = 0;
         nRecvBytes = 0;
-        nLastSendEmpty = GetTime();
         nTimeConnected = GetTime();
         addr = addrIn;
         addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
         nVersion = 0;
         strSubVer = "";
+        fWhitelisted = false;
         fOneShot = false;
         fClient = false; // set by version message
         fInbound = fInboundIn;
@@ -332,13 +355,11 @@ public:
 
     ~CNode()
     {
-        if (hSocket != INVALID_SOCKET)
-        {
-            closesocket(hSocket);
-            hSocket = INVALID_SOCKET;
-        }
+        CloseSocket(hSocket);
+
         if (pfilter)
             delete pfilter;
+
         GetNodeSignals().FinalizeNode(GetId());
     }
 
@@ -680,9 +701,7 @@ public:
     void Subscribe(unsigned int nChannel, unsigned int nHops=0);
     void CancelSubscribe(unsigned int nChannel);
     void CloseSocketDisconnect();
-    void Cleanup();
-
-
+    
     // Denial-of-service detection/prevention
     // The idea is to detect peers that are behaving
     // badly and disconnect/ban them, but do it in a
@@ -701,6 +720,9 @@ public:
     static bool IsBanned(CNetAddr ip);
     static bool Ban(const CNetAddr &ip);
     void copyStats(CNodeStats &stats);
+
+    static bool IsWhitelistedRange(const CNetAddr &ip);
+    static void AddWhitelistedRange(const CSubNet &subnet);
 
     // Network stats
     static void RecordBytesRecv(uint64_t bytes);

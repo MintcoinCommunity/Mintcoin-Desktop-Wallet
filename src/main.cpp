@@ -224,7 +224,7 @@ struct CBlockReject {
 struct CNodeState {
     // Accumulated misbehaviour score for this peer.
     int nMisbehavior;
-    // Whether this peer should be disconnected and banned.
+    // Whether this peer should be disconnected and banned (unless whitelisted).
     bool fShouldBan;
     // String name of this peer (debugging/logging purposes).
     std::string name;
@@ -1392,7 +1392,8 @@ void Misbehaving(NodeId pnode, int howmuch)
         return;
 
     state->nMisbehavior += howmuch;
-    if (state->nMisbehavior >= GetArg("-banscore", 100))
+    int banscore = GetArg("-banscore", 100);
+    if (state->nMisbehavior >= banscore && state->nMisbehavior - howmuch < banscore)
     {
         LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", state->name, state->nMisbehavior-howmuch, state->nMisbehavior);
         state->fShouldBan = true;
@@ -3848,7 +3849,7 @@ void static ProcessGetData(CNode* pfrom)
     }
 }
 
-bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
+bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes) peer=%d\n", strCommand, vRecv.size(), pfrom->id);
@@ -4292,6 +4293,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
             if (nEvicted > 0)
                 LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
+        } else if (pfrom->fWhitelisted) {
+            // Always relay transactions received from whitelisted peers, even
+            // if they are already in the mempool (allowing the node to function
+            // as a gateway for nodes hidden behind it).
+            RelayTransaction(tx);
         }
         int nDoS = 0;
         if (state.IsInvalid(nDoS))
@@ -4388,7 +4394,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
     else if (strCommand == "pong")
     {
-        int64_t pingUsecEnd = GetTimeMicros();
+        int64_t pingUsecEnd = nTimeReceived;
         uint64_t nonce = 0;
         size_t nAvail = vRecv.in_avail();
         bool bPingFinished = false;
@@ -4639,7 +4645,7 @@ bool ProcessMessages(CNode* pfrom)
         bool fRet = false;
         try
         {
-            fRet = ProcessMessage(pfrom, strCommand, vRecv);
+            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
             boost::this_thread::interruption_point();
         }
         catch (std::ios_base::failure& e)
@@ -4698,8 +4704,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             // RPC ping request by user
             pingSend = true;
         }
-        if (pto->nLastSend && GetTime() - pto->nLastSend > 30 * 60 && pto->vSendMsg.empty()) {
-            // Ping automatically sent as a keepalive
+        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
+            // Ping automatically sent as a latency probe & keepalive.
             pingSend = true;
         }
         if (pingSend) {
@@ -4707,15 +4713,14 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             while (nonce == 0) {
                 GetRandBytes((unsigned char*)&nonce, sizeof(nonce));
             }
-            pto->nPingNonceSent = nonce;
             pto->fPingQueued = false;
+            pto->nPingUsecStart = GetTimeMicros();
             if (pto->nVersion > BIP0031_VERSION) {
-                // Take timestamp as close as possible before transmitting ping
-                pto->nPingUsecStart = GetTimeMicros();
+                pto->nPingNonceSent = nonce;
                 pto->PushMessage("ping", nonce);
             } else {
-                // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
-                pto->nPingUsecStart = 0;
+                // Peer is too old to support ping command with nonce, pong will never arrive.
+                pto->nPingNonceSent = 0;
                 pto->PushMessage("ping");
             }
         }
@@ -4776,11 +4781,14 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         CNodeState &state = *State(pto->GetId());
         if (state.fShouldBan) {
-            if (pto->addr.IsLocal())
-                LogPrintf("Warning: not banning local node %s!\n", pto->addr.ToString());
+            if (pto->fWhitelisted)
+                LogPrintf("Warning: not punishing whitelisted peer %s!\n", pto->addr.ToString());
             else {
                 pto->fDisconnect = true;
-                CNode::Ban(pto->addr);
+                if (pto->addr.IsLocal())
+                    LogPrintf("Warning: not banning local peer %s!\n", pto->addr.ToString());
+                else
+                    CNode::Ban(pto->addr);
             }
             state.fShouldBan = false;
         }
