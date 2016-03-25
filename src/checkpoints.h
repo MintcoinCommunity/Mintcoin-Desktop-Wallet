@@ -24,8 +24,8 @@ class CValidationState;
 /** Block-chain checkpoints are compiled-in sanity checks.
  * They are updated every release or three.
  */
-namespace Checkpoints
-{
+namespace Checkpoints {
+
     // Returns true if block passes checkpoint checks
     bool CheckHardened(int nHeight, const uint256& hash);
 
@@ -55,7 +55,7 @@ namespace Checkpoints
     bool IsSyncCheckpointTooOld(unsigned int nSeconds);
     bool CheckMasterPubKey(bool reindex);
     double GuessVerificationProgress(CBlockIndex *pindex, bool fSigchecks = true);
-}
+} //namespace Checkpoints
 
 // ppcoin: synchronized checkpoint
 class CUnsignedSyncCheckpoint

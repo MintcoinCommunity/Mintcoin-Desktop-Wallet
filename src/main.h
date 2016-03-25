@@ -220,6 +220,7 @@ void ThreadStakeMinter();
 
 struct CNodeStateStats {
     int nMisbehavior;
+    int nSyncHeight;
 };
 
 struct CDiskBlockPos
@@ -401,7 +402,7 @@ public:
             filein >> hashChecksum;
         }
         catch (std::exception &e) {
-            return error("%s : Deserialize or I/O error - %s", __PRETTY_FUNCTION__, e.what());
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
 
         // Verify checksum
@@ -719,8 +720,8 @@ public:
     // pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
 
-    // ppcoin: trust score of block chain
-    uint256 nChainTrust;
+    // pointer to the index of some further predecessor of this block
+    CBlockIndex* pskip;
 
     // height of the entry in the chain. The genesis block has height 0
     int nHeight;
@@ -733,6 +734,9 @@ public:
 
     // Byte offset within rev?????.dat where this block's undo data is stored
     unsigned int nUndoPos;
+
+    // ppcoin: trust score of block chain
+    uint256 nChainTrust;
 
     // Number of transactions in this block.
     // Note: in a potential headers-first mode, this number cannot be relied upon
@@ -778,6 +782,7 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
+        pskip = NULL;
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
@@ -807,6 +812,7 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
+        pskip = NULL;
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
@@ -995,6 +1001,13 @@ public:
         }
         return false;
     }
+
+    // Build the skiplist pointer for this entry.
+    void BuildSkip();
+
+    // Efficiently find an ancestor of this block.
+    CBlockIndex* GetAncestor(int height);
+    const CBlockIndex* GetAncestor(int height) const;
 };
 
 
