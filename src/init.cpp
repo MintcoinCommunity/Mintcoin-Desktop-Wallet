@@ -290,8 +290,6 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
     if (GetBoolArg("-help-debug", false))
     {
-        strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
-        strUsage += "  -printblocktree        " + _("Print block tree on startup (default: 0)") + "\n";
         strUsage += "  -printpriority         " + _("Log transaction priority and fee per kB when mining blocks (default: 0)") + "\n";
         strUsage += "  -privdb                " + _("Sets the DB_PRIVATE flag in the wallet db environment (default: 1)") + "\n";
         strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be solved instantly.") + "\n";
@@ -952,34 +950,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
 
-    if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
-    {
-        PrintBlockTree();
-        return false;
-    }
-
-    if (mapArgs.count("-printblock"))
-    {
-        string strMatch = mapArgs["-printblock"];
-        int nFound = 0;
-        for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
-        {
-            uint256 hash = (*mi).first;
-            if (boost::algorithm::starts_with(hash.ToString(), strMatch))
-            {
-                CBlockIndex* pindex = (*mi).second;
-                CBlock block;
-                ReadBlockFromDisk(block, pindex);
-                block.BuildMerkleTree();
-                block.print();
-                LogPrintf("\n");
-                nFound++;
-            }
-        }
-        if (nFound == 0)
-            LogPrintf("No blocks matching %s were found\n", strMatch);
-        return false;
-    }
 
     // ********************************************************* Step 8: load wallet
 #ifdef ENABLE_WALLET

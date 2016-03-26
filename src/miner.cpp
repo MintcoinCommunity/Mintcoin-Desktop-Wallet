@@ -37,14 +37,6 @@ public:
         ptx = ptxIn;
         dPriority = dFeePerKb = 0;
     }
-
-    void print() const
-    {
-        LogPrintf("COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
-               ptx->GetHash().ToString(), dPriority, dFeePerKb);
-        BOOST_FOREACH(uint256 hash, setDependsOn)
-            LogPrintf("   setDependsOn %s\n", hash.ToString());
-    }
 };
 
 
@@ -313,7 +305,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             if (fPrintPriority)
             {
                 LogPrintf("priority %.1f feeperkb %.1f txid %s\n",
-                       dPriority, dFeePerKb, tx.GetHash().ToString());
+                       dPriority, dFeePerKb, tx.GetHash().GetHex());
             }
 
             // Add transactions that depend on this one to the priority queue
@@ -425,18 +417,9 @@ int64_t nHPSTimerStart = 0;
     }
 }*/
 
-bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
+bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
-    uint256 hash = pblock->GetHash();
-    uint256 hashTarget = uint256().SetCompact(pblock->nBits);
-
-    if (hash > hashTarget && pblock->IsProofOfWork())
-        return error("BitcoinMiner : proof-of-work not meeting target");
-
-    //// debug print
-    LogPrintf("BitcoinMiner:\n");
-    LogPrintf("new block found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
-    pblock->print();
+    LogPrintf("%s\n", pblock->ToString());
     LogPrintf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue));
 
     // Found a solution
@@ -503,9 +486,9 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 {
                     if (!pblock->SignBlock(*pwallet))
                         continue;
-                    LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str()); 
+                    LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().GetHex());
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                    CheckWork(pblock.get(), *pwallet, reservekey);
+                    ProcessBlockFound(pblock.get(), *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
                 }
                 MilliSleep(500);
@@ -523,7 +506,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
 
             unsigned int max_nonce = 0xffff0000;
             block_header res_header;
-            uint256 result;
+            uint256 hash;
 
             while (true)
             {
@@ -535,23 +518,25 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                             scratchbuf,
                             max_nonce,
                             nHashesDone,
-                            UBEGIN(result),
+                            UBEGIN(hash),
                             &res_header
                 );
 
                 // Check if something found
                 if (nNonceFound != (unsigned int) -1)
                 {
-                    if (result <= hashTarget)
+                    if (hash <= hashTarget)
                     {
                         // Found a solution
                         pblock->nNonce = nNonceFound;
-                        assert(result == pblock->GetHash());
+                        assert(hash == pblock->GetHash());
                         if (!pblock->SignBlock(*pwallet))
                             break;
 
                         SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                        CheckWork(pblock.get(), *pwallet, reservekey);
+                        LogPrintf("BitcoinMiner:\n");
+                        LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
+                        ProcessBlockFound(pblock.get(), *pwallet, reservekey);
                         SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
                         // In regression test mode, stop mining after a block is found.

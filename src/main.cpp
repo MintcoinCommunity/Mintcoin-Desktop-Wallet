@@ -106,6 +106,9 @@ namespace {
     };
 
     CBlockIndex *pindexBestInvalid;
+
+    // The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS or better that are at least
+    // as good as our current tip. Entries may be failed, though.
     set<CBlockIndex*, CBlockIndexTrustComparator> setBlockIndexValid; // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't failed
 
     CCriticalSection cs_LastBlockFile;
@@ -2271,6 +2274,15 @@ static bool ActivateBestChainStep(CValidationState &state, CBlockIndex *pindexMo
                 return false;
             }
         } else {
+            // Delete all entries in setBlockIndexValid that are worse than our new current block.
+            // Note that we can't delete the current block itself, as we may need to return to it later in case a
+            // reorganization to a better block fails.
+            std::set<CBlockIndex*, CBlockIndexTrustComparator>::iterator it = setBlockIndexValid.begin();
+            while (setBlockIndexValid.value_comp()(*it, chainActive.Tip())) {
+                setBlockIndexValid.erase(it++);
+            }
+            // Either the current tip or a successor of it we're working towards is left in setBlockIndexValid.
+            assert(!setBlockIndexValid.empty());
             if (!pindexOldTip || chainActive.Tip()->nChainTrust > pindexOldTip->nChainTrust) {
                 // We're in a better position than we were. Return temporarily to release the lock.
                 break;
@@ -3575,77 +3587,6 @@ bool InitBlockIndex() {
 
 
 
-void PrintBlockTree()
-{
-    AssertLockHeld(cs_main);
-    // pre-compute tree structure
-    map<CBlockIndex*, vector<CBlockIndex*> > mapNext;
-    for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
-    {
-        CBlockIndex* pindex = (*mi).second;
-        mapNext[pindex->pprev].push_back(pindex);
-        // test
-        //while (rand() % 3 == 0)
-        //    mapNext[pindex->pprev].push_back(pindex);
-    }
-
-    vector<pair<int, CBlockIndex*> > vStack;
-    vStack.push_back(make_pair(0, chainActive.Genesis()));
-
-    int nPrevCol = 0;
-    while (!vStack.empty())
-    {
-        int nCol = vStack.back().first;
-        CBlockIndex* pindex = vStack.back().second;
-        vStack.pop_back();
-
-        // print split or gap
-        if (nCol > nPrevCol)
-        {
-            for (int i = 0; i < nCol-1; i++)
-                LogPrintf("| ");
-            LogPrintf("|\\\n");
-        }
-        else if (nCol < nPrevCol)
-        {
-            for (int i = 0; i < nCol; i++)
-                LogPrintf("| ");
-            LogPrintf("|\n");
-       }
-        nPrevCol = nCol;
-
-        // print columns
-        for (int i = 0; i < nCol; i++)
-            LogPrintf("| ");
-
-        // print item
-        CBlock block;
-        ReadBlockFromDisk(block, pindex);
-        LogPrintf("%d (blk%05u.dat:0x%x) %s %08x  %s  mint %7s  tx %u",
-            pindex->nHeight,
-            pindex->GetBlockPos().nFile, pindex->GetBlockPos().nPos,
-            block.nBits,
-            FormatMoney(pindex->nMint),
-            DateTimeStrFormat("%Y-%m-%d %H:%M:%S", block.GetBlockTime()),
-            block.vtx.size());
-
-        // put the main time-chain first
-        vector<CBlockIndex*>& vNext = mapNext[pindex];
-        for (unsigned int i = 0; i < vNext.size(); i++)
-        {
-            if (chainActive.Next(vNext[i]))
-            {
-                swap(vNext[0], vNext[i]);
-                break;
-            }
-        }
-
-        // iterate children
-        for (unsigned int i = 0; i < vNext.size(); i++)
-            vStack.push_back(make_pair(nCol+i, vNext[i]));
-    }
-}
-
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 {
     int64_t nStart = GetTimeMillis();
@@ -4437,8 +4378,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vRecv >> block;
 
         LogPrint("net", "received block %s peer=%d\n", block.GetHash().ToString(), pfrom->id);
-        // block.print();
-
+        
         CInv inv(MSG_BLOCK, block.GetHash());
         pfrom->AddInventoryKnown(inv);
 

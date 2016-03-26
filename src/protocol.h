@@ -98,8 +98,6 @@ class CAddress : public CService
              READWRITE(*pip);
             )
 
-        void print() const;
-
     // TODO: make private (improves encapsulation)
     public:
         uint64_t nServices;

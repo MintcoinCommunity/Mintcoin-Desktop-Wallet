@@ -52,7 +52,6 @@ public:
     }
 
     std::string ToString() const;
-    void print() const;
 };
 
 /** An inpoint - a combination of a transaction and an index n into its vin */
@@ -112,7 +111,6 @@ public:
     }
 
     std::string ToString() const;
-    void print() const;
 };
 
 
@@ -189,7 +187,6 @@ public:
     }
 
     std::string ToString() const;
-    void print() const;
 };
 
 
@@ -283,7 +280,6 @@ public:
     }
 
     std::string ToString() const;
-    void print() const;
     bool GetCoinAge(uint64_t& nCoinAge) const;  // ppcoin: get transaction coin age
 };
 
@@ -509,7 +505,7 @@ public:
 
     std::vector<uint256> GetMerkleBranch(int nIndex) const;
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
-    void print() const;
+    std::string ToString() const;
 
     // ppcoin: entropy bit for stake modifier if chosen by modifier
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const

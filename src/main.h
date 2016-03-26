@@ -166,8 +166,6 @@ bool InitBlockIndex();
 bool LoadBlockIndex();
 /** Unload database information */
 void UnloadBlockIndex();
-/** Print the loaded block tree */
-void PrintBlockTree();
 /** Process protocol messages received from a given node */
 bool ProcessMessages(CNode* pfrom);
 /** Send queued protocol messages to be sent to a give node */
@@ -973,11 +971,6 @@ public:
             GetBlockHash().ToString().c_str());
     }
 
-    void print() const
-    {
-        LogPrintf("%s\n", ToString());
-    }
-
     // Check whether this block index entry is valid up to the passed validity level.
     bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const
     {
@@ -1097,10 +1090,6 @@ public:
         return str;
     }
 
-    void print() const
-    {
-        LogPrintf("%s\n", ToString().c_str());
-    }
 };
 
 /** Capture information about block/transaction validation */

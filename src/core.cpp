@@ -6,16 +6,11 @@
 #include "core.h"
 
 #include "scrypt_mine.h"
-#include "util.h"
+#include "tinyformat.h"
 
 std::string COutPoint::ToString() const
 {
     return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
-}
-
-void COutPoint::print() const
-{
-    LogPrintf("%s\n", ToString());
 }
 
 CTxIn::CTxIn(COutPoint prevoutIn, CScript scriptSigIn, unsigned int nSequenceIn)
@@ -47,11 +42,6 @@ std::string CTxIn::ToString() const
     return str;
 }
 
-void CTxIn::print() const
-{
-    LogPrintf("%s\n", ToString());
-}
-
 CTxOut::CTxOut(int64_t nValueIn, CScript scriptPubKeyIn)
 {
     nValue = nValueIn;
@@ -67,11 +57,6 @@ std::string CTxOut::ToString() const
 {
     if (IsEmpty()) return "CTxOut(empty)";
     return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)", FormatMoney(nValue).c_str(), scriptPubKey.ToString().c_str());
-}
-
-void CTxOut::print() const
-{
-    LogPrintf("%s\n", ToString());
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
@@ -150,11 +135,6 @@ std::string CTransaction::ToString() const
     for (unsigned int i = 0; i < vout.size(); i++)
         str += "    " + vout[i].ToString() + "\n";
     return str;
-}
-
-void CTransaction::print() const
-{
-    LogPrintf("%s", ToString());
 }
 
 // Amount compression:
@@ -273,9 +253,10 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
     return hash;
 }
 
-void CBlock::print() const
+std::string CBlock::ToString() const
 {
-    LogPrintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u, vchBlockSig=%s)\n",
+    std::stringstream s;
+	s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u, vchBlockSig=%s)\n",
         GetHash().ToString(),
         nVersion,
         hashPrevBlock.ToString(),
@@ -285,11 +266,11 @@ void CBlock::print() const
         HexStr(vchBlockSig.begin(), vchBlockSig.end()));
     for (unsigned int i = 0; i < vtx.size(); i++)
     {
-        LogPrintf("  ");
-        vtx[i].print();
+		s << "  " << vtx[i].ToString() << "\n";
     }
-    LogPrintf("  vMerkleTree: ");
+	s << "  vMerkleTree: ";
     for (unsigned int i = 0; i < vMerkleTree.size(); i++)
-        LogPrintf("%s ", vMerkleTree[i].ToString().c_str());
-    LogPrintf("\n");
+        s << " " << vMerkleTree[i].ToString();
+    s << "\n";
+	return s.str();
 }

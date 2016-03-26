@@ -126,15 +126,15 @@ static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTrans
 #if QT_VERSION < 0x050000
 void DebugMessageHandler(QtMsgType type, const char *msg)
 {
-    Q_UNUSED(type);
-    LogPrint("qt", "MintCoin-Qt: %s\n", msg);
+    const char *category = (type == QtDebugMsg) ? "qt" : NULL;
+    LogPrint(category, "MintCoin-Qt: %s\n", msg);
 }
 #else
 void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString &msg)
 {
-    Q_UNUSED(type);
     Q_UNUSED(context);
-    LogPrint("qt", "MintCoin-Qt: %s\n", qPrintable(msg));
+    const char *category = (type == QtDebugMsg) ? "qt" : NULL;
+    LogPrint(category, "MintCoin-Qt: %s\n", msg.toStdString());
 }
 #endif
 
