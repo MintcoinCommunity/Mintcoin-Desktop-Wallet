@@ -61,7 +61,7 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
-static const int64_t MIN_TXOUT_AMOUNT = CTransaction::nMinTxFee;
+static const int64_t MIN_TXOUT_AMOUNT = 10 * CENT;
 
 static const unsigned int FORK_TIME = 1438444800; // Sat, 01 Aug 2015 16:00:00 GMT
 
