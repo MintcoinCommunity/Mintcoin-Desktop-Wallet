@@ -118,7 +118,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         return NULL;
 
     // Create coinbase tx
-    CTransaction txNew;
+    CMutableTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
@@ -127,8 +127,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         return NULL;
     txNew.vout[0].scriptPubKey << pubkey << OP_CHECKSIG;
 
-    // Add our coinbase tx as first transaction
-    pblock->vtx.push_back(txNew);
+    // Add dummy coinbase tx as first transaction
+    pblock->vtx.push_back(CTransaction());
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -162,14 +162,16 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 				if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime())))
                 {   // make sure coinstake would meet timestamp protocol
                     // as it would be the same as the block timestamp
-                    pblock->vtx[0].vout[0].SetEmpty();
-                    pblock->vtx[0].nTime = txCoinStake.nTime;
+                    txNew.vout[0].SetEmpty();
+                    txNew.nTime = txCoinStake.nTime;
                     pblock->vtx.push_back(txCoinStake);
                 }
             }
             nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
             nLastCoinStakeSearchTime = nSearchTime;
         }
+    } else {
+        txNew.nTime = GetAdjustedTime();
     }
 
     pblock->nBits = GetNextTargetRequired(pindexPrev, pblock->IsProofOfStake());
@@ -328,8 +330,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 continue;
 
             CTxUndo txundo;
-            uint256 hash = tx.GetHash();
-            UpdateCoins(tx, state, view, txundo, pindexPrev->nHeight+1, hash);
+            const uint256& hash = tx.GetHash();
+            UpdateCoins(tx, state, view, txundo, pindexPrev->nHeight+1);
 
             // Added
             pblock->vtx.push_back(tx);
@@ -368,9 +370,12 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         if (fDebug && GetBoolArg("-printpriority", false))
             LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
+        // Compute final coinbase transaction.
         if (pblock->IsProofOfWork())
-            pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees, pindexPrev->GetBlockHash());
-
+        {
+            txNew.vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees, pindexPrev->GetBlockHash());
+            pblock->vtx[0] = txNew;
+        }
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
         if (pblock->IsProofOfStake())
@@ -397,9 +402,12 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
     }
     ++nExtraNonce;
     unsigned int nHeight = pindexPrev->nHeight+1; // Height first in coinbase required for block.version=2
-    pblock->vtx[0].vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
-    assert(pblock->vtx[0].vin[0].scriptSig.size() <= 100);
+    CMutableTransaction txCoinbase(pblock->vtx[0]);
+    txCoinbase.nTime = pblock->vtx[0].nTime;
+    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
+    assert(txCoinbase.vin[0].scriptSig.size() <= 100);
 
+    pblock->vtx[0] = txCoinbase;
     pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 }
 

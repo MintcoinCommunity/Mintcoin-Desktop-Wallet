@@ -50,7 +50,7 @@ public:
         //     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
         //   vMerkleTree: 4a5e1e
         const char* pszTimestamp = "Feb 2, 2014: The Denver Broncos finally got on the board with a touchdown in the final seconds of the third quarter. But the Seattle Seahawks are dominating the Broncos 36-8";
-        CTransaction txNew;
+        CMutableTransaction txNew;
         txNew.nTime = 1391393673;
         txNew.vin.resize(1);
         txNew.vout.resize(1);

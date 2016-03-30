@@ -142,7 +142,7 @@ void UnregisterWallet(CWalletInterface* pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
-void SyncWithWallets(const uint256 &hash, const CTransaction& tx, const CBlock* pblock = NULL, bool fConnect = true);
+void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fConnect = true);
 
 /** Register with a network node to receive its signals */
 void RegisterNodeSignals(CNodeSignals& nodeSignals);
@@ -339,7 +339,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
                  std::vector<CScriptCheck> *pvChecks = NULL, CBlock *block = NULL);
 
 // Apply the effects of this transaction on the UTXO set represented by view
-void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight, const uint256 &txhash);
+void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight);
 
 // Context-independent validity checks
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
@@ -1272,7 +1272,7 @@ public:
 
 class CWalletInterface {
 protected:
-    virtual void SyncTransaction(const uint256 &hash, const CTransaction &tx, const CBlock *pblock, bool fConnect) =0;
+    virtual void SyncTransaction(const CTransaction &tx, const CBlock *pblock, bool fConnect) =0;
     virtual void EraseFromWallet(const uint256 &hash) =0;
     virtual void SetBestChain(const CBlockLocator &locator) =0;
     virtual void UpdatedTransaction(const uint256 &hash) =0;
