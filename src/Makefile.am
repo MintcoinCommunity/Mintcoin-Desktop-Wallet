@@ -210,6 +210,7 @@ libbitcoin_util_a_SOURCES = \
   random.cpp \
   rpcprotocol.cpp \
   sync.cpp \
+  uint256.cpp \
   util.cpp \
   version.cpp \
   $(BITCOIN_CORE_H) scrypt_mine.cpp kernel.cpp scrypt-x86.S scrypt-x86_64.S pbkdf2.cpp

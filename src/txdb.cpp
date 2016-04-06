@@ -38,42 +38,38 @@ void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe) {
 }
 
-bool CCoinsViewDB::GetCoins(const uint256 &txid, CCoins &coins) {
+bool CCoinsViewDB::GetCoins(const uint256 &txid, CCoins &coins) const {
     return db.Read(make_pair('c', txid), coins);
 }
 
-bool CCoinsViewDB::SetCoins(const uint256 &txid, const CCoins &coins) {
-    CLevelDBBatch batch;
-    BatchWriteCoins(batch, txid, coins);
-    return db.WriteBatch(batch);
-}
-
-bool CCoinsViewDB::HaveCoins(const uint256 &txid) {
+bool CCoinsViewDB::HaveCoins(const uint256 &txid) const {
     return db.Exists(make_pair('c', txid));
 }
 
-uint256 CCoinsViewDB::GetBestBlock() {
+uint256 CCoinsViewDB::GetBestBlock() const {
     uint256 hashBestChain;
     if (!db.Read('B', hashBestChain))
         return uint256(0);
     return hashBestChain;
 }
 
-bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
+bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     CLevelDBBatch batch;
-    BatchWriteHashBestChain(batch, hashBlock);
-    return db.WriteBatch(batch);
-}
-
-bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const uint256 &hashBlock) {
-    LogPrint("coindb", "Committing %u changed transactions to coin database...\n", (unsigned int)mapCoins.size());
-
-    CLevelDBBatch batch;
-    for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
-        BatchWriteCoins(batch, it->first, it->second);
+    size_t count = 0;
+    size_t changed = 0;
+    for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();) {
+        if (it->second.flags & CCoinsCacheEntry::DIRTY) {
+            BatchWriteCoins(batch, it->first, it->second.coins);
+            changed++;
+        }
+        count++;
+        CCoinsMap::iterator itOld = it++;
+        mapCoins.erase(itOld);
+    }
     if (hashBlock != uint256(0))
         BatchWriteHashBestChain(batch, hashBlock);
 
+    LogPrint("coindb", "Committing %u changed transactions (out of %u) to coin database...\n", (unsigned int)changed, (unsigned int)count);
     return db.WriteBatch(batch);
 }
 
@@ -97,8 +93,14 @@ bool CBlockTreeDB::WriteLastBlockFile(int nFile) {
     return Write('l', nFile);
 }
 
-bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {
-    return Read('l', nFile);
+bool CBlockTreeDB::ReadCheckpointPubKey(string& strPubKey)
+{
+    return Read('p', strPubKey);
+}
+
+bool CBlockTreeDB::WriteCheckpointPubKey(const string& strPubKey)
+{
+    return Write('p', strPubKey);
 }
 
 
@@ -124,18 +126,15 @@ bool CBlockTreeDB::ReadReindexing(bool &fReindexing) {
     return true;
 }
 
-bool CBlockTreeDB::ReadCheckpointPubKey(string& strPubKey)
-{
-    return Read('p', strPubKey);
+bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {
+    return Read('l', nFile);
 }
 
-bool CBlockTreeDB::WriteCheckpointPubKey(const string& strPubKey)
-{
-    return Write('p', strPubKey);
-}
-
-bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
-    leveldb::Iterator *pcursor = db.NewIterator();
+bool CCoinsViewDB::GetStats(CCoinsStats &stats) const {
+    /* It seems that there are no "const iterators" for LevelDB.  Since we
+       only need read operations on it, use a const-cast to get around
+       that restriction.  */
+    leveldb::Iterator *pcursor = const_cast<CLevelDBWrapper*>(&db)->NewIterator();
     pcursor->SeekToFirst();
 
     CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
@@ -178,7 +177,6 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
             return error("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
     }
-    delete pcursor;
     stats.nHeight = mapBlockIndex.find(GetBestBlock())->second->nHeight;
     stats.hashSerialized = ss.GetHash();
     stats.nTotalAmount = nTotalAmount;
@@ -213,7 +211,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
     // The block index is an in-memory structure that maps hashes to on-disk
     // locations where the contents of the block can be found. Here, we scan it
     // out of the DB and into mapBlockIndex.
-    leveldb::Iterator *pcursor = NewIterator();
+    boost::scoped_ptr<leveldb::Iterator> pcursor(NewIterator());
     
     // Seek to start key.
     CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
@@ -258,7 +256,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nTx            = diskindex.nTx;
 
                 if (!pindexNew->CheckIndex()) {
-                    delete pcursor;
                     return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString().c_str());
                 }
 
@@ -274,7 +271,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
             return error("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
     }
-    delete pcursor;
 
     return true;
 }

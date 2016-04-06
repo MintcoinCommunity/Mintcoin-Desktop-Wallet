@@ -2280,12 +2280,13 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
         CWalletTx* pcoin = &(*it).second;
 
         // Find the corresponding transaction index
-        if (!pcoinsTip->HaveCoins(pcoin->GetHash()))
+        const CCoins* dbCoins = pcoinsTip->AccessCoins(pcoin->GetHash());
+        if (!dbCoins)
             continue;
-        CCoins dbCoins = pcoinsTip->GetCoins(pcoin->GetHash());
+        
         for (unsigned int n=0; n < pcoin->vout.size(); n++)
         {
-            if (IsMine(pcoin->vout[n]) && IsSpent(wtxid, n) && (dbCoins.vout.size() <= n || dbCoins.vout[n].IsNull()))
+            if (IsMine(pcoin->vout[n]) && IsSpent(wtxid, n) && (dbCoins->vout.size() <= n || dbCoins->vout[n].IsNull()))
             {
                 printf("FixSpentCoins found lost coin %sppc %s[%d], %s\n",
                     FormatMoney(pcoin->vout[n].nValue).c_str(), pcoin->GetHash().ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
@@ -2296,7 +2297,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
                     pcoin->MarkDirty();
                 }
             }
-            else if (IsMine(pcoin->vout[n]) && !IsSpent(wtxid, n) && (dbCoins.vout.size() > n && true))
+            else if (IsMine(pcoin->vout[n]) && !IsSpent(wtxid, n) && (dbCoins->vout.size() > n && true))
             {
                 printf("FixSpentCoins found spent coin %sppc %s[%d], %s\n",
                     FormatMoney(pcoin->vout[n].nValue).c_str(), pcoin->GetHash().ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
