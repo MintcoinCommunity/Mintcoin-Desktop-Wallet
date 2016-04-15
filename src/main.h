@@ -173,10 +173,6 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
-/** Get the reward amount for blocks solved using Proof-of-Work */
-int64_t GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash);
-/** Get the reward amount for blocks solved using Proof-of-Stake */
-int64_t GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight);
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
 /** Format a string that describes several potential problems detected by the core */
@@ -185,6 +181,10 @@ std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
+/** Get the reward amount for blocks solved using Proof-of-Work */
+CAmount GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash);
+/** Get the reward amount for blocks solved using Proof-of-Stake */
+CAmount GetProofOfStakeReward(int64_t nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight);
 
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
 
@@ -275,7 +275,7 @@ struct CDiskTxPos : public CDiskBlockPos
 };
 
 
-int64_t GetMinRelayFee(const CTransaction& tx, unsigned int nBytes);
+CAmount GetMinRelayFee(const CTransaction& tx, unsigned int nBytes);
 
 //
 // Check transaction inputs, and make sure any

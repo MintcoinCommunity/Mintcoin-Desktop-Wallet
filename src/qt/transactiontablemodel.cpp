@@ -396,20 +396,22 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
 
 QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const
 {
+    // mark transactions involving watch-only addresses:    switch(wtx->type)
+    QString watchAddress = wtx->involvesWatchAddress ? " (w) " : "";
     switch(wtx->type)
     {
     case TransactionRecord::RecvFromOther:
-        return QString::fromStdString(wtx->address);
+        return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::RecvWithAddress:
     case TransactionRecord::SendToAddress:
     case TransactionRecord::StakeMint:
     case TransactionRecord::Generated:
-        return lookupAddress(wtx->address, tooltip);
+        return lookupAddress(wtx->address, tooltip) + watchAddress;
     case TransactionRecord::SendToOther:
-        return QString::fromStdString(wtx->address);
+        return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::SendToSelf:
     default:
-        return tr("(n/a)");
+        return tr("(n/a)") + watchAddress;
     }
 }
 
@@ -537,7 +539,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         case ToAddress:
             return formatTxToAddress(rec, true);
         case Amount:
-            return rec->credit + rec->debit;
+            return qint64(rec->credit + rec->debit);
         }
         break;
     case Qt::ToolTipRole:
@@ -570,7 +572,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
     case LabelRole:
         return walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(rec->address));
     case AmountRole:
-        return rec->credit + rec->debit;
+        return qint64(rec->credit + rec->debit);
     case TxIDRole:
         return rec->getTxID();
     case ConfirmedRole:

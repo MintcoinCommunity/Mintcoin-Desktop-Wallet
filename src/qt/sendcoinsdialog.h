@@ -49,7 +49,8 @@ public slots:
     SendCoinsEntry *addEntry();
     void addRecurring();
     void updateTabsAndLabels();
-    void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance, qint64 mintedBalance);
+    void setBalance(const CAmount& balance, const CAmount& stake, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& mintedBalance,
+                    const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
 private:
     Ui::SendCoinsDialog *ui;
@@ -57,7 +58,7 @@ private:
     bool fNewRecipientAllowed;
     WalletView *walletView;
 
-    void updateBalance(qint64 balance);
+    void updateBalance(const CAmount& balance);
 
     // Process WalletModel::SendCoinsReturn and generate a pair consisting
     // of a message and message flags for use in emit message().

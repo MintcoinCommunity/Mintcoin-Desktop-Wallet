@@ -209,7 +209,7 @@ static void MutateTxAddOutAddr(CMutableTransaction& tx, const string& strInput)
 
     // extract and validate VALUE
     string strValue = strInput.substr(0, pos);
-    int64_t value;
+    CAmount value;
     if (!ParseMoney(strValue, value))
         throw runtime_error("invalid TX output value");
 
@@ -239,7 +239,7 @@ static void MutateTxAddOutScript(CMutableTransaction& tx, const string& strInput
 
     // extract and validate VALUE
     string strValue = strInput.substr(0, pos);
-    int64_t value;
+    CAmount value;
     if (!ParseMoney(strValue, value))
         throw runtime_error("invalid TX output value");
 

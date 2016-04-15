@@ -72,16 +72,17 @@ Value importprivkey(const Array& params, bool fHelp)
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
             "1. \"bitcoinprivkey\"   (string, required) The private key (see dumpprivkey)\n"
-            "2. \"label\"            (string, optional) an optional label\n"
+            "2. \"label\"            (string, optional, default=\"\") An optional label\n"
             "3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n"
+            "\nNote: This call can take minutes to complete if rescan is true.\n"
             "\nExamples:\n"
             "\nDump a private key\n"
             + HelpExampleCli("dumpprivkey", "\"myaddress\"") +
-            "\nImport the private key\n"
+            "\nImport the private key with rescan\n"
             + HelpExampleCli("importprivkey", "\"mykey\"") +
-            "\nImport using a label\n"
+            "\nImport using a label and without rescan\n"
             + HelpExampleCli("importprivkey", "\"mykey\" \"testing\" false") +
-            "\nAs a json rpc call\n"
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("importprivkey", "\"mykey\", \"testing\", false")
         );
 
@@ -110,8 +111,6 @@ Value importprivkey(const Array& params, bool fHelp)
     CPubKey pubkey = key.GetPubKey();
     CKeyID vchAddress = pubkey.GetID();
     {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-
         pwalletMain->MarkDirty();
         pwalletMain->SetAddressBook(vchAddress, strLabel, "receive");
 
@@ -129,6 +128,74 @@ Value importprivkey(const Array& params, bool fHelp)
 
         if (fRescan) {
             pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
+        }
+    }
+
+    return Value::null;
+}
+
+Value importaddress(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 3)
+        throw runtime_error(
+            "importaddress \"address\" ( \"label\" rescan )\n"
+            "\nAdds an address or script (in hex) that can be watched as if it were in your wallet but cannot be used to spend.\n"
+            "\nArguments:\n"
+            "1. \"address\"          (string, required) The address\n"
+            "2. \"label\"            (string, optional, default=\"\") An optional label\n"
+            "3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n"
+            "\nNote: This call can take minutes to complete if rescan is true.\n"
+            "\nExamples:\n"
+            "\nImport an address with rescan\n"
+            + HelpExampleCli("importaddress", "\"myaddress\"") +
+            "\nImport using a label without rescan\n"
+            + HelpExampleCli("importaddress", "\"myaddress\" \"testing\" false") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("importaddress", "\"myaddress\", \"testing\", false")
+        );
+
+    CScript script;
+
+    CBitcoinAddress address(params[0].get_str());
+    if (address.IsValid()) {
+        script.SetDestination(address.Get());
+    } else if (IsHex(params[0].get_str())) {
+        std::vector<unsigned char> data(ParseHex(params[0].get_str()));
+        script = CScript(data.begin(), data.end());
+    } else {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MintCoin address or script");
+    }
+
+    string strLabel = "";
+    if (params.size() > 1)
+        strLabel = params[1].get_str();
+
+    // Whether to perform rescan after import
+    bool fRescan = true;
+    if (params.size() > 2)
+        fRescan = params[2].get_bool();
+
+    {
+        if (::IsMine(*pwalletMain, script) == ISMINE_SPENDABLE)
+            throw JSONRPCError(RPC_WALLET_ERROR, "The wallet already contains the private key for this address or script");
+
+        // add to address book or update label
+        if (address.IsValid())
+            pwalletMain->SetAddressBook(address.Get(), strLabel, "receive");
+
+        // Don't throw error in case an address is already there
+        if (pwalletMain->HaveWatchOnly(script))
+            return Value::null;
+
+        pwalletMain->MarkDirty();
+
+        if (!pwalletMain->AddWatchOnly(script))
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding address to wallet");
+
+        if (fRescan)
+        {
+            pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
+            pwalletMain->ReacceptWalletTransactions();
         }
     }
 

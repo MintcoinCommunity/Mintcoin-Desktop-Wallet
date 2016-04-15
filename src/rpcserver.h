@@ -6,6 +6,7 @@
 #ifndef _BITCOINRPC_SERVER_H_
 #define _BITCOINRPC_SERVER_H_ 1
 
+#include "amount.h"
 #include "uint256.h"
 #include "checkpoints.h"
 #include "rpcprotocol.h"
@@ -114,8 +115,8 @@ extern void InitRPCMining();
 extern void ShutdownRPCMining();
 
 extern int64_t nWalletUnlockTime;
-extern int64_t AmountFromValue(const json_spirit::Value& value);
-extern json_spirit::Value ValueFromAmount(int64_t amount);
+extern CAmount AmountFromValue(const json_spirit::Value& value);
+extern json_spirit::Value ValueFromAmount(const CAmount& amount);
 extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
 
 extern double GetPoSKernelPS();
@@ -136,6 +137,7 @@ extern json_spirit::Value getnettotals(const json_spirit::Array& params, bool fH
 
 extern json_spirit::Value dumpprivkey(const json_spirit::Array& params, bool fHelp); // in rpcdump.cpp
 extern json_spirit::Value importprivkey(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value importaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value dumpwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendalert(const json_spirit::Array& params, bool fHelp);

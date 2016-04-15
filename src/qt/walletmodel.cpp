@@ -27,6 +27,8 @@ WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *p
     cachedEncryptionStatus(Unencrypted),
     cachedNumBlocks(0)
 {
+    fProcessingQueuedTransactions = false;
+    fHaveWatchOnly = wallet->HaveWatchOnly();
     addressTableModel = new AddressTableModel(wallet, this);
     transactionTableModel = new TransactionTableModel(wallet, this);
     recentRequestsTableModel = new RecentRequestsTableModel(wallet, this);
@@ -44,15 +46,16 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-qint64 WalletModel::getBalance(const CCoinControl *coinControl) const
+CAmount WalletModel::getBalance(const CCoinControl *coinControl) const
 {
     if (coinControl)
     {
-        qint64 nBalance = 0;
+        CAmount nBalance = 0;
         std::vector<COutput> vCoins;
         wallet->AvailableCoins(vCoins, true, coinControl);
         BOOST_FOREACH(const COutput& out, vCoins)
-            nBalance += out.tx->vout[out.i].nValue;
+            if(out.fSpendable)
+                nBalance += out.tx->vout[out.i].nValue;
 
         return nBalance;
     }
@@ -60,24 +63,44 @@ qint64 WalletModel::getBalance(const CCoinControl *coinControl) const
     return wallet->GetBalance();
 }
 
-qint64 WalletModel::getUnconfirmedBalance() const
+CAmount WalletModel::getUnconfirmedBalance() const
 {
     return wallet->GetUnconfirmedBalance();
 }
 
-qint64 WalletModel::getStake() const
+CAmount WalletModel::getStake() const
 {
     return wallet->GetStake();
 }
 
-qint64 WalletModel::getImmatureBalance() const
+CAmount WalletModel::getImmatureBalance() const
 {
     return wallet->GetImmatureBalance();
 }
 
-qint64 WalletModel::getMintedBalance() const
+bool WalletModel::haveWatchOnly() const
+{
+    return fHaveWatchOnly;
+}
+
+CAmount WalletModel::getMintedBalance() const
 {
     return wallet->GetMintedBalance();
+}
+
+CAmount WalletModel::getWatchBalance() const
+{
+    return wallet->GetWatchOnlyBalance();
+}
+
+CAmount WalletModel::getWatchUnconfirmedBalance() const
+{
+    return wallet->GetUnconfirmedWatchOnlyBalance();
+}
+
+CAmount WalletModel::getWatchImmatureBalance() const
+{
+    return wallet->GetImmatureWatchOnlyBalance();
 }
 
 int WalletModel::getNumTransactions() const
@@ -125,21 +148,34 @@ void WalletModel::pollBalanceChanged()
 
 void WalletModel::checkBalanceChanged()
 {
-    qint64 newBalance = getBalance();
-    qint64 newStake = getStake();
-    qint64 newUnconfirmedBalance = getUnconfirmedBalance();
-    qint64 newImmatureBalance = getImmatureBalance();
-    qint64 newMintedBalance = getMintedBalance();
+    CAmount newBalance = getBalance();
+    CAmount newStake = getStake();
+    CAmount newUnconfirmedBalance = getUnconfirmedBalance();
+    CAmount newImmatureBalance = getImmatureBalance();
+    CAmount newMintedBalance = getMintedBalance();
+    CAmount newWatchOnlyBalance = 0;
+    CAmount newWatchUnconfBalance = 0;
+    CAmount newWatchImmatureBalance = 0;
+    if (haveWatchOnly())
+    {
+        newWatchOnlyBalance = getWatchBalance();
+        newWatchUnconfBalance = getWatchUnconfirmedBalance();
+        newWatchImmatureBalance = getWatchImmatureBalance();
+    }
 
-    if(cachedBalance != newBalance || cachedStake != newStake || cachedUnconfirmedBalance != newUnconfirmedBalance ||
-       cachedImmatureBalance != newImmatureBalance || cachedMintedBalance != newMintedBalance)
+    if(cachedBalance != newBalance || cachedStake != newStake || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance ||
+        cachedMintedBalance != newMintedBalance || cachedWatchOnlyBalance != newWatchOnlyBalance || cachedWatchUnconfBalance != newWatchUnconfBalance || cachedWatchImmatureBalance != newWatchImmatureBalance)
     {
         cachedBalance = newBalance;
         cachedStake = newStake;
         cachedUnconfirmedBalance = newUnconfirmedBalance;
         cachedImmatureBalance = newImmatureBalance;
         cachedMintedBalance = newMintedBalance;
-        emit balanceChanged(newBalance, newStake, newUnconfirmedBalance, newImmatureBalance, newMintedBalance);
+        cachedWatchOnlyBalance = newWatchOnlyBalance;
+        cachedWatchUnconfBalance = newWatchUnconfBalance;
+        cachedWatchImmatureBalance = newWatchImmatureBalance;
+        emit balanceChanged(newBalance, newStake, newUnconfirmedBalance, newImmatureBalance, newMintedBalance,
+                            newWatchOnlyBalance, newWatchUnconfBalance, newWatchImmatureBalance);
     }
 }
 
@@ -166,6 +202,12 @@ void WalletModel::updateAddressBook(const QString &address, const QString &label
         addressTableModel->updateEntry(address, label, isMine, purpose, status);
 }
 
+void WalletModel::updateWatchOnlyFlag(bool fHaveWatchonly)
+{
+    fHaveWatchOnly = fHaveWatchonly;
+    emit notifyWatchonlyChanged(fHaveWatchonly);
+}
+
 bool WalletModel::validateAddress(const QString &address)
 {
     CBitcoinAddress addressParsed(address.toStdString());
@@ -174,9 +216,9 @@ bool WalletModel::validateAddress(const QString &address)
 
 WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransaction &transaction, const CCoinControl *coinControl)
 {
-    qint64 total = 0;
+    CAmount total = 0;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
-    std::vector<std::pair<CScript, int64_t> > vecSend;
+    std::vector<std::pair<CScript, CAmount> > vecSend;
 
     if(recipients.empty())
     {
@@ -191,7 +233,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     {
         if (rcp.paymentRequest.IsInitialized())
         {   // PaymentRequest...
-            int64_t subtotal = 0;
+            CAmount subtotal = 0;
             const payments::PaymentDetails& details = rcp.paymentRequest.getDetails();
             for (int i = 0; i < details.outputs_size(); i++)
             {
@@ -200,7 +242,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
                 subtotal += out.amount();
                 const unsigned char* scriptStr = (const unsigned char*)out.script().data();
                 CScript scriptPubKey(scriptStr, scriptStr+out.script().size());
-                vecSend.push_back(std::pair<CScript, int64_t>(scriptPubKey, out.amount()));
+                vecSend.push_back(std::pair<CScript, CAmount>(scriptPubKey, out.amount()));
             }
             if (subtotal <= 0)
             {
@@ -223,7 +265,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
             CScript scriptPubKey;
             scriptPubKey.SetDestination(CBitcoinAddress(rcp.address.toStdString()).Get());
-            vecSend.push_back(std::pair<CScript, int64_t>(scriptPubKey, rcp.amount));
+            vecSend.push_back(std::pair<CScript, CAmount>(scriptPubKey, rcp.amount));
 
             total += rcp.amount;
         }
@@ -233,7 +275,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         return DuplicateAddress;
     }
 
-    qint64 nBalance = getBalance(coinControl);
+    CAmount nBalance = getBalance(coinControl);
 
     if(total > nBalance)
     {
@@ -244,7 +286,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         LOCK2(cs_main, wallet->cs_wallet);
 
         transaction.newPossibleKeyChange(wallet);
-        int64_t nFeeRequired = 0;
+        CAmount nFeeRequired = 0;
         std::string strFailReason;
 
         CWalletTx *newTx = transaction.getTransaction();
@@ -467,10 +509,23 @@ static void ShowProgress(WalletModel *walletmodel, const std::string &title, int
     if (nProgress == 100)
     {
         fQueueNotifications = false;
-        BOOST_FOREACH(const PAIRTYPE(uint256, ChangeType)& notification, vQueueNotifications)
-            NotifyTransactionChanged(walletmodel, NULL, notification.first, notification.second);
+        if (vQueueNotifications.size() > 10) // prevent balloon spam, show maximum 10 balloons
+            QMetaObject::invokeMethod(walletmodel, "setProcessingQueuedTransactions", Qt::QueuedConnection, Q_ARG(bool, true));
+        for (unsigned int i = 0; i < vQueueNotifications.size(); ++i)
+        {
+            if (vQueueNotifications.size() - i <= 10)
+                QMetaObject::invokeMethod(walletmodel, "setProcessingQueuedTransactions", Qt::QueuedConnection, Q_ARG(bool, false));
+
+            NotifyTransactionChanged(walletmodel, NULL, vQueueNotifications[i].first, vQueueNotifications[i].second);
+        }
         std::vector<std::pair<uint256, ChangeType> >().swap(vQueueNotifications); // clear
     }
+}
+
+static void NotifyWatchonlyChanged(WalletModel *walletmodel, bool fHaveWatchonly)
+{
+    QMetaObject::invokeMethod(walletmodel, "updateWatchOnlyFlag", Qt::QueuedConnection,
+                              Q_ARG(bool, fHaveWatchonly));
 }
 
 void WalletModel::subscribeToCoreSignals()
@@ -480,6 +535,7 @@ void WalletModel::subscribeToCoreSignals()
     wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
     wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
+    wallet->NotifyWatchonlyChanged.connect(boost::bind(NotifyWatchonlyChanged, this, _1));
 }
 
 void WalletModel::unsubscribeFromCoreSignals()
@@ -489,6 +545,7 @@ void WalletModel::unsubscribeFromCoreSignals()
     wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
     wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
+    wallet->NotifyWatchonlyChanged.disconnect(boost::bind(NotifyWatchonlyChanged, this, _1));
 }
 
 // WalletModel::UnlockContext implementation
@@ -550,7 +607,7 @@ void WalletModel::getOutputs(const std::vector<COutPoint>& vOutpoints, std::vect
         if (!wallet->mapWallet.count(outpoint.hash)) continue;
         int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
         if (nDepth < 0) continue;
-        COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth);
+        COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth, true);
         vOutputs.push_back(out);
     }
 }
@@ -577,8 +634,9 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
         if (!wallet->mapWallet.count(outpoint.hash)) continue;
         int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
         if (nDepth < 0) continue;
-        COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth);
-        vCoins.push_back(out);
+        COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth, true);
+        if (outpoint.n < out.tx->vout.size() && wallet->IsMine(out.tx->vout[outpoint.n]) == ISMINE_SPENDABLE)
+            vCoins.push_back(out);
     }
 
     BOOST_FOREACH(const COutput& out, vCoins)
@@ -588,11 +646,12 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
         while (wallet->IsChange(cout.tx->vout[cout.i]) && cout.tx->vin.size() > 0 && wallet->IsMine(cout.tx->vin[0]))
         {
             if (!wallet->mapWallet.count(cout.tx->vin[0].prevout.hash)) break;
-            cout = COutput(&wallet->mapWallet[cout.tx->vin[0].prevout.hash], cout.tx->vin[0].prevout.n, 0);
+            cout = COutput(&wallet->mapWallet[cout.tx->vin[0].prevout.hash], cout.tx->vin[0].prevout.n, 0, true);
         }
 
         CTxDestination address;
-        if(!ExtractDestination(cout.tx->vout[cout.i].scriptPubKey, address)) continue;
+        if(!out.fSpendable || !ExtractDestination(cout.tx->vout[cout.i].scriptPubKey, address))
+            continue;
         mapCoins[CBitcoinAddress(address).ToString().c_str()].push_back(out);
     }
 }

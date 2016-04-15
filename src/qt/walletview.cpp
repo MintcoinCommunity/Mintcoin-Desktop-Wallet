@@ -97,7 +97,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui)
         connect(this, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
 
         // Pass through transaction notifications
-        connect(this, SIGNAL(incomingTransaction(QString,int,qint64,QString,QString)), gui, SLOT(incomingTransaction(QString,int,qint64,QString,QString)));
+        connect(this, SIGNAL(incomingTransaction(QString,int,const CAmount&,QString,QString)), gui, SLOT(incomingTransaction(QString,int,const CAmount&,QString,QString)));
     }
 }
 
@@ -152,7 +152,7 @@ void WalletView::setWalletModel(WalletModel *walletModel)
 void WalletView::processNewTransaction(const QModelIndex& parent, int start, int /*end*/)
 {
     // Prevent balloon-spam when initial block download is in progress
-    if (!walletModel || !clientModel || clientModel->inInitialBlockDownload())
+    if (!walletModel || walletModel->processingQueuedTransactions() || !clientModel || clientModel->inInitialBlockDownload())
         return;
 
     TransactionTableModel *ttm = walletModel->getTransactionTableModel();

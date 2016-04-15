@@ -152,9 +152,9 @@ public:
         bool ret;
         BIGNUM bn;
         BN_init(&bn);
-        ret = BN_bin2bn(vch, 32, &bn);
+        ret = BN_bin2bn(vch, 32, &bn) != NULL;
         assert(ret);
-        ret = EC_KEY_regenerate_key(pkey, &bn);
+        ret = EC_KEY_regenerate_key(pkey, &bn) != 0;
         assert(ret);
         BN_clear_free(&bn);
     }
@@ -197,7 +197,7 @@ public:
 
     bool SetPubKey(const CPubKey &pubkey) {
         const unsigned char* pbegin = pubkey.begin();
-        return o2i_ECPublicKey(&pkey, &pbegin, pubkey.size());
+        return o2i_ECPublicKey(&pkey, &pbegin, pubkey.size()) != NULL;
     }
 
     bool Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) {

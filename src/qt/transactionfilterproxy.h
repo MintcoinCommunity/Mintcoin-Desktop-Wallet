@@ -1,6 +1,8 @@
 #ifndef TRANSACTIONFILTERPROXY_H
 #define TRANSACTIONFILTERPROXY_H
 
+#include "amount.h"
+
 #include <QDateTime>
 #include <QSortFilterProxyModel>
 
@@ -27,7 +29,7 @@ public:
       @note Type filter takes a bit field created with TYPE() or ALL_TYPES
      */
     void setTypeFilter(quint32 modes);
-    void setMinAmount(qint64 minimum);
+    void setMinAmount(const CAmount& minimum);
 
     /** Set maximum number of rows returned, -1 if unlimited. */
     void setLimit(int limit);
@@ -45,7 +47,7 @@ private:
     QDateTime dateTo;
     QString addrPrefix;
     quint32 typeFilter;
-    qint64 minAmount;
+    CAmount minAmount;
     int limitRows;
     bool showInactive;
 };

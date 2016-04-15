@@ -256,6 +256,7 @@ std::string HelpMessage(HelpMessageMode mode)
 #endif
     strUsage += "  -whitebind=<addr>      " + _("Bind to given address and whitelist peers connecting to it. Use [host]:port notation for IPv6") + "\n";
     strUsage += "  -whitelist=<netmask>   " + _("Whitelist peers connecting from the given netmask or ip. Can be specified multiple times.") + "\n";
+    strUsage += "                         " + _("Whitelisted peers cannot be DoS banned and their transactions are always relayed, even if they are already in the mempool, useful e.g. for a gateway") + "\n";
 
 #ifdef ENABLE_WALLET
     strUsage += "\n" + _("Wallet options:") + "\n";
@@ -601,7 +602,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     // cost to you of processing a transaction.
     if (mapArgs.count("-minrelaytxfee"))
     {
-        int64_t n = 0;
+        CAmount n = 0;
         if (ParseMoney(mapArgs["-minrelaytxfee"], n) && n > 0)
             ::minRelayTxFee = CFeeRate(n);
         else
@@ -611,7 +612,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #ifdef ENABLE_WALLET
     if (mapArgs.count("-mintxfee"))
     {
-        int64_t n = 0;
+        CAmount n = 0;
         if (ParseMoney(mapArgs["-mintxfee"], n) && n > 0)
             CWallet::minTxFee = CFeeRate(n);
         else
@@ -619,7 +620,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
     if (mapArgs.count("-paytxfee"))
     {
-        int64_t nFeePerK = 0;
+        CAmount nFeePerK = 0;
         if (!ParseMoney(mapArgs["-paytxfee"], nFeePerK))
             return InitError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s'"), mapArgs["-paytxfee"]));
         if (nFeePerK > nHighTransactionFeeWarning)

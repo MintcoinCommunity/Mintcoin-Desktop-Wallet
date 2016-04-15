@@ -95,14 +95,15 @@ void SendCoinsDialog::setModel(WalletModel *model)
             }
         }
 
-        setBalance(model->getBalance(), model->getStake(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getMintedBalance());
-        connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64, qint64, qint64)));
+        setBalance(model->getBalance(), model->getStake(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getMintedBalance(),
+                   model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
+        connect(model, SIGNAL(balanceChanged(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)), this, SLOT(setBalance(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)));
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 
         // Coin Control
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(coinControlUpdateLabels()));
         connect(model->getOptionsModel(), SIGNAL(coinControlFeaturesChanged(bool)), this, SLOT(coinControlFeatureChanged(bool)));
-        connect(model->getOptionsModel(), SIGNAL(transactionFeeChanged(qint64)), this, SLOT(coinControlUpdateLabels()));
+        connect(model->getOptionsModel(), SIGNAL(transactionFeeChanged(CAmount)), this, SLOT(coinControlUpdateLabels()));
         ui->frameCoinControl->setVisible(model->getOptionsModel()->getCoinControlFeatures());
         ui->payFromFrame->setVisible(!model->getOptionsModel()->getCoinControlFeatures());
         ui->sendRecurring->setEnabled(!model->getOptionsModel()->getCoinControlFeatures());
@@ -244,7 +245,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         return;
     }
 
-    qint64 txFee = currentTransaction.getTransactionFee();
+    CAmount txFee = currentTransaction.getTransactionFee();
     QString questionString = tr("Are you sure you want to send?");
     questionString.append("<br /><br />%1");
 
@@ -463,7 +464,7 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient &rv)
     return true;
 }
 
-void SendCoinsDialog::updateBalance(qint64 balance)
+void SendCoinsDialog::updateBalance(const CAmount& balance)
 {
   if(model && model->getOptionsModel())
   {
@@ -498,12 +499,16 @@ void SendCoinsDialog::updateBalance(qint64 balance)
 }
 
 
-void SendCoinsDialog::setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance, qint64 mintedBalance)
+void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& stake, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& mintedBalance,
+                                 const CAmount& watchBalance, const CAmount& watchUnconfirmedBalance, const CAmount& watchImmatureBalance)
 {
     Q_UNUSED(stake);
     Q_UNUSED(unconfirmedBalance);
     Q_UNUSED(immatureBalance);
     Q_UNUSED(mintedBalance);
+    Q_UNUSED(watchBalance);
+    Q_UNUSED(watchUnconfirmedBalance);
+    Q_UNUSED(watchImmatureBalance);
 
     updateBalance(balance);
 }

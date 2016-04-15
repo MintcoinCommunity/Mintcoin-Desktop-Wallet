@@ -81,18 +81,18 @@ void RPCTypeCheck(const Object& o,
     }
 }
 
-int64_t AmountFromValue(const Value& value)
+CAmount AmountFromValue(const Value& value)
 {
     double dAmount = value.get_real();
     if (dAmount <= 0.0 || dAmount > MAX_MONEY)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
-    int64_t nAmount = roundint64(dAmount * COIN);
+    CAmount nAmount = roundint64(dAmount * COIN);
     if (!MoneyRange(nAmount))
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     return nAmount;
 }
 
-Value ValueFromAmount(int64_t amount)
+Value ValueFromAmount(const CAmount& amount)
 {
     return (double)amount / (double)COIN;
 }
@@ -285,6 +285,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
     { "importwallet",           &importwallet,           false,     false,      true },
+    { "importaddress",          &importaddress,          true,      false,      true },
     { "keypoolrefill",          &keypoolrefill,          true,      false,      true },
     { "listaccounts",           &listaccounts,           false,     false,      true },
     { "listaddressgroupings",   &listaddressgroupings,   false,     false,      true },
