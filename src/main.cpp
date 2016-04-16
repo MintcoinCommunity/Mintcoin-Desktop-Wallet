@@ -71,8 +71,13 @@ multimap<uint256, COrphanBlock*> mapOrphanBlocksByPrev;
 set<pair<COutPoint, unsigned int> > setStakeSeenOrphan;
 map<uint256, uint256> mapProofOfStake;
 
-map<uint256, CTransaction> mapOrphanTransactions;
+struct COrphanTx {
+    CTransaction tx;
+    NodeId fromPeer;
+};
+map<uint256, COrphanTx> mapOrphanTransactions;
 map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
+void EraseOrphansFor(NodeId peer);
 
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
@@ -287,6 +292,7 @@ void FinalizeNode(NodeId nodeid) {
         mapBlocksInFlight.erase(entry.hash);
     BOOST_FOREACH(const uint256& hash, state->vBlocksToDownload)
         mapBlocksToDownload.erase(hash);
+    EraseOrphansFor(nodeid);
 
     mapNodeState.erase(nodeid);
 }
@@ -484,7 +490,7 @@ CBlockTreeDB *pblocktree = NULL;
 // mapOrphanTransactions
 //
 
-bool AddOrphanTx(const CTransaction& tx)
+bool AddOrphanTx(const CTransaction& tx, NodeId peer)
 {
     uint256 hash = tx.GetHash();
     if (mapOrphanTransactions.count(hash))
@@ -504,28 +510,49 @@ bool AddOrphanTx(const CTransaction& tx)
         return false;
     }
 
-    mapOrphanTransactions[hash] = tx;
+    mapOrphanTransactions[hash].tx = tx;
+    mapOrphanTransactions[hash].fromPeer = peer;
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
         mapOrphanTransactionsByPrev[txin.prevout.hash].insert(hash);
 
-    LogPrint("mempool", "stored orphan tx %s (mapsz %u)\n", hash.ToString(),
-        mapOrphanTransactions.size());
+    LogPrint("mempool", "stored orphan tx %s (mapsz %u prevsz %u)\n", hash.ToString(),
+             mapOrphanTransactions.size(), mapOrphanTransactionsByPrev.size());
     return true;
 }
 
 void static EraseOrphanTx(uint256 hash)
 {
-    if (!mapOrphanTransactions.count(hash))
+    map<uint256, COrphanTx>::iterator it = mapOrphanTransactions.find(hash);
+    if (it == mapOrphanTransactions.end())
         return;
-    const CTransaction& tx = mapOrphanTransactions[hash];
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    BOOST_FOREACH(const CTxIn& txin, it->second.tx.vin)
     {
-        mapOrphanTransactionsByPrev[txin.prevout.hash].erase(hash);
-        if (mapOrphanTransactionsByPrev[txin.prevout.hash].empty())
-            mapOrphanTransactionsByPrev.erase(txin.prevout.hash);
+        map<uint256, set<uint256> >::iterator itPrev = mapOrphanTransactionsByPrev.find(txin.prevout.hash);
+        if (itPrev == mapOrphanTransactionsByPrev.end())
+            continue;
+        itPrev->second.erase(hash);
+        if (itPrev->second.empty())
+            mapOrphanTransactionsByPrev.erase(itPrev);
     }
-    mapOrphanTransactions.erase(hash);
+    mapOrphanTransactions.erase(it);
 }
+
+void EraseOrphansFor(NodeId peer)
+{
+    int nErased = 0;
+    map<uint256, COrphanTx>::iterator iter = mapOrphanTransactions.begin();
+    while (iter != mapOrphanTransactions.end())
+    {
+        map<uint256, COrphanTx>::iterator maybeErase = iter++; // increment to avoid iterator becoming invalid
+        if (maybeErase->second.fromPeer == peer)
+        {
+            EraseOrphanTx(maybeErase->second.tx.GetHash());
+            ++nErased;
+        }
+    }
+    if (nErased > 0) LogPrint("mempool", "Erased %d orphan tx from peer %d\n", nErased, peer);
+}
+
 
 unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 {
@@ -534,7 +561,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
     {
         // Evict a random orphan:
         uint256 randomhash = GetRandHash();
-        map<uint256, CTransaction>::iterator it = mapOrphanTransactions.lower_bound(randomhash);
+        map<uint256, COrphanTx>::iterator it = mapOrphanTransactions.lower_bound(randomhash);
         if (it == mapOrphanTransactions.end())
             it = mapOrphanTransactions.begin();
         EraseOrphanTx(it->first);
@@ -4286,14 +4313,15 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         bool fMissingInputs = false;
         CValidationState state;
+
+        mapAlreadyAskedFor.erase(inv);
+
         if (AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs))
         {
             mempool.check(pcoinsTip);
             RelayTransaction(tx);
-            mapAlreadyAskedFor.erase(inv);
             vWorkQueue.push_back(inv.hash);
             vEraseQueue.push_back(inv.hash);
-
 
             LogPrint("mempool", "AcceptToMemoryPool: peer=%d %s : accepted %s (poolsz %u)\n",
                 pfrom->id, pfrom->cleanSubVer,
@@ -4301,33 +4329,46 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 mempool.mapTx.size());
 
             // Recursively process any orphan transactions that depended on this one
+            set<NodeId> setMisbehaving;
             for (unsigned int i = 0; i < vWorkQueue.size(); i++)
             {
-                uint256 hashPrev = vWorkQueue[i];
-                for (set<uint256>::iterator mi = mapOrphanTransactionsByPrev[hashPrev].begin();
-                     mi != mapOrphanTransactionsByPrev[hashPrev].end();
+                map<uint256, set<uint256> >::iterator itByPrev = mapOrphanTransactionsByPrev.find(vWorkQueue[i]);
+                if (itByPrev == mapOrphanTransactionsByPrev.end())
+                    continue;
+                for (set<uint256>::iterator mi = itByPrev->second.begin();
+                     mi != itByPrev->second.end();
                      ++mi)
                 {
                     const uint256& orphanHash = *mi;
-                    const CTransaction& orphanTx = mapOrphanTransactions[orphanHash];
+                    const CTransaction& orphanTx = mapOrphanTransactions[orphanHash].tx;
+                    NodeId fromPeer = mapOrphanTransactions[orphanHash].fromPeer;
                     bool fMissingInputs2 = false;
                     // Use a dummy CValidationState so someone can't setup nodes to counter-DoS based on orphan
                     // resolution (that is, feeding people an invalid transaction based on LegitTxX in order to get
                     // anyone relaying LegitTxX banned)
                     CValidationState stateDummy;
 
+                    vEraseQueue.push_back(orphanHash);
+
+                    if (setMisbehaving.count(fromPeer))
+                        continue;
                     if (AcceptToMemoryPool(mempool, stateDummy, orphanTx, true, &fMissingInputs2))
                     {
                         LogPrint("mempool", "   accepted orphan tx %s\n", orphanHash.ToString());
                         RelayTransaction(orphanTx);
-                        mapAlreadyAskedFor.erase(CInv(MSG_TX, orphanHash));
                         vWorkQueue.push_back(orphanHash);
-                        vEraseQueue.push_back(orphanHash);
                     }
                     else if (!fMissingInputs2)
                     {
-                        // invalid or too-little-fee orphan
-                        vEraseQueue.push_back(orphanHash);
+                        int nDos = 0;
+                        if (stateDummy.IsInvalid(nDos) && nDos > 0)
+                        {
+                            // Punish peer that gave us an invalid orphan tx
+                            Misbehaving(fromPeer, nDos);
+                            setMisbehaving.insert(fromPeer);
+                            LogPrint("mempool", "   invalid orphan tx %s\n", orphanHash.ToString());
+                        }
+                        // too-little-fee orphan
                         LogPrint("mempool", "   removed orphan tx %s\n", orphanHash.ToString());
                     }
                     mempool.check(pcoinsTip);
@@ -4339,10 +4380,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
         else if (fMissingInputs)
         {
-            AddOrphanTx(tx);
+            AddOrphanTx(tx, pfrom->GetId());
 
             // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
-            unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
+            unsigned int nMaxOrphanTx = (unsigned int)std::max((int64_t)0, GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
+            unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
             if (nEvicted > 0)
                 LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
         } else if (pfrom->fWhitelisted) {
@@ -4839,7 +4881,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->addr.IsLocal())
                     LogPrintf("Warning: not banning local peer %s!\n", pto->addr.ToString());
                 else
+                {
                     CNode::Ban(pto->addr);
+                }
             }
             state.fShouldBan = false;
         }
@@ -4998,5 +5042,6 @@ public:
 
         // orphan transactions
         mapOrphanTransactions.clear();
+        mapOrphanTransactionsByPrev.clear();
     }
 } instance_of_cmaincleanup;
