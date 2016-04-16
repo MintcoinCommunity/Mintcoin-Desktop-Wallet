@@ -37,7 +37,6 @@ public:
         ProxySocksVersion,      // int
         Fee,                    // qint64
         DisplayUnit,            // BitcoinUnits::Unit
-        DisplayAddresses,       // bool
         Language,               // QString
         CoinControlFeatures,    // bool
         ShowShopDonate,    		// bool
@@ -56,12 +55,13 @@ public:
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+    /** Updates current unit in memory, settings and emits displayUnitChanged(newUnit) signal */
+    void setDisplayUnit(const QVariant &value);
 
     /* Explicit getters */
     bool getMinimizeToTray();
     bool getMinimizeOnClose();
     int getDisplayUnit();
-    bool getDisplayAddresses();
     bool getShowShopDonate();
     bool getShowOverviewNews();
     QString getRecurringSendEntries();
@@ -84,7 +84,6 @@ private:
     bool fMinimizeOnClose;
     QString language;
     int nDisplayUnit;
-    bool bDisplayAddresses;
     bool fCoinControlFeatures;
     /* settings that were overriden by command-line */
     QString strOverriddenByCommandLine;

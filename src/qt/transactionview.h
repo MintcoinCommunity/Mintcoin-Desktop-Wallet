@@ -4,6 +4,7 @@
 #include "guiutil.h"
 
 #include <QWidget>
+#include <QKeyEvent>
 
 class WalletModel;
 class TransactionFilterProxy;
@@ -44,6 +45,7 @@ public:
 
     enum ColumnWidths {
         STATUS_COLUMN_WIDTH = 23,
+        WATCHONLY_COLUMN_WIDTH = 23,
         DATE_COLUMN_WIDTH = 120,
         TYPE_COLUMN_WIDTH = 120,
         AMOUNT_MINIMUM_COLUMN_WIDTH = 120,
@@ -57,6 +59,7 @@ private:
 
     QComboBox *dateWidget;
     QComboBox *typeWidget;
+    QComboBox *watchOnlyWidget;
     QLineEdit *addressWidget;
     QLineEdit *amountWidget;
 
@@ -72,6 +75,8 @@ private:
 
     virtual void resizeEvent(QResizeEvent* event);
 
+    bool eventFilter(QObject *obj, QEvent *event);
+
 private slots:
     void contextualMenu(const QPoint &);
     void dateRangeChanged();
@@ -81,6 +86,7 @@ private slots:
     void copyLabel();
     void copyAmount();
     void copyTxID();
+    void updateWatchOnlyColumn(bool fHaveWatchOnly);
 
 signals:
     void doubleClicked(const QModelIndex&);
@@ -91,6 +97,7 @@ signals:
 public slots:
     void chooseDate(int idx);
     void chooseType(int idx);
+    void chooseWatchonly(int idx);
     void changedPrefix(const QString &prefix);
     void changedAmount(const QString &amount);
     void exportClicked();

@@ -11,8 +11,11 @@
 
 #include "amount.h"
 
+#include <QLabel>
 #include <QMainWindow>
 #include <QMap>
+#include <QMenu>
+#include <QPoint>
 #include <QSystemTrayIcon>
 
 #include "util.h" // for uint64_t
@@ -20,10 +23,13 @@
 #include <QMap>
 
 class ClientModel;
+class NetworkStyle;
 class MerchantPage;
 class Notificator;
+class OptionsModel;
 class RPCConsole;
 class SendCoinsRecipient;
+class UnitDisplayStatusBarControl;
 class WalletFrame;
 class WalletModel;
 
@@ -31,7 +37,6 @@ class CWallet;
 
 QT_BEGIN_NAMESPACE
 class QAction;
-class QLabel;
 class QProgressBar;
 class QProgressDialog;
 QT_END_NAMESPACE
@@ -47,7 +52,7 @@ class BitcoinGUI : public QMainWindow
 public:
     static const QString DEFAULT_WALLET;
 
-    explicit BitcoinGUI(bool fIsTestnet = false, QWidget *parent = 0);
+    explicit BitcoinGUI(const NetworkStyle *networkStyle, QWidget *parent = 0);
     ~BitcoinGUI();
 
     /** Set the client model.
@@ -76,6 +81,7 @@ private:
     ClientModel *clientModel;
     WalletFrame *walletFrame;
 
+    UnitDisplayStatusBarControl *unitDisplayControl;
     QLabel *labelEncryptionIcon;
     QLabel *labelMintingIcon;
     QLabel *labelConnectionsIcon;
@@ -111,6 +117,7 @@ private:
     QAction *showHelpMessageAction;
 
     QSystemTrayIcon *trayIcon;
+    QMenu *trayIconMenu;
     Notificator *notificator;
     RPCConsole *rpcConsole;
 
@@ -122,13 +129,13 @@ private:
     int spinnerFrame;
 
     /** Create the main UI actions. */
-    void createActions(bool fIsTestnet);
+    void createActions(const NetworkStyle *networkStyle);
     /** Create the menu bar and sub-menus. */
     void createMenuBar();
     /** Create the toolbars */
     void createToolBars();
     /** Create system tray icon and notification */
-    void createTrayIcon(bool fIsTestnet);
+    void createTrayIcon(const NetworkStyle *networkStyle);
     /** Create system tray menu (or setup the dock menu) */
     void createTrayIconMenu();
 
@@ -210,7 +217,6 @@ private slots:
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
 
-
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);
     /** Simply calls showNormalIfMinimized(true) for use in SLOT() macro */
@@ -228,6 +234,35 @@ private slots:
     void updateMintingWeights();
 
     void noMessage();
+};
+
+class UnitDisplayStatusBarControl : public QLabel
+{
+    Q_OBJECT
+
+public:
+    explicit UnitDisplayStatusBarControl();
+    /** Lets the control know about the Options Model (and its signals) */
+    void setOptionsModel(OptionsModel *optionsModel);
+
+protected:
+    /** So that it responds to left-button clicks */
+    void mousePressEvent(QMouseEvent *event);
+
+private:
+    OptionsModel *optionsModel;
+    QMenu* menu;
+
+    /** Shows context menu with Display Unit options by the mouse coordinates */
+    void onDisplayUnitsClicked(const QPoint& point);
+    /** Creates context menu, its actions, and wires up all the relevant signals for mouse events. */
+    void createContextMenu();
+
+private slots:
+    /** When Display Units are changed on OptionsModel it will refresh the display text of the control on the status bar */
+    void updateDisplayUnit(int newUnits);
+    /** Tells underlying optionsModel to update its current display unit. */
+    void onMenuSelection(QAction* action);
 };
 
 #endif // BITCOINGUI_H

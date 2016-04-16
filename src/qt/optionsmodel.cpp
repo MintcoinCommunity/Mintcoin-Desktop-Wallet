@@ -59,10 +59,6 @@ void OptionsModel::Init()
         settings.setValue("nDisplayUnit", BitcoinUnits::BTC);
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 
-    if (!settings.contains("bDisplayAddresses"))
-        settings.setValue("bDisplayAddresses", false);
-    bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
-
     if (!settings.contains("fCoinControlFeatures"))
         settings.setValue("fCoinControlFeatures", false);
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
@@ -207,8 +203,6 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
 #endif
         case DisplayUnit:
             return nDisplayUnit;
-        case DisplayAddresses:
-            return bDisplayAddresses;
         case Language:
             return settings.value("language");
         case CoinControlFeatures:
@@ -305,13 +299,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             break;
 #endif
         case DisplayUnit:
-            nDisplayUnit = value.toInt();
-            settings.setValue("nDisplayUnit", nDisplayUnit);
-            emit displayUnitChanged(nDisplayUnit);
-            break;
-        case DisplayAddresses:
-            bDisplayAddresses = value.toBool();
-            settings.setValue("bDisplayAddresses", bDisplayAddresses);
+            setDisplayUnit(value);
             break;
         case Language:
             if (settings.value("language") != value) {
@@ -359,6 +347,18 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
     emit dataChanged(index, index);
 
     return successful;
+}
+
+/** Updates current unit in memory, settings and emits displayUnitChanged(newUnit) signal */
+void OptionsModel::setDisplayUnit(const QVariant &value)
+{
+    if (!value.isNull())
+    {
+        QSettings settings;
+        nDisplayUnit = value.toInt();
+        settings.setValue("nDisplayUnit", nDisplayUnit);
+        emit displayUnitChanged(nDisplayUnit);
+    }
 }
 
 bool OptionsModel::getProxySettings(QNetworkProxy& proxy) const
@@ -414,11 +414,6 @@ bool OptionsModel::getMinimizeOnClose()
 int OptionsModel::getDisplayUnit()
 {
     return nDisplayUnit;
-}
-
-bool OptionsModel::getDisplayAddresses()
-{
-    return bDisplayAddresses;
 }
 
 QString OptionsModel::getRecurringSendEntries()

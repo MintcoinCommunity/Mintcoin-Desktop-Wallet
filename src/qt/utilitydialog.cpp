@@ -14,6 +14,7 @@
 #include "init.h"
 #include "util.h"
 
+#include <QCloseEvent>
 #include <QLabel>
 #include <QRegExp>
 #include <QVBoxLayout>
@@ -105,22 +106,35 @@ void HelpMessageDialog::on_okButton_accepted()
 
 
 /** "Shutdown" window */
+ShutdownWindow::ShutdownWindow(QWidget *parent, Qt::WindowFlags f):
+    QWidget(parent, f)
+{
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(new QLabel(
+        tr("MintCoin is shutting down...") + "<br /><br />" +
+        tr("Do not shut down the computer until this window disappears.")));
+    setLayout(layout);
+}
+
 void ShutdownWindow::showShutdownWindow(BitcoinGUI *window)
 {
     if (!window)
         return;
 
     // Show a simple window indicating shutdown status
-    QWidget *shutdownWindow = new QWidget();
-    QVBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(new QLabel(
-        tr("MintCoin Core is shutting down...\n") +
-        tr("Do not shut down the computer until this window disappears.")));
-    shutdownWindow->setLayout(layout);
+    QWidget *shutdownWindow = new ShutdownWindow();
+    // We don't hold a direct pointer to the shutdown window after creation, so use
+    // Qt::WA_DeleteOnClose to make sure that the window will be deleted eventually.
+    shutdownWindow->setAttribute(Qt::WA_DeleteOnClose);
     shutdownWindow->setWindowTitle(window->windowTitle());
 
     // Center shutdown window at where main window was
     const QPoint global = window->mapToGlobal(window->rect().center());
     shutdownWindow->move(global.x() - shutdownWindow->width() / 2, global.y() - shutdownWindow->height() / 2);
     shutdownWindow->show();
+}
+
+void ShutdownWindow::closeEvent(QCloseEvent *event)
+{
+    event->ignore();
 }

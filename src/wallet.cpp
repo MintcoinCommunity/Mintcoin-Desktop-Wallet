@@ -1837,6 +1837,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         {
             if (fDebug && GetBoolArg("-printfee", false))
                 printf("CreateCoinStake : fee for coinstake %s\n", FormatMoney(nMinFee).c_str());
+            //LogPrintf("CreateCoinStake : fee for coinstake %s\n", FormatMoney((const CAmount)nMinFee));
             break;
         }
     }

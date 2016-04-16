@@ -39,7 +39,6 @@ public:
 public slots:
     void setBalance(const CAmount& balance, const CAmount& stake, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& mintedBalance,
                     const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
-    void setNumTransactions(int count);
 
 signals:
     void transactionClicked(const QModelIndex &index);
