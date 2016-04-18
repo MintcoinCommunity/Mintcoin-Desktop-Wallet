@@ -48,9 +48,11 @@ static const bool DEFAULT_UPNP = USE_UPNP;
 #else
 static const bool DEFAULT_UPNP = false;
 #endif
+/** The maximum number of entries in mapAskFor */
+static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
 
-inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 5*1000); }
-inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 1*1000); }
+unsigned int ReceiveFloodSize();
+unsigned int SendBufferSize();
 
 void AddOneShot(std::string strDest);
 bool RecvLine(SOCKET hSocket, std::string& strLine);
@@ -276,7 +278,7 @@ public:
 
     // flood relay
     std::vector<CAddress> vAddrToSend;
-    std::set<CAddress> setAddrKnown;
+    mruset<CAddress> setAddrKnown;
     bool fGetAddr;
     std::set<uint256> setKnown;
     uint256 hashCheckpointKnown; // ppcoin: known sent sync-checkpoint
@@ -297,71 +299,8 @@ public:
     // Whether a ping is requested.
     bool fPingQueued;
 
-    CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION)
-    {
-        nServices = 0;
-        hSocket = hSocketIn;
-        nRecvVersion = INIT_PROTO_VERSION;
-        nLastSend = 0;
-        nLastRecv = 0;
-        nSendBytes = 0;
-        nRecvBytes = 0;
-        nTimeConnected = GetTime();
-        addr = addrIn;
-        addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
-        nVersion = 0;
-        strSubVer = "";
-        fWhitelisted = false;
-        fOneShot = false;
-        fClient = false; // set by version message
-        fInbound = fInboundIn;
-        fNetworkNode = false;
-        fSuccessfullyConnected = false;
-        fDisconnect = false;
-        nRefCount = 0;
-        nSendSize = 0;
-        nSendOffset = 0;
-        hashContinue = 0;
-        pindexLastGetBlocksBegin = 0;
-        hashLastGetBlocksEnd = 0;
-        nStartingHeight = -1;
-        fStartSync = false;
-        fGetAddr = false;
-        hashCheckpointKnown = 0;
-        fRelayTxes = false;
-        setInventoryKnown.max_size(SendBufferSize() / 1000);
-        pfilter = new CBloomFilter();
-        nPingNonceSent = 0;
-        nPingUsecStart = 0;
-        nPingUsecTime = 0;
-        fPingQueued = false;
-
-        {
-            LOCK(cs_nLastNodeId);
-            id = nLastNodeId++;
-        }
-
-        if (fLogIPs)
-            LogPrint("net", "Added connection to %s peer=%d\n", addrName, id);
-        else
-            LogPrint("net", "Added connection peer=%d\n", id);
-
-        // Be shy and don't send version until we hear
-        if (hSocket != INVALID_SOCKET && !fInbound)
-            PushVersion();
-
-        GetNodeSignals().InitializeNode(GetId(), this);
-    }
-
-    ~CNode()
-    {
-        CloseSocket(hSocket);
-
-        if (pfilter)
-            delete pfilter;
-
-        GetNodeSignals().FinalizeNode(GetId());
-    }
+    CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false);
+    ~CNode();
 
 private:
     // Network usage totals
@@ -450,91 +389,16 @@ public:
         }
     }
 
-    void AskFor(const CInv& inv)
-    {
-        // We're using mapAskFor as a priority queue,
-        // the key is the earliest time the request can be sent
-        int64_t nRequestTime;
-        limitedmap<CInv, int64_t>::const_iterator it = mapAlreadyAskedFor.find(inv);
-        if (it != mapAlreadyAskedFor.end())
-            nRequestTime = it->second;
-        else
-            nRequestTime = 0;
-        LogPrint("net", "askfor %s  %d (%s) peer=%d\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str(), id);
-
-        // Make sure not to reuse time indexes to keep things in the same order
-        int64_t nNow = GetTimeMicros() - 1000000;
-        static int64_t nLastTime;
-        ++nLastTime;
-        nNow = std::max(nNow, nLastTime);
-        nLastTime = nNow;
-
-        // Each retry is 2 minutes after the last
-        nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
-        if (it != mapAlreadyAskedFor.end())
-            mapAlreadyAskedFor.update(it, nRequestTime);
-        else
-            mapAlreadyAskedFor.insert(std::make_pair(inv, nRequestTime));
-        mapAskFor.insert(std::make_pair(nRequestTime, inv));
-    }
-
-
+    void AskFor(const CInv& inv);
 
     // TODO: Document the postcondition of this function.  Is cs_vSend locked?
-    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend)
-    {
-        ENTER_CRITICAL_SECTION(cs_vSend);
-        assert(ssSend.size() == 0);
-        ssSend << CMessageHeader(pszCommand, 0);
-        LogPrint("net", "sending: %s ", pszCommand);
-    }
+    void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend);
 
     // TODO: Document the precondition of this function.  Is cs_vSend locked?
-    void AbortMessage() UNLOCK_FUNCTION(cs_vSend)
-    {
-        ssSend.clear();
-
-        LEAVE_CRITICAL_SECTION(cs_vSend);
-
-        LogPrint("net", "(aborted)\n");
-    }
+    void AbortMessage() UNLOCK_FUNCTION(cs_vSend);
 
     // TODO: Document the precondition of this function.  Is cs_vSend locked?
-    void EndMessage() UNLOCK_FUNCTION(cs_vSend)
-    {
-        if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
-        {
-            LogPrint("net", "dropmessages DROPPING SEND MESSAGE\n");
-            AbortMessage();
-            return;
-        }
-
-        if (ssSend.size() == 0)
-            return;
-
-        // Set the size
-        unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE;
-        memcpy((char*)&ssSend[CMessageHeader::MESSAGE_SIZE_OFFSET], &nSize, sizeof(nSize));
-
-        // Set the checksum
-        uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end());
-        unsigned int nChecksum = 0;
-        memcpy(&nChecksum, &hash, sizeof(nChecksum));
-        assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
-        memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
-
-        LogPrint("net", "(%d bytes) peer=%d\n", nSize, id);
-
-        std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
-        ssSend.GetAndClear(*it);
-        nSendSize += (*it).size();
-
-        // If write queue empty, attempt "optimistic write"
-        if (it == vSendMsg.begin())
-            SocketSendData(this);
-
-        LEAVE_CRITICAL_SECTION(cs_vSend);
-    }
+    void EndMessage() UNLOCK_FUNCTION(cs_vSend);
 
     void PushVersion();
 
@@ -701,7 +565,7 @@ public:
     void Subscribe(unsigned int nChannel, unsigned int nHops=0);
     void CancelSubscribe(unsigned int nChannel);
     void CloseSocketDisconnect();
-    
+
     // Denial-of-service detection/prevention
     // The idea is to detect peers that are behaving
     // badly and disconnect/ban them, but do it in a

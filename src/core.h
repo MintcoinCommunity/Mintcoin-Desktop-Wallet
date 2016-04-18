@@ -29,13 +29,13 @@ class COutPoint
 {
 public:
     uint256 hash;
-    unsigned int n;
+    uint32_t n;
 
     COutPoint() { SetNull(); }
-    COutPoint(uint256 hashIn, unsigned int nIn) { hash = hashIn; n = nIn; }
     IMPLEMENT_SERIALIZE( READWRITE(FLATDATA(*this)); )
-    void SetNull() { hash = 0; n = (unsigned int) -1; }
-    bool IsNull() const { return (hash == 0 && n == (unsigned int) -1); }
+    COutPoint(uint256 hashIn, uint32_t nIn) { hash = hashIn; n = nIn; }
+    void SetNull() { hash = 0; n = (uint32_t) -1; }
+    bool IsNull() const { return (hash == 0 && n == (uint32_t) -1); }
 
     friend bool operator<(const COutPoint& a, const COutPoint& b)
     {
@@ -60,12 +60,12 @@ class CInPoint
 {
 public:
     const CTransaction* ptx;
-    unsigned int n;
+    uint32_t n;
 
     CInPoint() { SetNull(); }
-    CInPoint(const CTransaction* ptxIn, unsigned int nIn) { ptx = ptxIn; n = nIn; }
-    void SetNull() { ptx = NULL; n = (unsigned int) -1; }
-    bool IsNull() const { return (ptx == NULL && n == (unsigned int) -1); }
+    CInPoint(const CTransaction* ptxIn, uint32_t nIn) { ptx = ptxIn; n = nIn; }
+    void SetNull() { ptx = NULL; n = (uint32_t) -1; }
+    bool IsNull() const { return (ptx == NULL && n == (uint32_t) -1); }
 };
 
 /** An input of a transaction.  It contains the location of the previous
@@ -77,15 +77,15 @@ class CTxIn
 public:
     COutPoint prevout;
     CScript scriptSig;
-    unsigned int nSequence;
+    uint32_t nSequence;
 
     CTxIn()
     {
         nSequence = std::numeric_limits<unsigned int>::max();
     }
 
-    explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn=CScript(), unsigned int nSequenceIn=std::numeric_limits<unsigned int>::max());
-    CTxIn(uint256 hashPrevTx, unsigned int nOut, CScript scriptSigIn=CScript(), unsigned int nSequenceIn=std::numeric_limits<unsigned int>::max());
+    explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=std::numeric_limits<unsigned int>::max());
+    CTxIn(uint256 hashPrevTx, uint32_t nOut, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=std::numeric_limits<uint32_t>::max());
 
     IMPLEMENT_SERIALIZE
     (
@@ -96,7 +96,7 @@ public:
 
     bool IsFinal() const
     {
-        return (nSequence == std::numeric_limits<unsigned int>::max());
+        return (nSequence == std::numeric_limits<uint32_t>::max());
     }
 
     friend bool operator==(const CTxIn& a, const CTxIn& b)
@@ -231,18 +231,18 @@ private:
     void UpdateHash() const;
 
 public:
-    static const int CURRENT_VERSION=1;
+    static const int32_t CURRENT_VERSION=1;
 
     // The local variables are made const to prevent unintended modification
     // without updating the cached hash value. However, CTransaction is not
     // actually immutable; deserialization and assignment are implemented,
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
-    const int nVersion;
-    const unsigned int nTime;
+    const int32_t nVersion;
+    const uint32_t nTime;
     const std::vector<CTxIn> vin;
     const std::vector<CTxOut> vout;
-    const unsigned int nLockTime;
+    const uint32_t nLockTime;
 
     /** Construct a CTransaction that qualifies as IsNull() */
     CTransaction();
@@ -255,7 +255,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(*const_cast<int*>(&this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(*const_cast<unsigned int*>(&nTime));
+        READWRITE(*const_cast<uint32_t*>(&nTime));
         READWRITE(*const_cast<std::vector<CTxIn>*>(&vin));
         READWRITE(*const_cast<std::vector<CTxOut>*>(&vout));
         READWRITE(*const_cast<unsigned int*>(&nLockTime));
@@ -312,11 +312,11 @@ public:
 /** A mutable version of CTransaction. */
 struct CMutableTransaction
 {
-    int nVersion;
-    unsigned int nTime;
+    int32_t nVersion;
+    uint32_t nTime;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
-    unsigned int nLockTime;
+    uint32_t nLockTime;
 
     CMutableTransaction();
     CMutableTransaction(const CTransaction& tx);
@@ -429,13 +429,13 @@ class CBlockHeader
 {
 public:
     // header
-    static const int CURRENT_VERSION=4;
-    int nVersion;
+    static const int32_t CURRENT_VERSION=4;
+    int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
-    unsigned int nTime;
-    unsigned int nBits;
-    unsigned int nNonce;
+    uint32_t nTime;
+    uint32_t nBits;
+    uint32_t nNonce;
 
     CBlockHeader()
     {
@@ -537,7 +537,7 @@ public:
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const
     {
         // Take last bit of block hash as entropy bit
-        unsigned int nEntropyBit = ((GetHash().GetLow64()) & 1llu);
+        unsigned int nEntropyBit = ((GetHash().GetLow64()) & 1ull);
         if (fDebug && GetBoolArg("-printstakemodifier", false))
             LogPrintf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
         return nEntropyBit;

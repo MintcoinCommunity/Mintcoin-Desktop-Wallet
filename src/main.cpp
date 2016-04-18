@@ -1191,7 +1191,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos)
 {
     // Open history file to append
-    CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
+    CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     if (!fileout)
         return error("WriteBlockToDisk : OpenBlockFile failed");
 
@@ -1219,7 +1219,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
     block.SetNull();
 
     // Open history file to read
-    CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
     if (!filein)
         return error("ReadBlockFromDisk : OpenBlockFile failed");
 
@@ -3613,6 +3613,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 
     int nLoaded = 0;
     try {
+        // This takes over fileIn and calls fclose() on it in the CBufferedFile destructor
         CBufferedFile blkdat(fileIn, 2*MAX_BLOCK_SIZE, MAX_BLOCK_SIZE+8, SER_DISK, CLIENT_VERSION);
         uint64_t nStartByte = 0;
         if (dbp) {
@@ -3624,7 +3625,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
             }
         }
         uint64_t nRewind = blkdat.GetPos();
-        while (blkdat.good() && !blkdat.eof()) {
+        while (!blkdat.eof()) {
             boost::this_thread::interruption_point();
 
             blkdat.SetPos(nRewind);
@@ -3669,7 +3670,6 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
                 LogPrintf("%s : Deserialize or I/O error - %s", __func__, e.what());
             }
         }
-        fclose(fileIn);
     } catch(std::runtime_error &e) {
         AbortNode(_("Error: system error: ") + e.what());
     }
@@ -3973,7 +3973,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (!vRecv.empty())
             vRecv >> addrFrom >> nNonce;
         if (!vRecv.empty()) {
-            vRecv >> pfrom->strSubVer;
+            vRecv >> LIMITED_STRING(pfrom->strSubVer, 256);
             pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
         }
         if (!vRecv.empty())
@@ -4623,24 +4623,25 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == "reject")
     {
-        if (fDebug)
-        {
-            string strMsg; unsigned char ccode; string strReason;
-            vRecv >> strMsg >> ccode >> strReason;
+        if (fDebug) {
+            try {
+                string strMsg; unsigned char ccode; string strReason;
+                vRecv >> LIMITED_STRING(strMsg, CMessageHeader::COMMAND_SIZE) >> ccode >> LIMITED_STRING(strReason, 111);
 
-            ostringstream ss;
-            ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
+                ostringstream ss;
+                ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
 
-            if (strMsg == "block" || strMsg == "tx")
-            {
-                uint256 hash;
-                vRecv >> hash;
-                ss << ": hash " << hash.ToString();
+                if (strMsg == "block" || strMsg == "tx")
+                {
+                    uint256 hash;
+                    vRecv >> hash;
+                    ss << ": hash " << hash.ToString();
+                }
+                LogPrint("net", "Reject %s\n", SanitizeString(ss.str()));
+            } catch (std::ios_base::failure& e) {
+                // Avoid feedback loops by preventing reject messages from triggering a new reject message.
+                LogPrint("net", "Unparseable reject message received\n");
             }
-            // Truncate to reasonable length and sanitize before printing:
-            string s = ss.str();
-            if (s.size() > 111) s.erase(111, string::npos);
-            LogPrint("net", "Reject %s\n", SanitizeString(s));
         }
     }
 
@@ -5013,6 +5014,68 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 }
 
 
+bool CBlockUndo::WriteToDisk(CDiskBlockPos &pos, const uint256 &hashBlock)
+{
+    // Open history file to append
+    CAutoFile fileout(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
+    if (!fileout)
+        return error("CBlockUndo::WriteToDisk : OpenUndoFile failed");
+
+    // Write index header
+    unsigned int nSize = fileout.GetSerializeSize(*this);
+    fileout << FLATDATA(Params().MessageStart()) << nSize;
+
+    // Write undo data
+    long fileOutPos = ftell(fileout);
+    if (fileOutPos < 0)
+        return error("CBlockUndo::WriteToDisk : ftell failed");
+    pos.nPos = (unsigned int)fileOutPos;
+    fileout << *this;
+
+    // calculate & write checksum
+    CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
+    hasher << hashBlock;
+    hasher << *this;
+    fileout << hasher.GetHash();
+
+    // Flush stdio buffers and commit to disk before returning
+    fflush(fileout);
+    if (!IsInitialBlockDownload())
+        FileCommit(fileout);
+
+    return true;
+}
+
+bool CBlockUndo::ReadFromDisk(const CDiskBlockPos &pos, const uint256 &hashBlock)
+{
+    // Open history file to read
+    CAutoFile filein(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
+    if (!filein)
+        return error("CBlockUndo::ReadFromDisk : OpenBlockFile failed");
+
+    // Read block
+    uint256 hashChecksum;
+    try {
+        filein >> *this;
+        filein >> hashChecksum;
+    }
+    catch (std::exception &e) {
+        return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+    }
+
+    // Verify checksum
+    CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
+    hasher << hashBlock;
+    hasher << *this;
+    if (hashChecksum != hasher.GetHash())
+        return error("CBlockUndo::ReadFromDisk : Checksum mismatch");
+
+    return true;
+}
+
+ std::string CBlockFileInfo::ToString() const {
+     return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst), DateTimeStrFormat("%Y-%m-%d", nTimeLast));
+ }
 
 
 

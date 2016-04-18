@@ -68,7 +68,7 @@ inline const T* end_ptr(const std::vector<T,TAl>& v)
 /////////////////////////////////////////////////////////////////
 //
 // Templates for serializing to anything that looks like a stream,
-// i.e. anything that supports .read(char*, int) and .write(char*, int)
+// i.e. anything that supports .read(char*, size_t) and .write(char*, size_t)
 //
 
 enum
@@ -267,7 +267,7 @@ uint64_t ReadCompactSize(Stream& is)
         uint64_t xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
-        if (nSizeRet < 0x100000000LLu)
+        if (nSizeRet < 0x100000000ULL)
             throw std::ios_base::failure("non-canonical ReadCompactSize()");
     }
     if (nSizeRet > (uint64_t)MAX_SIZE)
@@ -342,8 +342,9 @@ I ReadVarInt(Stream& is)
     }
 }
 
-#define FLATDATA(obj)  REF(CFlatData((char*)&(obj), (char*)&(obj) + sizeof(obj)))
-#define VARINT(obj)    REF(WrapVarInt(REF(obj)))
+#define FLATDATA(obj) REF(CFlatData((char*)&(obj), (char*)&(obj) + sizeof(obj)))
+#define VARINT(obj) REF(WrapVarInt(REF(obj)))
+#define LIMITED_STRING(obj,n) REF(LimitedString< n >(REF(obj)))
 
 /** Wrapper for serializing arrays and POD.
  */
@@ -403,6 +404,40 @@ public:
     template<typename Stream>
     void Unserialize(Stream& s, int, int) {
         n = ReadVarInt<Stream,I>(s);
+    }
+};
+
+template<size_t Limit>
+class LimitedString
+{
+protected:
+    std::string& string;
+public:
+    LimitedString(std::string& string) : string(string) {}
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int, int=0)
+    {
+        size_t size = ReadCompactSize(s);
+        if (size > Limit) {
+            throw std::ios_base::failure("String length limit exceeded");
+        }
+        string.resize(size);
+        if (size != 0)
+            s.read((char*)&string[0], size);
+    }
+
+    template<typename Stream>
+    void Serialize(Stream& s, int, int=0) const
+    {
+        WriteCompactSize(s, string.size());
+        if (!string.empty())
+            s.write((char*)&string[0], string.size());
+    }
+
+    unsigned int GetSerializeSize(int, int=0) const
+    {
+        return GetSizeOfCompactSize(string.size()) + string.size();
     }
 };
 
@@ -833,10 +868,36 @@ struct ser_streamplaceholder
 
 
 
-
-
-
 typedef std::vector<char, zero_after_free_allocator<char> > CSerializeData;
+
+class CSizeComputer
+{
+protected:
+    size_t nSize;
+
+public:
+    int nType;
+    int nVersion;
+
+    CSizeComputer(int nTypeIn, int nVersionIn) : nSize(0), nType(nTypeIn), nVersion(nVersionIn) {}
+
+    CSizeComputer& write(const char *psz, size_t nSize)
+    {
+        this->nSize += nSize;
+        return *this;
+    }
+
+    template<typename T>
+    CSizeComputer& operator<<(const T& obj)
+    {
+        ::Serialize(*this, obj, nType, nVersion);
+        return (*this);
+    }
+
+    size_t size() const {
+        return nSize;
+    }
+};
 
 /** Double ended buffer combining vector and stream-like interfaces.
  *
@@ -849,8 +910,6 @@ protected:
     typedef CSerializeData vector_type;
     vector_type vch;
     unsigned int nReadPos;
-    short state;
-    short exceptmask;
 public:
     int nType;
     int nVersion;
@@ -892,7 +951,7 @@ public:
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const std::vector<unsigned char>& vchIn, int nTypeIn, int nVersionIn) : vch((char*)&vchIn.begin()[0], (char*)&vchIn.end()[0])
+    CDataStream(const std::vector<unsigned char>& vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
     {
         Init(nTypeIn, nVersionIn);
     }
@@ -902,8 +961,6 @@ public:
         nReadPos = 0;
         nType = nTypeIn;
         nVersion = nVersionIn;
-        state = 0;
-        exceptmask = std::ios::badbit | std::ios::failbit;
     }
 
     CDataStream& operator+=(const CDataStream& b)
@@ -1026,19 +1083,7 @@ public:
     //
     // Stream subset
     //
-    void setstate(short bits, const char* psz)
-    {
-        state |= bits;
-        if (state & exceptmask)
-            THROW_WITH_STACKTRACE(std::ios_base::failure(psz));
-    }
-
     bool eof() const             { return size() == 0; }
-    bool fail() const            { return state & (std::ios::badbit | std::ios::failbit); }
-    bool good() const            { return !eof() && (state == 0); }
-    void clear(short n)          { state = n; }  // name conflict with vector clear()
-    short exceptions()           { return exceptmask; }
-    short exceptions(short mask) { short prev = exceptmask; exceptmask = mask; setstate(0, "CDataStream"); return prev; }
     CDataStream* rdbuf()         { return this; }
     int in_avail()               { return size(); }
 
@@ -1049,18 +1094,15 @@ public:
     void ReadVersion()           { *this >> nVersion; }
     void WriteVersion()          { *this << nVersion; }
 
-    CDataStream& read(char* pch, int nSize)
+    CDataStream& read(char* pch, size_t nSize)
     {
         // Read from the beginning of the buffer
-        assert(nSize >= 0);
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size())
         {
             if (nReadPosNext > vch.size())
             {
-                setstate(std::ios::failbit, "CDataStream::read() : end of data");
-                memset(pch, 0, nSize);
-                nSize = vch.size() - nReadPos;
+                throw std::ios_base::failure("CDataStream::read() : end of data");
             }
             memcpy(pch, &vch[nReadPos], nSize);
             nReadPos = 0;
@@ -1080,7 +1122,7 @@ public:
         if (nReadPosNext >= vch.size())
         {
             if (nReadPosNext > vch.size())
-                setstate(std::ios::failbit, "CDataStream::ignore() : end of data");
+                throw std::ios_base::failure("CDataStream::ignore() : end of data");
             nReadPos = 0;
             vch.clear();
             return (*this);
@@ -1089,10 +1131,9 @@ public:
         return (*this);
     }
 
-    CDataStream& write(const char* pch, int nSize)
+    CDataStream& write(const char* pch, size_t nSize)
     {
         // Write to the end of the buffer
-        assert(nSize >= 0);
         vch.insert(vch.end(), pch, pch + nSize);
         return (*this);
     }
@@ -1143,7 +1184,7 @@ public:
 
 
 
-/** RAII wrapper for FILE*.
+/** Non-refcounted RAII wrapper for FILE*
  *
  * Will automatically close the file when it goes out of scope if not null.
  * If you're returning the file pointer, return file.release().
@@ -1151,21 +1192,22 @@ public:
  */
 class CAutoFile
 {
-protected:
-    FILE* file;
-    short state;
-    short exceptmask;
-public:
+private:
+    // Disallow copies
+    CAutoFile(const CAutoFile&);
+    CAutoFile& operator=(const CAutoFile&);
+
     int nType;
     int nVersion;
+	
+    FILE* file;	
 
+public:
     CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn)
     {
         file = filenew;
         nType = nTypeIn;
         nVersion = nVersionIn;
-        state = 0;
-        exceptmask = std::ios::badbit | std::ios::failbit;
     }
 
     ~CAutoFile()
@@ -1175,9 +1217,10 @@ public:
 
     void fclose()
     {
-        if (file != NULL && file != stdin && file != stdout && file != stderr)
+        if (file) {
             ::fclose(file);
-        file = NULL;
+            file = NULL;
+        }
     }
 
     FILE* release()             { FILE* ret = file; file = NULL; return ret; }
@@ -1192,19 +1235,6 @@ public:
     //
     // Stream subset
     //
-    void setstate(short bits, const char* psz)
-    {
-        state |= bits;
-        if (state & exceptmask)
-            THROW_WITH_STACKTRACE(std::ios_base::failure(psz));
-    }
-
-    bool fail() const            { return state & (std::ios::badbit | std::ios::failbit); }
-    bool good() const            { return state == 0; }
-    void clear(short n = 0)      { state = n; }
-    short exceptions()           { return exceptmask; }
-    short exceptions(short mask) { short prev = exceptmask; exceptmask = mask; setstate(0, "CAutoFile"); return prev; }
-
     void SetType(int n)          { nType = n; }
     int GetType()                { return nType; }
     void SetVersion(int n)       { nVersion = n; }
@@ -1217,7 +1247,7 @@ public:
         if (!file)
             throw std::ios_base::failure("CAutoFile::read : file handle is NULL");
         if (fread(pch, 1, nSize, file) != nSize)
-            setstate(std::ios::failbit, feof(file) ? "CAutoFile::read : end of file" : "CAutoFile::read : fread failed");
+            throw std::ios_base::failure(feof(file) ? "CAutoFile::read : end of file" : "CAutoFile::read : fread failed");
         return (*this);
     }
 
@@ -1226,7 +1256,7 @@ public:
         if (!file)
             throw std::ios_base::failure("CAutoFile::write : file handle is NULL");
         if (fwrite(pch, 1, nSize, file) != nSize)
-            setstate(std::ios::failbit, "CAutoFile::write : write failed");
+            throw std::ios_base::failure("CAutoFile::write : write failed");
         return (*this);
     }
 
@@ -1258,29 +1288,30 @@ public:
     }
 };
 
-/** Wrapper around a FILE* that implements a ring buffer to
- *  deserialize from. It guarantees the ability to rewind
- *  a given number of bytes. */
+/** Non-refcounted RAII wrapper around a FILE* that implements a ring buffer to
+ *  deserialize from. It guarantees the ability to rewind a given number of bytes.
+ *
+ *  Will automatically close the file when it goes out of scope if not null.
+ *  If you need to close the file early, use file.fclose() instead of fclose(file).
+ */
 class CBufferedFile
 {
 private:
-    FILE *src;          // source file
+    // Disallow copies
+    CBufferedFile(const CBufferedFile&);
+    CBufferedFile& operator=(const CBufferedFile&);
+
+    int nType;
+    int nVersion;
+
+    FILE *src;            // source file
     uint64_t nSrcPos;     // how many bytes have been read from source
     uint64_t nReadPos;    // how many bytes have been read from this
     uint64_t nReadLimit;  // up to which position we're allowed to read
     uint64_t nRewind;     // how many bytes we guarantee to rewind
     std::vector<char> vchBuf; // the buffer
 
-    short state;
-    short exceptmask;
-
 protected:
-    void setstate(short bits, const char *psz) {
-        state |= bits;
-        if (state & exceptmask)
-            throw std::ios_base::failure(psz);
-    }
-
     // read data from the source to fill the buffer
     bool Fill() {
         unsigned int pos = nSrcPos % vchBuf.size();
@@ -1292,8 +1323,7 @@ protected:
             return false;
         size_t read = fread((void*)&vchBuf[pos], 1, readNow, src);
         if (read == 0) {
-            setstate(std::ios_base::failbit, feof(src) ? "CBufferedFile::Fill : end of file" : "CBufferedFile::Fill : fread failed");
-            return false;
+            throw std::ios_base::failure(feof(src) ? "CBufferedFile::Fill : end of file" : "CBufferedFile::Fill : fread failed");
         } else {
             nSrcPos += read;
             return true;
@@ -1301,17 +1331,25 @@ protected:
     }
 
 public:
-    int nType;
-    int nVersion;
-
     CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn, int nTypeIn, int nVersionIn) :
-        src(fileIn), nSrcPos(0), nReadPos(0), nReadLimit((uint64_t)(-1)), nRewind(nRewindIn), vchBuf(nBufSize, 0),
-        state(0), exceptmask(std::ios_base::badbit | std::ios_base::failbit), nType(nTypeIn), nVersion(nVersionIn) {
+        nSrcPos(0), nReadPos(0), nReadLimit((uint64_t)(-1)), nRewind(nRewindIn), vchBuf(nBufSize, 0)
+    {
+        src = fileIn;
+        nType = nTypeIn;
+        nVersion = nVersionIn;
     }
 
-    // check whether no error occurred
-    bool good() const {
-        return state == 0;
+    ~CBufferedFile()
+    {
+        fclose();
+    }
+
+    void fclose()
+    {
+        if (src) {
+            ::fclose(src);
+            src = NULL;
+        }
     }
 
     // check whether we're at the end of the source file
@@ -1370,7 +1408,6 @@ public:
         nLongPos = ftell(src);
         nSrcPos = nLongPos;
         nReadPos = nLongPos;
-        state = 0;
         return true;
     }
 
@@ -1402,4 +1439,4 @@ public:
     }
 };
 
-#endif
+#endif // BITCOIN_SERIALIZE_H
