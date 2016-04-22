@@ -36,6 +36,8 @@
 #include <stdint.h>
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/thread.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QLibraryInfo>

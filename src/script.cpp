@@ -18,8 +18,9 @@
 #include "util.h"
 
 #include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <boost/thread.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
+#include <boost/tuple/tuple.hpp>
 
 using namespace std;
 using namespace boost;
@@ -834,10 +835,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
 
                     valtype& vchSig    = stacktop(-2);
                     valtype& vchPubKey = stacktop(-1);
-
-                    ////// debug print
-                    //PrintHex(vchSig.begin(), vchSig.end(), "sig: %s\n");
-                    //PrintHex(vchPubKey.begin(), vchPubKey.end(), "pubkey: %s\n");
 
                     // Subset of script starting at the most recent codeseparator
                     CScript scriptCode(pbegincodehash, pend);

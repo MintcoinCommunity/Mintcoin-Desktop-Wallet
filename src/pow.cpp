@@ -9,6 +9,7 @@
 #include "core.h"
 #include "main.h"
 #include "uint256.h"
+#include "util.h"
 
 static const int64_t nTargetTimespan = 30 * 30;
 const int64_t nTargetSpacingWorkMax = 3 * 30;

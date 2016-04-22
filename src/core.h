@@ -10,10 +10,14 @@
 #include "script.h"
 #include "serialize.h"
 #include "uint256.h"
+#include "util.h"
 
 #include <stdint.h>
 
 class CTransaction;
+
+static const int64_t COIN = 1000000;
+static const int64_t CENT = 10000;
 
 /** No amount larger than this (in satoshi) is valid */
 static const CAmount MAX_MONEY = 70000000000ull * COIN;			// 70 bil

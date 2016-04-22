@@ -5,6 +5,8 @@
 
 #include "core.h"
 #include "txmempool.h"
+#include "util.h"
+#include "utilmoneystr.h"
 
 #include <boost/circular_buffer.hpp>
 
@@ -593,7 +595,7 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash, const string strHash,
         deltas.first += dPriorityDelta;
         deltas.second += nFeeDelta;
     }
-    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n", strHash, dPriorityDelta, nFeeDelta);
+    LogPrintf("PrioritiseTransaction: %s priority += %f, fee += %d\n", strHash, dPriorityDelta, FormatMoney(nFeeDelta));
 }
 
 void CTxMemPool::ApplyDeltas(const uint256 hash, double &dPriorityDelta, CAmount &nFeeDelta)

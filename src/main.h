@@ -18,6 +18,7 @@
 #include "sync.h"
 #include "txmempool.h"
 #include "uint256.h"
+#include "utilmoneystr.h"
 #include "scrypt_mine.h"
 
 #include <algorithm>
@@ -889,18 +890,7 @@ public:
             nFlags |= BLOCK_STAKE_MODIFIER;
     }
 
-    std::string ToString() const
-    {
-        return strprintf("CBlockIndex(nprev=%p, nFile=%u, nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-            pprev, nFile, nHeight,
-            FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
-            GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-            nStakeModifier, nStakeModifierChecksum,
-            hashProofOfStake.ToString().c_str(),
-            prevoutStake.ToString().c_str(), nStakeTime,
-            hashMerkleRoot.ToString().c_str(),
-            GetBlockHash().ToString().c_str());
-    }
+    std::string ToString() const;
 
     // Check whether this block index entry is valid up to the passed validity level.
     bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const

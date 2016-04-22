@@ -29,6 +29,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/thread.hpp>
 
 using namespace std;
 using namespace boost;
@@ -2852,6 +2853,19 @@ bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, uns
     return (nFound >= nRequired);
 }
 
+std::string CBlockIndex::ToString() const
+    {
+        return strprintf("CBlockIndex(nprev=%p, nFile=%u, nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+            pprev, nFile, nHeight,
+            FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
+            GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
+            nStakeModifier, nStakeModifierChecksum,
+            hashProofOfStake.ToString().c_str(),
+            prevoutStake.ToString().c_str(), nStakeTime,
+            hashMerkleRoot.ToString().c_str(),
+            GetBlockHash().ToString().c_str());
+    }
+
 /** Turn the lowest '1' bit in the binary representation of a number into a '0'. */
 int static inline InvertLowestOne(int n) { return n & (n - 1); }
 
@@ -4961,10 +4975,10 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // in flight for over two minutes, since we first had a chance to
         // process an incoming block.
         int64_t nNow = GetTimeMicros();
-        if (!pto->fDisconnect && state.nBlocksInFlight && 
-            state.nLastBlockReceive < state.nLastBlockProcess - BLOCK_DOWNLOAD_TIMEOUT*1000000 && 
+        if (!pto->fDisconnect && state.nBlocksInFlight &&
+            state.nLastBlockReceive < state.nLastBlockProcess - BLOCK_DOWNLOAD_TIMEOUT*1000000 &&
             state.vBlocksInFlight.front().nTime < state.nLastBlockProcess - 2*BLOCK_DOWNLOAD_TIMEOUT*1000000) {
-            LogPrintf("Peer %s is stalling block download, disconnecting\n", state.name.c_str());
+            LogPrintf("Peer %s is stalling block download, disconnecting\n", state.name);
             pto->fDisconnect = true;
         }
 

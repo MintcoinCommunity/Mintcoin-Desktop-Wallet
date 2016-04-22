@@ -7,6 +7,8 @@
 #include "init.h"
 #include "main.h"
 #include "sync.h"
+#include "util.h"
+#include "utiltime.h"
 #include "wallet.h"
 
 #include <fstream>

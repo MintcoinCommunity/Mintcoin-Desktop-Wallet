@@ -10,6 +10,7 @@
 #include "ui_interface.h" // for _(...)
 #include "univalue/univalue.h"
 #include "core_io.h"
+#include "utilmoneystr.h"
 
 #include <stdio.h>
 #include <boost/assign/list_of.hpp>

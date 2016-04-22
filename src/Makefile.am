@@ -100,6 +100,9 @@ BITCOIN_CORE_H = \
   ui_interface.h \
   uint256.h \
   util.h \
+  utilstrencodings.h \
+  utilmoneystr.h \
+  utiltime.h \
   version.h \
   walletdb.h \
   wallet.h \
@@ -213,6 +216,9 @@ libbitcoin_util_a_SOURCES = \
   sync.cpp \
   uint256.cpp \
   util.cpp \
+  utilstrencodings.cpp \
+  utilmoneystr.cpp \
+  utiltime.cpp \
   version.cpp \
   $(BITCOIN_CORE_H) scrypt_mine.cpp kernel.cpp scrypt-x86.S scrypt-x86_64.S pbkdf2.cpp
 

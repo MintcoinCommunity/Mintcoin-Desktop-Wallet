@@ -7,6 +7,7 @@
 
 #include "scrypt_mine.h"
 #include "tinyformat.h"
+#include "utilmoneystr.h"
 
 std::string COutPoint::ToString() const
 {
