@@ -78,6 +78,15 @@ public:
     }
 };
 
+void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev)
+{
+    pblock->nTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
+
+    // Updating time can change work required on testnet:
+    //if (Params().AllowMinDifficultyBlocks())
+    //    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock);
+}
+
 // CreateNewBlock:
 //   fProofOfStake: try (best effort) to make a proof-of-stake block
 CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
@@ -85,9 +94,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
-    if (!pblock.get())
+    auto_ptr<CBlock> pblocktemp(new CBlock());
+    if (!pblocktemp.get())
         return NULL;
+    CBlock *pblock = pblocktemp.get(); // pointer for convenience
 
     // Create coinbase tx
     CMutableTransaction txNew;
@@ -299,7 +309,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             // policy here, but we still have to ensure that the block we
             // create only contains transactions that are valid in new blocks.
             CValidationState state;
-            if (!CheckInputs(tx, state, view, true, MANDATORY_SCRIPT_VERIFY_FLAGS, NULL, pblock.get()))
+            if (!CheckInputs(tx, state, view, true, MANDATORY_SCRIPT_VERIFY_FLAGS, NULL, pblock))
                 continue;
 
             CTxUndo txundo;
@@ -355,7 +365,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         pblock->nTime          = max(pindexPrev->GetMedianTimePast()+1, pblock->GetMaxTransactionTime());
         pblock->nTime          = max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime()));
         if (pblock->IsProofOfWork())
-            UpdateTime(*pblock, pindexPrev);
+            UpdateTime(pblock, pindexPrev);
         pblock->nNonce         = 0;
         CBlockIndex indexDummy(*pblock);
         indexDummy.pprev = pindexPrev;
@@ -366,7 +376,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
     }
 
-    return pblock.release();
+    return pblocktemp.release();
 }
 
 
@@ -490,10 +500,11 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
             CBlockIndex* pindexPrev = chainActive.Tip();
 
-            auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
-            if (!pblock.get())
+            auto_ptr<CBlock> pblocktemp(CreateNewBlock(pwallet, fProofOfStake));
+            if (!pblocktemp.get())
                 return;
-            IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
+            CBlock *pblock = pblocktemp.get();
+            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
             if (fProofOfStake)
             {
@@ -504,7 +515,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                         continue;
                     LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().GetHex());
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                    ProcessBlockFound(pblock.get(), *pwallet, reservekey);
+                    ProcessBlockFound(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
                 }
                 MilliSleep(500);
@@ -552,7 +563,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                         SetThreadPriority(THREAD_PRIORITY_NORMAL);
                         LogPrintf("BitcoinMiner:\n");
                         LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
-                        ProcessBlockFound(pblock.get(), *pwallet, reservekey);
+                        ProcessBlockFound(pblock, *pwallet, reservekey);
                         SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
                         // In regression test mode, stop mining after a block is found.
@@ -607,7 +618,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 // Update nTime every few seconds
                 pblock->nTime = max(pindexPrev->GetMedianTimePast()+1, pblock->GetMaxTransactionTime());
                 pblock->nTime = max(pblock->GetBlockTime(), pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime()));
-                UpdateTime(*pblock, pindexPrev);
+                UpdateTime(pblock, pindexPrev);
 
                 if (pblock->GetBlockTime() >= (int64_t)pblock->vtx[0].nTime + GetClockDrift(GetAdjustedTime()))
                     break;  // need to update coinbase timestamp

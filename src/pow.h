@@ -18,8 +18,11 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 /** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
-unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
+bool CheckMinWork(unsigned int nBits, unsigned int nBase, int64_t nTime);
 /** Calculate the minimum amount of stake a received block needs, without knowing its direct parent */
-unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
+bool CheckMinStake(unsigned int nBits, unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
+uint256 GetBlockProof(const CBlockIndex& block);
+
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 
 #endif

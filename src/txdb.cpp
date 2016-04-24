@@ -257,9 +257,9 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 
-                if (!pindexNew->CheckIndex()) {
-                    return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString().c_str());
-                }
+                //if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits))
+                //    return error("LoadBlockIndex() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                //}
 
                 // NovaCoin: build setStakeSeen
                 if (pindexNew->IsProofOfStake())

@@ -240,6 +240,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockcount",          &getblockcount,          true,      false,      false },
     { "getblock",               &getblock,               false,     false,      false },
     { "getblockhash",           &getblockhash,           false,     false,      false },
+    { "getchaintips",           &getchaintips,           true,      false,      false },
     { "getblockbynumber",       &getblockbynumber,       false,     false,		false },
     { "getblockhash",           &getblockhash,           false,     false,      false },
     { "getcheckpoint",          &getcheckpoint,          true,      false,      false },

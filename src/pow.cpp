@@ -5,9 +5,9 @@
 
 #include "pow.h"
 
+#include "chain.h"
 #include "chainparams.h"
 #include "core.h"
-#include "main.h"
 #include "uint256.h"
 #include "util.h"
 
@@ -88,42 +88,49 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
     return true;
 }
+
 //
-// maximum nBits value could possible be required nTime after
-// minimum proof-of-work required was nBase
+// true if nBits is greater than the minimum amount of proof that could
+// possibly be required deltaTime after minimum proof required was nBase
 //
-unsigned int ComputeMaxBits(uint256 bnTargetLimit, unsigned int nBase, int64_t nTime)
+bool ComputeMaxBits(uint256 bnTargetLimit, unsigned int nBits, unsigned int nBase, int64_t deltaTime)
 {
+    bool fOverflow = false;
+    uint256 bnNewBlock;
+    bnNewBlock.SetCompact(nBits, NULL, &fOverflow);
+    if (fOverflow)
+        return false;
+
     uint256 bnResult;
     bnResult.SetCompact(nBase);
     bnResult *= 2;
-    while (nTime > 0 && bnResult < bnTargetLimit)
+    while (deltaTime > 0 && bnResult < bnTargetLimit)
     {
         // Maximum 200% adjustment per day...
         bnResult *= 2;
-        nTime -= 24 * 60 * 60;
+        deltaTime -= 24 * 60 * 60;
     }
     if (bnResult > bnTargetLimit)
         bnResult = bnTargetLimit;
-    return bnResult.GetCompact();
+    return bnNewBlock <= bnResult;
 }
 
 //
-// minimum amount of work that could possibly be required nTime after
-// minimum proof-of-work required was nBase
+// true if nBits is greater than the minimum amount of work that could possibly be required nTime after
+// possibly be required deltaTime after minimum work required was nBase
 //
-unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
+bool CheckMinWork(unsigned int nBits, unsigned int nBase, int64_t nTime)
 {
-    return ComputeMaxBits(Params().ProofOfWorkLimit(), nBase, nTime);
+    return ComputeMaxBits(Params().ProofOfWorkLimit(), nBits, nBase, nTime);
 }
 
 //
-// minimum amount of stake that could possibly be required nTime after
-// minimum proof-of-stake required was nBase
+// true if nBits is greater than the minimum amount of stake that could 
+// possibly be required deltaTime after minimum stake required was nBase
 //
-unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime)
+bool CheckMinStake(unsigned int nBits, unsigned int nBase, int64_t nTime, unsigned int nBlockTime)
 {
-    return ComputeMaxBits(Params().ProofOfStakeLimit(), nBase, nTime);
+    return ComputeMaxBits(Params().ProofOfStakeLimit(), nBits, nBase, nTime);
 }
 
 
@@ -135,3 +142,28 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
     return pindex;
 }
 
+uint256 GetBlockProof(const CBlockIndex& block)
+{
+    uint256 bnTarget;
+    bool fNegative;
+    bool fOverflow;
+    bnTarget.SetCompact(block.nBits, &fNegative, &fOverflow);
+    if (fNegative || fOverflow || bnTarget == 0)
+        return 0;
+    // We need to compute 2**256 / (bnTarget+1), but we can't represent 2**256
+    // as it's too large for a uint256. However, as 2**256 is at least as large
+    // as bnTarget+1, it is equal to ((2**256 - bnTarget - 1) / (bnTarget+1)) + 1,
+    // or ~bnTarget / (nTarget+1) + 1.
+    if (block.IsProofOfStake())
+    {
+        // Return trust score as usual
+        uint256 trustScore = (~bnTarget / (bnTarget + 1)) + 1;
+        return trustScore;
+    }
+    else
+    {
+        // Calculate work amount for block
+        uint256 nPoWTrust = (Params().ProofOfWorkLimit() / (bnTarget+1));
+        return nPoWTrust > 1 ? nPoWTrust : 1;
+    }
+}

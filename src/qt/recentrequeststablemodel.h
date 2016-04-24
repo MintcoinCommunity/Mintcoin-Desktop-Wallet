@@ -24,21 +24,21 @@ public:
     QDateTime date;
     SendCoinsRecipient recipient;
 
-    IMPLEMENT_SERIALIZE
-    (
-        RecentRequestEntry* pthis = const_cast<RecentRequestEntry*>(this);
+    ADD_SERIALIZE_METHODS;
 
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         unsigned int nDate = date.toTime_t();
 
-        READWRITE(pthis->nVersion);
-        nVersion = pthis->nVersion;
+        READWRITE(this->nVersion);
+        nVersion = this->nVersion;
         READWRITE(id);
         READWRITE(nDate);
         READWRITE(recipient);
 
-        if (fRead)
-            pthis->date = QDateTime::fromTime_t(nDate);
-    )
+        if (ser_action.ForRead())
+            date = QDateTime::fromTime_t(nDate);
+    }
 };
 
 class RecentRequestEntryLessThan
