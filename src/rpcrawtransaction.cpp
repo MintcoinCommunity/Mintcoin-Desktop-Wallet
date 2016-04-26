@@ -11,6 +11,9 @@
 #include "main.h"
 #include "net.h"
 #include "rpcserver.h"
+#include "script/script.h"
+#include "script/sign.h"
+#include "script/standard.h"
 #include "timedata.h"
 #include "uint256.h"
 #ifdef ENABLE_WALLET
@@ -366,8 +369,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+s.name_);
         setAddress.insert(address);
 
-        CScript scriptPubKey;
-        scriptPubKey.SetDestination(address.Get());
+        CScript scriptPubKey = GetScriptForDestination(address.Get());
         CAmount nAmount = AmountFromValue(s.value_);
 
         CTxOut out(nAmount, scriptPubKey);
@@ -686,7 +688,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
         BOOST_FOREACH(const CMutableTransaction& txv, txVariants) {
             txin.scriptSig = CombineSignatures(prevPubKey, mergedTx, i, txin.scriptSig, txv.vin[i].scriptSig);
         }
-        if (!VerifyScript(txin.scriptSig, prevPubKey, mergedTx, i, STANDARD_SCRIPT_VERIFY_FLAGS, 0))
+        if (!VerifyScript(txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, SignatureChecker(mergedTx, i)))
             fComplete = false;
     }
 

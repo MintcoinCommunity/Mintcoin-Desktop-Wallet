@@ -16,7 +16,9 @@
 #include "core.h"
 #include "net.h"
 #include "pow.h"
-#include "script.h"
+#include "script/script.h"
+#include "script/sigcache.h"
+#include "script/standard.h"
 #include "sync.h"
 #include "txmempool.h"
 #include "uint256.h"
@@ -41,6 +43,7 @@ class CInv;
 //class CNode;//
 class CReserveKey;//
 class CWallet;
+class CKeyStore;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
@@ -53,6 +56,10 @@ static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
+/** Maxiumum number of signature check operations in an IsStandard() P2SH script */
+static const unsigned int MAX_P2SH_SIGOPS = 15;
+/** The maximum number of sigops we're willing to relay/mine in a single tx */
+static const unsigned int MAX_TX_SIGOPS = MAX_BLOCK_SIGOPS/5;
 /** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
 /** The maximum number of orphan blocks kept in memory */
@@ -200,8 +207,6 @@ void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
 
 /** Create a new block index entry for a given block hash */
 CBlockIndex * InsertBlockIndex(uint256 hash);
-/** Verify a signature */
-bool VerifySignature(const CCoins& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType);
 /** Abort with a message */
 bool AbortNode(const std::string &msg);
 /** Get statistics from node state */
@@ -292,9 +297,8 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& ma
 // Check whether all inputs of this transaction are valid (no double spends, scripts & sigs, amounts)
 // This does not modify the UTXO set. If pvChecks is not NULL, script checks are pushed onto it
 // instead of being performed inline.
-bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &view, bool fScriptChecks = true,
-                 unsigned int flags = STANDARD_SCRIPT_VERIFY_FLAGS,
-                 std::vector<CScriptCheck> *pvChecks = NULL, CBlock *block = NULL);
+bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &view, bool fScriptChecks,
+                 unsigned int flags, bool cacheStore, std::vector<CScriptCheck> *pvChecks = NULL, CBlock *block = NULL);
 
 // Apply the effects of this transaction on the UTXO set represented by view
 void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight);
@@ -336,13 +340,13 @@ private:
     const CTransaction *ptxTo;
     unsigned int nIn;
     unsigned int nFlags;
-    int nHashType;
+    bool cacheStore;
 
 public:
-    CScriptCheck(): ptxTo(0), nIn(0), nFlags(0) {}
-    CScriptCheck(const CCoins& txFromIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, int nHashTypeIn) :
+    CScriptCheck(): ptxTo(0), nIn(0), nFlags(0), cacheStore(false) {}
+    CScriptCheck(const CCoins& txFromIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn) :
         scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
-        ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), nHashType(nHashTypeIn) { }
+        ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn) { }
 
     bool operator()() const;
 
@@ -351,7 +355,7 @@ public:
         std::swap(ptxTo, check.ptxTo);
         std::swap(nIn, check.nIn);
         std::swap(nFlags, check.nFlags);
-        std::swap(nHashType, check.nHashType);
+        std::swap(cacheStore, check.cacheStore);
     }
 };
 

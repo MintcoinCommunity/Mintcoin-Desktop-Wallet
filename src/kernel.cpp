@@ -379,7 +379,7 @@ bool CheckProofOfStake(CValidationState &state, const CTransaction& tx, unsigned
     const CCoins *coins = pcoinsTip->AccessCoins(txin.prevout.hash);
     
     // Verify signature
-    if (!coins || !VerifySignature(*coins, tx, 0, SCRIPT_VERIFY_P2SH, 0))
+    if (!coins || !CScriptCheck(*coins, tx, 0, SCRIPT_VERIFY_P2SH, false)())
         return state.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str()));
 
     // Read block header

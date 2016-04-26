@@ -10,6 +10,7 @@
 #include "optionsmodel.h"
 
 #include "base58.h"
+#include "chainparams.h"
 #include "ui_interface.h"
 #include "util.h"
 #include "wallet.h"
@@ -201,8 +202,11 @@ bool PaymentServer::ipcParseCommandLine(int argc, char* argv[])
             {
                 CBitcoinAddress address(r.address.toStdString());
 
-                SelectParams(CBaseChainParams::MAIN);
-                if (!address.IsValid())
+                if (address.IsValid(Params(CBaseChainParams::MAIN)))
+                {
+                    SelectParams(CBaseChainParams::MAIN);
+                }
+                else if (address.IsValid(Params(CBaseChainParams::TESTNET)))
                 {
                     SelectParams(CBaseChainParams::TESTNET);
                 }
@@ -606,7 +610,7 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
     std::string strAccount = account.toStdString();
     set<CTxDestination> refundAddresses = wallet->GetAccountAddresses(strAccount);
     if (!refundAddresses.empty()) {
-        CScript s; s.SetDestination(*refundAddresses.begin());
+        CScript s = GetScriptForDestination(*refundAddresses.begin());
         payments::Output* refund_to = payment.add_refund_to();
         refund_to->set_script(&s[0], s.size());
     }
@@ -617,7 +621,7 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
             CKeyID keyID = newKey.GetID();
             wallet->SetAddressBook(keyID, strAccount, "refund");
 
-            CScript s; s.SetDestination(keyID);
+            CScript s = GetScriptForDestination(keyID);
             payments::Output* refund_to = payment.add_refund_to();
             refund_to->set_script(&s[0], s.size());
         }

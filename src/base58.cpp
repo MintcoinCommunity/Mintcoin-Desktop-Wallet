@@ -113,11 +113,10 @@ std::string EncodeBase58Check(const std::vector<unsigned char>& vchIn) {
     return EncodeBase58(vch);
 }
 
-bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet) {
-    if (!DecodeBase58(psz, vchRet))
-        return false;
-    if (vchRet.size() < 4)
-    {
+bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet)
+{
+    if (!DecodeBase58(psz, vchRet) ||
+        (vchRet.size() < 4)) {
         vchRet.clear();
         return false;
     }
@@ -154,8 +153,8 @@ void CBase58Data::SetData(const std::vector<unsigned char> &vchVersionIn, const 
 
 bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes) {
     std::vector<unsigned char> vchTemp;
-    DecodeBase58Check(psz, vchTemp);
-    if (vchTemp.size() < nVersionBytes) {
+    bool rc58 = DecodeBase58Check(psz, vchTemp);
+    if ((!rc58) || (vchTemp.size() < nVersionBytes)) {
         vchData.clear();
         vchVersion.clear();
         return false;
@@ -215,10 +214,16 @@ bool CBitcoinAddress::Set(const CTxDestination &dest) {
     return boost::apply_visitor(CBitcoinAddressVisitor(this), dest);
 }
 
-bool CBitcoinAddress::IsValid() const {
+bool CBitcoinAddress::IsValid() const
+{
+    return IsValid(Params());
+}
+
+bool CBitcoinAddress::IsValid(const CChainParams& params) const
+{
     bool fCorrectSize = vchData.size() == 20;
-    bool fKnownVersion = vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
-                         vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
+    bool fKnownVersion = vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS) ||
+                         vchVersion == params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);
     return fCorrectSize && fKnownVersion;
 }
 
@@ -257,7 +262,8 @@ void CBitcoinSecret::SetKey(const CKey& vchSecret) {
 
 CKey CBitcoinSecret::GetKey() {
     CKey ret;
-    ret.Set(&vchData[0], &vchData[32], vchData.size() > 32 && vchData[32] == 1);
+    assert(vchData.size() >= 32);
+    ret.Set(vchData.begin(), vchData.begin() + 32, vchData.size() > 32 && vchData[32] == 1);
     return ret;
 }
 

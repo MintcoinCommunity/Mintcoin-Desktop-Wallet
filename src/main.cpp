@@ -19,7 +19,7 @@
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
-
+#include "utilmoneystr.h"
 
 #include <sstream>
 
@@ -631,15 +631,13 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 }
 
 //
-// Check transaction inputs, and make sure any
-// pay-to-script-hash transactions are evaluating IsStandard scripts
+// Check transaction inputs to mitigate two
+// potential denial-of-service attacks:
 //
-// Why bother? To avoid denial-of-service attacks; an attacker
-// can submit a standard HASH... OP_EQUAL transaction,
-// which will get accepted into blocks. The redemption
-// script can be anything; an attacker could use a very
-// expensive-to-check-upon-redemption script like:
-//   DUP CHECKSIG DROP ... repeated 100 times... OP_1
+// 1. scriptSigs with extra data stuffed into them,
+//    not consumed by scriptPubKey (or P2SH script)
+// 2. P2SH scripts with a crazy number of expensive
+//    CHECKSIG/CHECKMULTISIG operations
 //
 bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
 {
@@ -663,10 +661,11 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
         // Transactions with extra stuff in their scriptSigs are
         // non-standard. Note that this EvalScript() call will
         // be quick, because if there are any operations
-        // beside "push data" in the scriptSig the
-        // IsStandard() call returns false
+        // beside "push data" in the scriptSig
+        // IsStandard() will have already returned false
+        // and this method isn't called.
         vector<vector<unsigned char> > stack;
-        if (!EvalScript(stack, tx.vin[i].scriptSig, tx, i, false, 0))
+        if (!EvalScript(stack, tx.vin[i].scriptSig, false, BaseSignatureChecker()))
             return false;
 
         if (whichType == TX_SCRIPTHASH)
@@ -676,16 +675,20 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
             CScript subscript(stack.back().begin(), stack.back().end());
             vector<vector<unsigned char> > vSolutions2;
             txnouttype whichType2;
-            if (!Solver(subscript, whichType2, vSolutions2))
-                return false;
-            if (whichType2 == TX_SCRIPTHASH)
-                return false;
-
-            int tmpExpected;
-            tmpExpected = ScriptSigArgsExpected(whichType2, vSolutions2);
-            if (tmpExpected < 0)
-                return false;
-            nArgsExpected += tmpExpected;
+            if (Solver(subscript, whichType2, vSolutions2))
+            {
+                int tmpExpected = ScriptSigArgsExpected(whichType2, vSolutions2);
+                if (tmpExpected < 0)
+                    return false;
+                nArgsExpected += tmpExpected;
+            }
+            else
+            {
+                // Any other Script with less than 15 sigops OK:
+                unsigned int sigops = subscript.GetSigOpCount(true);
+                // ... extra data left on the stack after execution is OK, too:
+                return (sigops <= MAX_P2SH_SIGOPS);
+            }
         }
 
         if (stack.size() != (unsigned int)nArgsExpected)
@@ -953,7 +956,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        if (!CheckInputs(tx, state, view, true, STANDARD_SCRIPT_VERIFY_FLAGS))
+        if (!CheckInputs(tx, state, view, true, STANDARD_SCRIPT_VERIFY_FLAGS, true))
         {
             return error("AcceptToMemoryPool: : ConnectInputs failed %s", hash.ToString());
         }
@@ -1377,17 +1380,12 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 
 bool CScriptCheck::operator()() const {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
-    if (!VerifyScript(scriptSig, scriptPubKey, *ptxTo, nIn, nFlags, nHashType))
-        return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString());
+    if (!VerifyScript(scriptSig, scriptPubKey, nFlags, CachingSignatureChecker(*ptxTo, nIn, cacheStore)))
+        return error("CScriptCheck() : %s:%d VerifySignature failed", ptxTo->GetHash().ToString(), nIn);
     return true;
 }
 
-bool VerifySignature(const CCoins& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType)
-{
-    return CScriptCheck(txFrom, txTo, nIn, flags, nHashType)();
-}
-
-bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, bool fScriptChecks, unsigned int flags, std::vector<CScriptCheck> *pvChecks, CBlock *block)
+bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, bool fScriptChecks, unsigned int flags, bool cacheStore, std::vector<CScriptCheck> *pvChecks, CBlock *block)
 {
     if (!tx.IsCoinBase())
     {
@@ -1493,7 +1491,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 assert(coins);
 
                 // Verify signature
-                CScriptCheck check(*coins, tx, i, flags, 0);
+                CScriptCheck check(*coins, tx, i, flags, cacheStore);
                 if (pvChecks) {
                     pvChecks->push_back(CScriptCheck());
                     check.swap(pvChecks->back());
@@ -1506,7 +1504,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                         // avoid splitting the network between upgraded and
                         // non-upgraded nodes.
                         CScriptCheck check(*coins, tx, i,
-                                flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, 0);
+                                flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, cacheStore);
                         if (check())
                             return state.Invalid(false, REJECT_NONSTANDARD, "non-mandatory-script-verify-flag");
                     }
@@ -1695,8 +1693,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                              REJECT_INVALID, "bad-txns-BIP30");
     }
 
-    unsigned int flags = SCRIPT_VERIFY_NOCACHE |
-                         (fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE);
+    unsigned int flags = fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE;
 
     CBlockUndo blockundo;
 
@@ -1749,7 +1746,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                 nFees += nTxValueIn - nTxValueOut;
 
             std::vector<CScriptCheck> vChecks;
-            if (!CheckInputs(tx, state, view, fScriptChecks, flags, nScriptCheckThreads ? &vChecks : NULL))
+            if (!CheckInputs(tx, state, view, fScriptChecks, flags, false, nScriptCheckThreads ? &vChecks : NULL))
                 return false;
             control.Add(vChecks);
         }

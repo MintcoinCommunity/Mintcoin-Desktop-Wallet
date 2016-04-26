@@ -5,10 +5,10 @@
 #include "paymentserver.h"
 #include "transactionrecord.h"
 
-//#include "main.h"
-#include "txdb.h"
 #include "base58.h"
 #include "db.h"
+#include "main.h"
+#include "script/script.h"
 #include "timedata.h"
 #include "ui_interface.h"
 #include "util.h"

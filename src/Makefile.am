@@ -90,7 +90,12 @@ BITCOIN_CORE_H = \
   rpcclient.h \
   rpcprotocol.h \
   rpcserver.h \
-  script.h \
+  script/compressor.h \
+  script/interpreter.h \
+  script/script.h \
+  script/sigcache.h \
+  script/sign.h \
+  script/standard.h \
   serialize.h \
   sync.h \
   threadsafety.h \
@@ -105,8 +110,9 @@ BITCOIN_CORE_H = \
   utilmoneystr.h \
   utiltime.h \
   version.h \
-  walletdb.h \
   wallet.h \
+  wallet_ismine.h \
+  walletdb.h \
   compat/sanity.h \
   scrypt_mine.h \
   kernel.h \
@@ -165,6 +171,7 @@ libbitcoin_wallet_a_SOURCES = \
   rpcdump.cpp \
   rpcwallet.cpp \
   wallet.cpp \
+  wallet_ismine.cpp \
   walletdb.cpp \
   $(BITCOIN_CORE_H)
 
@@ -202,7 +209,12 @@ libbitcoin_common_a_SOURCES = \
   keystore.cpp \
   netbase.cpp \
   protocol.cpp \
-  script.cpp \
+  script/compressor.cpp \
+  script/interpreter.cpp \
+  script/script.cpp \
+  script/sigcache.cpp \
+  script/sign.cpp \
+  script/standard.cpp \
   $(BITCOIN_CORE_H)
 
 # util: shared between all executables.

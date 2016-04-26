@@ -7,7 +7,8 @@
 #define BITCOIN_CORE_H
 
 #include "amount.h"
-#include "script.h"
+#include "script/compressor.h"
+#include "script/script.h"
 #include "serialize.h"
 #include "uint256.h"
 #include "util.h"
@@ -600,13 +601,7 @@ public:
     }
 
     // ppcoin: get max transaction timestamp
-    int64_t GetMaxTransactionTime() const
-    {
-        int64_t maxTransactionTime = 0;
-        BOOST_FOREACH(const CTransaction& tx, vtx)
-            maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
-        return maxTransactionTime;
-    }
+    int64_t GetMaxTransactionTime() const;
 
     unsigned int GetTxOffset(CTransaction &tx)
     {
@@ -624,8 +619,6 @@ public:
     }
 
     bool GetCoinAge(uint64_t& nCoinAge) const; // ppcoin: calculate total coin age spent in block
-    bool SignBlock(const CKeyStore& keystore);
-    bool CheckBlockSignature() const;
 };
 
 

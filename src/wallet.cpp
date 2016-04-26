@@ -10,6 +10,8 @@
 #include "checkpoints.h"
 #include "coincontrol.h"
 #include "net.h"
+#include "script/script.h"
+#include "script/sign.h"
 #include "kernel.h"
 #include "chainparams.h"
 #include "timedata.h"
@@ -92,7 +94,7 @@ bool CWallet::AddKeyPubKey(const CKey& secret, const CPubKey &pubkey)
 
     // check if we need to remove from watch-only
     CScript script;
-    script.SetDestination(pubkey.GetID());
+    script = GetScriptForDestination(pubkey.GetID());
     if (HaveWatchOnly(script))
         RemoveWatchOnly(script);
 
@@ -1472,7 +1474,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
 
                     // coin control: send change to custom address
                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
-                        scriptChange.SetDestination(coinControl->destChange);
+                        scriptChange = GetScriptForDestination(coinControl->destChange);
 
                     // no coin control: send change to newly generated address
                     else
@@ -1490,7 +1492,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
                         ret = reservekey.GetReservedKey(vchPubKey);
                         assert(ret); // should never fail, as we just unlocked
 
-                        scriptChange.SetDestination(vchPubKey.GetID());
+                        scriptChange = GetScriptForDestination(vchPubKey.GetID());
                     }
 
                     CTxOut newTxOut(nChange, scriptChange);
@@ -1930,8 +1932,7 @@ string CWallet::SendMoney(const CTxDestination &address, CAmount nValue, CWallet
     }
 
     // Parse Bitcoin address
-    CScript scriptPubKey;
-    scriptPubKey.SetDestination(address);
+    CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
     CReserveKey reservekey(this);
@@ -2532,6 +2533,39 @@ void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts)
     }
 }
 
+
+class CAffectedKeysVisitor : public boost::static_visitor<void> {
+private:
+    const CKeyStore &keystore;
+    std::vector<CKeyID> &vKeys;
+
+public:
+    CAffectedKeysVisitor(const CKeyStore &keystoreIn, std::vector<CKeyID> &vKeysIn) : keystore(keystoreIn), vKeys(vKeysIn) {}
+
+    void Process(const CScript &script) {
+        txnouttype type;
+        std::vector<CTxDestination> vDest;
+        int nRequired;
+        if (ExtractDestinations(script, type, vDest, nRequired)) {
+            BOOST_FOREACH(const CTxDestination &dest, vDest)
+                boost::apply_visitor(*this, dest);
+        }
+    }
+
+    void operator()(const CKeyID &keyId) {
+        if (keystore.HaveKey(keyId))
+            vKeys.push_back(keyId);
+    }
+
+    void operator()(const CScriptID &scriptId) {
+        CScript script;
+        if (keystore.GetCScript(scriptId, script))
+            Process(script);
+    }
+
+    void operator()(const CNoDestination &none) {}
+};
+
 void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
     mapKeyBirth.clear();
@@ -2567,7 +2601,7 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
             int nHeight = blit->second->nHeight;
             BOOST_FOREACH(const CTxOut &txout, wtx.vout) {
                 // iterate over all their outputs
-                ::ExtractAffectedKeys(*this, txout.scriptPubKey, vAffected);
+                CAffectedKeysVisitor(*this, vAffected).Process(txout.scriptPubKey);
                 BOOST_FOREACH(const CKeyID &keyid, vAffected) {
                     // ... and all their affected keys
                     std::map<CKeyID, CBlockIndex*>::iterator rit = mapKeyFirstBlock.find(keyid);
