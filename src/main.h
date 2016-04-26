@@ -219,6 +219,9 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake);
 void ResendWalletTransactions();
 void ThreadStakeMinter();
 
+bool SignBlock(const CKeyStore& keystore, CBlock& block);
+bool CheckBlockSignature(const CBlock& block);
+
 
 struct CNodeStateStats {
     int nMisbehavior;

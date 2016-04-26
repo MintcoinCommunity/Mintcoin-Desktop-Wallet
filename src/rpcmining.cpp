@@ -438,8 +438,8 @@ Value submitblock(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
-    // ppcoin: 
-    if (!pblock.SignBlock(*pwalletMain))
+    // ppcoin:
+    if (!SignBlock(*pwalletMain, pblock))
         throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
     CValidationState state;

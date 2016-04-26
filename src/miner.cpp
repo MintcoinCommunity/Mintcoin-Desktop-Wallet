@@ -511,7 +511,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 // ppcoin: if proof-of-stake block found then process block
                 if (pblock->IsProofOfStake())
                 {
-                    if (!pblock->SignBlock(*pwallet))
+                    if (SignBlock(*pwallet, *pblock))
                         continue;
                     LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().GetHex());
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
@@ -557,7 +557,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                         // Found a solution
                         pblock->nNonce = nNonceFound;
                         assert(hash == pblock->GetHash());
-                        if (!pblock->SignBlock(*pwallet))
+                        if (!SignBlock(*pwallet, *pblock))
                             break;
 
                         SetThreadPriority(THREAD_PRIORITY_NORMAL);

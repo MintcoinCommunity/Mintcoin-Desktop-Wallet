@@ -2498,7 +2498,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                          REJECT_INVALID, "bad-txnmrklroot", true);
 
     // ppcoin: check block signature
-    if (!block.CheckBlockSignature())
+    if (!CheckBlockSignature(block))
         return state.DoS(100, error("CheckBlock() : bad block signature"),
                              REJECT_INVALID, "bad-blk-sig", true);
 
@@ -2999,16 +2999,16 @@ uint256 CPartialMerkleTree::ExtractMatches(std::vector<uint256> &vMatch) {
 
 
 // ppcoin: sign block
-bool CBlock::SignBlock(const CKeyStore& keystore)
+bool SignBlock(const CKeyStore& keystore, CBlock& block)
 {
     vector<valtype> vSolutions;
     txnouttype whichType;
 
-    if(!IsProofOfStake())
+    if(!block.IsProofOfStake())
     {
-        for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
+        for(unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
         {
-            const CTxOut& txout = vtx[0].vout[i];
+            const CTxOut& txout = block.vtx[0].vout[i];
 
             if (!Solver(txout.scriptPubKey, whichType, vSolutions))
                 continue;
@@ -3023,7 +3023,7 @@ bool CBlock::SignBlock(const CKeyStore& keystore)
                     continue;
                 if (key.GetPubKey() != vchPubKey)
                     continue;
-                if(!key.Sign(GetHash(), vchBlockSig))
+                if(!key.Sign(block.GetHash(), block.vchBlockSig))
                     continue;
 
                 return true;
@@ -3032,7 +3032,7 @@ bool CBlock::SignBlock(const CKeyStore& keystore)
     }
     else
     {
-        const CTxOut& txout = vtx[1].vout[1];
+        const CTxOut& txout = block.vtx[1].vout[1];
 
         if (!Solver(txout.scriptPubKey, whichType, vSolutions))
             return false;
@@ -3048,7 +3048,7 @@ bool CBlock::SignBlock(const CKeyStore& keystore)
             if (key.GetPubKey() != vchPubKey)
                 return false;
 
-            return key.Sign(GetHash(), vchBlockSig);
+            return key.Sign(block.GetHash(), block.vchBlockSig);
         }
     }
 
@@ -3057,17 +3057,17 @@ bool CBlock::SignBlock(const CKeyStore& keystore)
 }
 
 // ppcoin: check block signature
-bool CBlock::CheckBlockSignature() const
+bool CheckBlockSignature(const CBlock& block)
 {
-    if (GetHash() == (Params().HashGenesisBlock()))
-        return vchBlockSig.empty();
+    if (block.GetHash() == (Params().HashGenesisBlock()))
+        return block.vchBlockSig.empty();
 
     vector<valtype> vSolutions;
     txnouttype whichType;
 
-    if(IsProofOfStake())
+    if(block.IsProofOfStake())
     {
-        const CTxOut& txout = vtx[1].vout[1];
+        const CTxOut& txout = block.vtx[1].vout[1];
 
         if (!Solver(txout.scriptPubKey, whichType, vSolutions))
             return false;
@@ -3075,16 +3075,16 @@ bool CBlock::CheckBlockSignature() const
         {
             valtype& vchPubKey = vSolutions[0];
             CPubKey key(vchPubKey);
-            if (vchBlockSig.empty())
+            if (block.vchBlockSig.empty())
                 return false;
-            return key.Verify(GetHash(), vchBlockSig);
+            return key.Verify(block.GetHash(), block.vchBlockSig);
         }
     }
     else
     {
-        for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
+        for(unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
         {
-            const CTxOut& txout = vtx[0].vout[i];
+            const CTxOut& txout = block.vtx[0].vout[i];
 
             if (!Solver(txout.scriptPubKey, whichType, vSolutions))
                 return false;
@@ -3094,9 +3094,9 @@ bool CBlock::CheckBlockSignature() const
                 // Verify
                 valtype& vchPubKey = vSolutions[0];
                 CPubKey key(vchPubKey);
-                if (vchBlockSig.empty())
+                if (block.vchBlockSig.empty())
                     continue;
-                if(!key.Verify(GetHash(), vchBlockSig))
+                if(!key.Verify(block.GetHash(), block.vchBlockSig))
                     continue;
 
                 return true;
