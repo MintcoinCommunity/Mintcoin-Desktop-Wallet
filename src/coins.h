@@ -73,6 +73,9 @@ public:
     // whether transaction is a coinbase
     bool fCoinBase;
 
+    // whether transaction is a coinstake
+    bool fCoinStake;
+
     // unspent transaction outputs; spent outputs are .IsNull(); spent outputs at the end of the array are dropped
     std::vector<CTxOut> vout;
 
@@ -83,11 +86,16 @@ public:
     // as new tx version will probably only be introduced at certain heights
     int nVersion;
 
+    // ppcoin: transaction timestamp
+    int nTime;
+
     void FromTx(const CTransaction &tx, int nHeightIn) {
         fCoinBase = tx.IsCoinBase();
+        fCoinStake = tx.IsCoinStake();
         vout = tx.vout;
         nHeight = nHeightIn;
         nVersion = tx.nVersion;
+        nTime = tx.nTime;
         ClearUnspendable();
     }
 
@@ -98,13 +106,15 @@ public:
 
     void Clear() {
         fCoinBase = false;
+        fCoinStake = false;
         std::vector<CTxOut>().swap(vout);
         nHeight = 0;
         nVersion = 0;
+        nTime = 0;
     }
 
     // empty constructor
-    CCoins() : fCoinBase(false), vout(0), nHeight(0), nVersion(0) { }
+    CCoins() : fCoinBase(false), fCoinStake(false), vout(0), nHeight(0), nVersion(0), nTime(0) { }
 
     // remove spent outputs at the end of vout
     void Cleanup() {
@@ -124,20 +134,24 @@ public:
 
     void swap(CCoins &to) {
         std::swap(to.fCoinBase, fCoinBase);
+        std::swap(to.fCoinStake, fCoinStake);
         to.vout.swap(vout);
         std::swap(to.nHeight, nHeight);
         std::swap(to.nVersion, nVersion);
+        std::swap(to.nTime, nTime);
     }
 
     // equality test
     friend bool operator==(const CCoins &a, const CCoins &b) {
-         // Empty CCoins objects are always equal.
-         if (a.IsPruned() && b.IsPruned())
-             return true;
-         return a.fCoinBase == b.fCoinBase &&
-                a.nHeight == b.nHeight &&
-                a.nVersion == b.nVersion &&
-                a.vout == b.vout;
+        // Empty CCoins objects are always equal.
+        if (a.IsPruned() && b.IsPruned())
+            return true;
+        return a.fCoinBase == b.fCoinBase &&
+               a.fCoinStake == b.fCoinStake &&
+               a.nHeight == b.nHeight &&
+               a.nVersion == b.nVersion &&
+               a.vout == b.vout &&
+               a.nTime == b.nTime;
     }
     friend bool operator!=(const CCoins &a, const CCoins &b) {
         return !(a == b);
@@ -150,7 +164,10 @@ public:
     }
 
     // still working on mask calculation and serialization of coinstake
-    bool IsCoinStake(uint256 hash) const;
+    bool IsCoinStake() const
+    {
+        return fCoinStake;
+    }
 
     unsigned int GetSerializeSize(int nType, int nVersion) const {
         unsigned int nSize = 0;
@@ -172,6 +189,10 @@ public:
                 nSize += ::GetSerializeSize(CTxOutCompressor(REF(vout[i])), nType, nVersion);
         // height
         nSize += ::GetSerializeSize(VARINT(nHeight), nType, nVersion);
+        // nTime
+        nSize += ::GetSerializeSize(VARINT(nTime), nType, nVersion);
+        // fCoinStake
+        nSize += ::GetSerializeSize(VARINT(fCoinStake ? 1 : 0), nType, nVersion);
         return nSize;
     }
 
@@ -202,6 +223,10 @@ public:
         }
         // coinbase height
         ::Serialize(s, VARINT(nHeight), nType, nVersion);
+        // time
+        ::Serialize(s, VARINT(nTime), nType, nVersion);
+        // fCoinStake
+        ::Serialize(s, VARINT(fCoinStake ? 1 : 0 ), nType, nVersion);
     }
 
     template<typename Stream>
@@ -235,6 +260,12 @@ public:
         }
         // coinbase height
         ::Unserialize(s, VARINT(nHeight), nType, nVersion);
+        // time
+        ::Unserialize(s, VARINT(nTime), nType, nVersion);
+        // fCoinStake
+        unsigned int nStake;
+        ::Unserialize(s, VARINT(nStake), nType, nVersion);
+        fCoinStake = nStake & 1;
         Cleanup();
     }
 

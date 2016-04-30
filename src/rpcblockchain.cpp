@@ -406,6 +406,8 @@ Value gettxout(const Array& params, bool fHelp)
             "  },\n"
             "  \"version\" : n,            (numeric) The version\n"
             "  \"coinbase\" : true|false   (boolean) Coinbase or not\n"
+            "  \"coinstake\" : true|false  (boolean) Coinstake or not\n"
+            "  \"time\" : n                (numeric) Transaction timestamp\n"
             "}\n"
 
             "\nExamples:\n"
@@ -453,6 +455,8 @@ Value gettxout(const Array& params, bool fHelp)
     ret.push_back(Pair("scriptPubKey", o));
     ret.push_back(Pair("version", coins.nVersion));
     ret.push_back(Pair("coinbase", coins.fCoinBase));
+    ret.push_back(Pair("coinstake", coins.fCoinStake));
+    ret.push_back(Pair("timestamp", coins.nTime));
 
     return ret;
 }

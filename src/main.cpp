@@ -142,14 +142,6 @@ namespace {
 // Used during database migration.
 bool fDisableSignatureChecking = false;
 
-// still working on mask calculation and serialization of coinstake
-bool CCoins::IsCoinStake(uint256 hash) const {
-    CTransaction tx;
-    uint256 block;
-    GetTransaction(hash, tx, block, true);
-    return tx.IsCoinStake();
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1385,7 +1377,7 @@ bool CScriptCheck::operator()() const {
     return true;
 }
 
-bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, bool fScriptChecks, unsigned int flags, bool cacheStore, std::vector<CScriptCheck> *pvChecks, CBlock *block)
+bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, bool fScriptChecks, unsigned int flags, bool cacheStore, std::vector<CScriptCheck> *pvChecks)
 {
     if (!tx.IsCoinBase())
     {
@@ -1405,33 +1397,21 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
         CAmount nFees = 0;
         for (unsigned int i = 0; i < tx.vin.size(); i++)
         {
-            uint256 blockHash = NULL;
             const COutPoint &prevout = tx.vin[i].prevout;
             const CCoins *coins = inputs.AccessCoins(prevout.hash);
             assert(coins);
 
-            CTransaction txPrev;
-            GetTransaction(prevout.hash, txPrev, blockHash, true);
-
-            // ppcoin: if no block is provided, check initiated in mempool and will be checked again on block creation
-            if(blockHash == NULL && block != NULL){
-                BOOST_FOREACH(CTransaction &tx, block->vtx){
-                    if(tx.GetHash() == prevout.hash){
-                        txPrev = tx;}}}
-                
-            
-
 			int nMinConfirmations = (GetAdjustedTime() > FORK_TIME ? Params().CoinbaseMaturity() + 10 : Params().CoinbaseMaturity());
             
             // If prev is coinbase or coinstake, check that it's matured
-            if (coins->IsCoinBase() || coins->IsCoinStake(prevout.hash)) {
+            if (coins->IsCoinBase() || coins->IsCoinStake()) {
                 if (nSpendHeight - coins->nHeight < nMinConfirmations)
                     return state.Invalid(
-                        error("CheckInputs() : tried to spend %s at depth %d",txPrev.IsCoinBase() ? "coinbase" : "coinstake", nSpendHeight - coins->nHeight),
+                        error("CheckInputs() : tried to spend %s at depth %d",coins->IsCoinBase() ? "coinbase" : "coinstake", nSpendHeight - coins->nHeight),
                         REJECT_INVALID, "premature spend of coinstake");
             }
             // ppcoin: check transaction timestamp
-            if (block && txPrev.nTime > tx.nTime)
+            if (coins->nTime > (int)tx.nTime)
                 return state.DoS(100, error("CheckInputs() : transaction timestamp earlier than input transaction"),
                                  REJECT_INVALID, "timestamp earlier than input");
 
@@ -1587,7 +1567,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         fClean = fClean && error("DisconnectBlock() : undo data overwriting existing transaction");
                     coins->Clear();
                     coins->fCoinBase = undo.fCoinBase;
+                    coins->fCoinStake = undo.fCoinStake;
                     coins->nHeight = undo.nHeight;
+                    coins->nTime = undo.nTime;
                     coins->nVersion = undo.nVersion;
                 } else {
                     if (coins->IsPruned())
