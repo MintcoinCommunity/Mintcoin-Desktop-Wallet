@@ -1156,6 +1156,7 @@ static const int CUTOFF_HEIGHT = 100800;	// Height at the end of 5 weeks
 CAmount GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
 {
 	int64_t nSubsidy = 100000 * COIN;
+    int halving = nHeight / Params().SubsidyHalvingInterval();
 
 	if(nHeight == 1)
 	{
@@ -1173,7 +1174,7 @@ CAmount GetProofOfWorkReward(int nHeight, int64_t nFees, uint256 prevHash)
 	nSubsidy += generateMTRandom(seed, 800000) * COIN;
 
 	// Subsidy is cut in half every week or 20160 blocks, which will occur approximately every month
-	nSubsidy >>= (nHeight / 20160); 
+	nSubsidy >>= halving;
     return nSubsidy + nFees;
 }
 

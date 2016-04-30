@@ -37,10 +37,19 @@ public:
         vAlertPubKey = ParseHex("0447776d261ff286dc0a72b63365f1575bd9632e0ded31c58023dd5b00e8d7c1d890c914bfab3451a6d6924137f8e9dd7f1fa5e64172ee172183fd85c84a2b892f");
         nDefaultPort = 12788;
         bnProofOfWorkLimit = bnProofOfStakeLimit = ~uint256(0) >> 20;
+        nSubsidyHalvingInterval = 20160;
         nEnforceBlockUpgradeMajority = 750;
         nRejectBlockOutdatedMajority = 950;
         nToCheckBlockUpgradeMajority = 1000;
         nMinerThreads = 0;
+        
+        // Mintcoin:
+        nStakeMinAge = 60 * 60 * 24 * 20;  // minimum age for coin age: 20d
+        nStakeMaxAge = 60 * 60 * 24 * 40;  // stake age of full weight: 40d
+        nStakeTargetSpacing = 30;          // 30 sec block spacing
+
+        nModifierInterval = 6 * 60 * 60;//MODIFIER_INTERVAL;
+        nCoinbaseMaturity = 30;
 
         // Build the genesis block. Note that the output of the genesis coinbase cannot
         // be spent as it did not originally exist in the database.
@@ -79,13 +88,6 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E);
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4);
 
-        // Mintcoin:
-        nStakeMinAge = 60 * 60 * 24 * 20;  // minimum age for coin age: 20d
-        nStakeMaxAge = 60 * 60 * 24 * 40;  // stake age of full weight: 40d
-        nStakeTargetSpacing = 30;          // 30 sec block spacing
-
-        nModifierInterval = 6 * 60 * 60;//MODIFIER_INTERVAL;
-        nCoinbaseMaturity = 30;
 
 
 
@@ -137,6 +139,14 @@ public:
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
 
+        // Mintcoin:
+        //bnProofOfStakeLimit; // 0x00000fff PoS base target is fixed in testnet
+        //bnProofOfWorkLimit; // 0x0000ffff PoW base target is fixed in testnet
+        nStakeMinAge = 20 * 60; // test net min age is 20 min
+        nStakeMaxAge = 60 * 60; // test net max age is 60 min
+        nModifierInterval = 60; // test modifier interval is 2 minutes
+        nCoinbaseMaturity = 10; // test maturity is 10 blocks
+        nStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes
         // TestNet alerts private key
         // "308201130201010420b665cff1884e53da26376fd1b433812c9a5a8a4d5221533b15b9629789bb7e42a081a53081a2020101302c06072a8648ce3d0101022100fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f300604010004010704410479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8022100fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141020101a1440342000471dc165db490094d35cde15b1f5d755fa6ad6f2b5ed0f340e3f17f57389c3c2af113a8cbcc885bde73305a553b5640c83021128008ddf882e856336269080496"
 
@@ -164,14 +174,6 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
 
-        // Mintcoin:
-        //bnProofOfStakeLimit; // 0x00000fff PoS base target is fixed in testnet
-        //bnProofOfWorkLimit; // 0x0000ffff PoW base target is fixed in testnet
-        nStakeMinAge = 20 * 60; // test net min age is 20 min
-        nStakeMaxAge = 60 * 60; // test net max age is 60 min
-        nModifierInterval = 60; // test modifier interval is 2 minutes
-        nCoinbaseMaturity = 10; // test maturity is 10 blocks
-        nStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes
 
 
     }

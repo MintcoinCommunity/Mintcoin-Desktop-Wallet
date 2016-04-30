@@ -48,6 +48,7 @@ public:
     int GetDefaultPort() const { return nDefaultPort; }
     const uint256& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
     const uint256& ProofOfStakeLimit() const { return bnProofOfStakeLimit; }
+    int SubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     /* Used to check majorities for block version upgrade */
     int EnforceBlockUpgradeMajority() const { return nEnforceBlockUpgradeMajority; }
     int RejectBlockOutdatedMajority() const { return nRejectBlockOutdatedMajority; }
@@ -90,6 +91,7 @@ protected:
     int nDefaultPort;
     uint256 bnProofOfWorkLimit;
     uint256 bnProofOfStakeLimit;
+    int nSubsidyHalvingInterval;
     int nEnforceBlockUpgradeMajority;
     int nRejectBlockOutdatedMajority;
     int nToCheckBlockUpgradeMajority;
