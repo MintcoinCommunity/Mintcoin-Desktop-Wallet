@@ -9,8 +9,8 @@
 
 #include <stdint.h>
 
-class CBlockIndex;
 class CBlockHeader;
+class CBlockIndex;
 class uint256;
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
@@ -25,4 +25,4 @@ uint256 GetBlockProof(const CBlockIndex& block);
 
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 
-#endif
+#endif // BITCOIN_POW_H

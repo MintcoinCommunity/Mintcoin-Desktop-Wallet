@@ -48,8 +48,8 @@
 #endif
 #endif
 
-using namespace std;
 using namespace boost;
+using namespace std;
 
 namespace {
     const int MAX_OUTBOUND_CONNECTIONS = 12;
@@ -709,7 +709,7 @@ int CNetMessage::readHeader(const char *pch, unsigned int nBytes)
     try {
         hdrbuf >> hdr;
     }
-    catch (std::exception &e) {
+    catch (const std::exception &) {
         return -1;
     }
 
@@ -1244,7 +1244,7 @@ void ThreadDNSAddressSeed()
     const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
     int found = 0;
 
-    if (Params().NetworkID() != CBaseChainParams::TESTNET)
+    if (!Params().TestnetToBeDeprecatedFieldRPC())
     {
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
 

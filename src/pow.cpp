@@ -51,7 +51,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     uint256 bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
 
-    int64_t nTargetSpacing = fProofOfStake? Params().StakeTargetSpacing() : min(nTargetSpacingWorkMax, (int64_t) Params().StakeTargetSpacing() * (1 + pindexLast->nHeight - pindexPrev->nHeight));
+    int64_t nTargetSpacing = fProofOfStake? Params().StakeTargetSpacing() : std::min(nTargetSpacingWorkMax, (int64_t) Params().StakeTargetSpacing() * (1 + pindexLast->nHeight - pindexPrev->nHeight));
     int64_t nInterval = nTargetTimespan / nTargetSpacing;
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);

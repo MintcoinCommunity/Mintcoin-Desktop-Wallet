@@ -10,11 +10,11 @@
 
 class CWallet;
 
-namespace boost {
-    class thread_group;
+namespace boost
+{
+class thread_group;
 } // namespace boost
 
-extern std::string strWalletFile;
 extern CWallet* pwalletMain;
 
 void StartShutdown();
@@ -23,8 +23,7 @@ void Shutdown();
 bool AppInit2(boost::thread_group& threadGroup);
 
 /* The help message mode determines what help message to show */
-enum HelpMessageMode
-{
+enum HelpMessageMode {
     HMM_BITCOIND,
     HMM_BITCOIN_QT
 };
@@ -34,4 +33,4 @@ std::string HelpMessage(HelpMessageMode mode);
 /** Returns licensing information (for -version) */
 std::string LicenseInfo();
 
-#endif
+#endif // BITCOIN_INIT_H

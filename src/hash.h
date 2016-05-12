@@ -6,8 +6,8 @@
 #ifndef BITCOIN_HASH_H
 #define BITCOIN_HASH_H
 
-#include "crypto/sha2.h"
 #include "crypto/ripemd160.h"
+#include "crypto/sha2.h"
 #include "serialize.h"
 #include "uint256.h"
 #include "version.h"
@@ -159,4 +159,4 @@ uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=PROTOCOL
 
 unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char>& vDataToHash);
 
-#endif
+#endif // BITCOIN_HASH_H

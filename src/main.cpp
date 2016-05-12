@@ -2377,24 +2377,6 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
         return state.Invalid(error("CheckBlockHeader() : block timestamp too far in the future"),
                              REJECT_INVALID, "time-too-new");
 
-    CBlockIndex* pcheckpoint = Checkpoints::GetLastSyncCheckpoint();
-    if (pcheckpoint && block.hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)) && !Checkpoints::WantedByPendingSyncCheckpoint(block.GetHash()))
-    {
-        // Extra checks to prevent "fill up memory by spamming with bogus blocks"
-        int64_t deltaTime = block.GetBlockTime() - pcheckpoint->GetBlockTime();
-        bool err = false;
-        
-		if (fProofOfStake)
-            err = !CheckMinStake(block.nBits, GetLastBlockIndex(pcheckpoint, true)->nBits, deltaTime, block.nTime);
-        else
-            err = !CheckMinWork(block.nBits, GetLastBlockIndex(pcheckpoint, false)->nBits, deltaTime);
-
-        if (err)
-        {
-            return state.DoS(100, error("ProcessBlock() : block with too little %s", fProofOfStake? "proof-of-stake" : "proof-of-work"),
-                             REJECT_INVALID, "bad-diffbits");
-        }
-    }
 
     return true;
 }
@@ -2499,6 +2481,25 @@ bool AcceptBlockHeader(CBlockHeader& block, CValidationState& state, bool fProof
             return state.Invalid(error("AcceptBlock() : block is marked invalid"), 0, "duplicate");
     }
 
+    CBlockIndex* pcheckpoint = Checkpoints::GetLastSyncCheckpoint();
+    if (pcheckpoint && block.hashPrevBlock != (chainActive.Tip() ? chainActive.Tip()->GetBlockHash() : uint256(0)) && !Checkpoints::WantedByPendingSyncCheckpoint(block.GetHash()))
+    {
+        // Extra checks to prevent "fill up memory by spamming with bogus blocks"
+        int64_t deltaTime = block.GetBlockTime() - pcheckpoint->GetBlockTime();
+        bool err = false;
+        
+		if (fProofOfStake)
+            err = !CheckMinStake(block.nBits, GetLastBlockIndex(pcheckpoint, true)->nBits, deltaTime, block.nTime);
+        else
+            err = !CheckMinWork(block.nBits, GetLastBlockIndex(pcheckpoint, false)->nBits, deltaTime);
+
+        if (err)
+        {
+            return state.DoS(100, error("ProcessBlock() : block with too little %s", fProofOfStake? "proof-of-stake" : "proof-of-work"),
+                             REJECT_INVALID, "bad-diffbits");
+        }
+    }
+
     // Get prev block index
     CBlockIndex* pindexPrev = NULL;
     int nHeight = 0;
@@ -2548,7 +2549,7 @@ bool AcceptBlockHeader(CBlockHeader& block, CValidationState& state, bool fProof
         }
     }
 
-    int networkId = Params().NetworkID();
+    int networkId = BaseParams().NetworkID();
     // Reject block.nVersion < 3 blocks since 95% threshold on mainNet and always on testNet:
     if (block.nVersion < 3 && ((networkId != CBaseChainParams::TESTNET && nHeight > 14060) || (networkId == CBaseChainParams::TESTNET && nHeight > 0)))
         return state.Invalid(error("AcceptBlock() : rejected nVersion < 3 block"));
@@ -3426,7 +3427,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
                 blkdat >> nSize;
                 if (nSize < 80 || nSize > MAX_BLOCK_SIZE)
                     continue;
-            } catch (std::exception &e) {
+            } catch (const std::exception &) {
                 // no valid block header found; don't complain
                 break;
             }
@@ -3486,7 +3487,7 @@ string GetWarnings(string strFor)
 
     // ppcoin: should not enter safe mode for longer invalid chain
     // ppcoin: if sync-checkpoint is too old do not enter safe mode
-    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 365) && Params().NetworkID() != CBaseChainParams::TESTNET && !IsInitialBlockDownload())
+    if (Checkpoints::IsSyncCheckpointTooOld(60 * 60 * 24 * 365) && !Params().TestnetToBeDeprecatedFieldRPC() && !IsInitialBlockDownload())
     {
         nPriority = 100;
         strStatusBar = "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers.";
@@ -3583,7 +3584,7 @@ void static ProcessGetData(CNode* pfrom)
         const CInv &inv = *it;
         {
             boost::this_thread::interruption_point();
-            it++;
+            ++it;
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
             {

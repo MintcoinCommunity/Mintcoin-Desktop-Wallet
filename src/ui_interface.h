@@ -106,4 +106,4 @@ inline std::string _(const char* psz)
     return rv ? (*rv) : psz;
 }
 
-#endif
+#endif // BITCOIN_UI_INTERFACE_H

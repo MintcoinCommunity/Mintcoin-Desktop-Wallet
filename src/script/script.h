@@ -627,4 +627,4 @@ public:
     }
 };
 
-#endif
+#endif // H_BITCOIN_SCRIPT

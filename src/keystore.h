@@ -106,4 +106,4 @@ typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMate
 typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char> > > CryptedKeyMap;
 
 
-#endif
+#endif // BITCOIN_KEYSTORE_H

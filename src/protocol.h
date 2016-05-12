@@ -134,7 +134,6 @@ public:
     bool IsKnownType() const;
     const char* GetCommand() const;
     std::string ToString() const;
-    void print() const;
 
     // TODO: make private (improves encapsulation)
 public:

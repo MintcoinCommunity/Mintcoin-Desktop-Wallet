@@ -417,7 +417,7 @@ unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex)
 // Check stake modifier hard checkpoints
 bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierChecksum)
 {
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) return true; // Testnet has no checkpoints
+    if (Params().TestnetToBeDeprecatedFieldRPC()) return true; // Testnet has no checkpoints
     if (mapStakeModifierCheckpoints.count(nHeight))
 	{
         return nStakeModifierChecksum == mapStakeModifierCheckpoints[nHeight];

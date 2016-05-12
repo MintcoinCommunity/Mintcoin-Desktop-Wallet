@@ -95,7 +95,7 @@ bool DecodeHexTx(CTransaction& tx, const std::string& strHexTx)
     try {
         ssData >> tx;
     }
-    catch (std::exception &e) {
+    catch (const std::exception &) {
         return false;
     }
 
@@ -124,4 +124,3 @@ vector<unsigned char> ParseHexUV(const UniValue& v, const string& strName)
         throw runtime_error(strName+" must be hexadecimal string (not '"+strHex+"')");
     return ParseHex(strHex);
 }
-

@@ -461,4 +461,4 @@ private:
     CCoinsMap::const_iterator FetchCoins(const uint256 &txid) const;
 };
 
-#endif
+#endif // BITCOIN_COINS_H

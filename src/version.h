@@ -60,4 +60,4 @@ std::string FormatSubVersion(const std::string& name, int nClientVersion, const 
 #define DISPLAY_VERSION_REVISION    0
 #define DISPLAY_VERSION_BUILD       1
 
-#endif
+#endif // BITCOIN_VERSION_H

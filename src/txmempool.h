@@ -141,4 +141,4 @@ public:
     bool HaveCoins(const uint256 &txid) const;
 };
 
-#endif /* BITCOIN_TXMEMPOOL_H */
+#endif // BITCOIN_TXMEMPOOL_H
