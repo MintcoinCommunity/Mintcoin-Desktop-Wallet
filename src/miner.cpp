@@ -98,6 +98,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     if (!pblocktemp.get())
         return NULL;
     CBlock *pblock = pblocktemp.get(); // pointer for convenience
+    // -regtest only: allow overriding block.nVersion with
+    // -blockversion=N to test forking scenarios
+    if (Params().MineBlocksOnDemand())
+        pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
     // Create coinbase tx
     CMutableTransaction txNew;

@@ -46,6 +46,7 @@ using namespace std;
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
 #endif
+bool fFeeEstimatesInitialized = false;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -118,6 +119,10 @@ void Shutdown()
     if (!lockShutdown)
         return;
 
+    /// Note: Shutdown() must be able to handle cases in which AppInit2() failed part of the way,
+    /// for example if the data directory was found to be locked.
+    /// Be sure that anything that writes files or flushes caches only does this if the respective
+    /// module was initialized.
     RenameThread("bitcoin-shutoff");
     mempool.AddTransactionsUpdated(1);
     StopRPCThreads();
@@ -129,6 +134,7 @@ void Shutdown()
     StopNode();
     UnregisterNodeSignals(GetNodeSignals());
 
+    if (fFeeEstimatesInitialized)
     {
         boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
         CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION);
@@ -136,6 +142,7 @@ void Shutdown()
             mempool.WriteFeeEstimates(est_fileout);
         else
             LogPrintf("%s: Failed to write fee estimates to %s\n", __func__, est_path.string());
+        fFeeEstimatesInitialized = false;
     }
 
     {
@@ -199,7 +206,7 @@ bool static Bind(const CService &addr, unsigned int flags) {
     if (!(flags & BF_EXPLICIT) && IsLimited(addr))
         return false;
     std::string strError;
-    if (!BindListenPort(addr, strError, flags & BF_WHITELIST)) {
+    if (!BindListenPort(addr, strError, (flags & BF_WHITELIST) != 0)) {
         if (flags & BF_REPORT_ERROR)
             return InitError(strError);
         return false;
@@ -255,6 +262,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -maxsendbuffer=<n>     " + _("Maximum per-connection send buffer, <n>*1000 bytes (default: 1000)") + "\n";
     strUsage += "  -onion=<ip:port>       " + _("Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: -proxy)") + "\n";
     strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)") + "\n";
+    strUsage += "  -permitbaremultisig    " + _("Relay non-P2SH multisig (default: 1)") + "\n";
     strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 12788 or testnet: 22788)") + "\n";
     strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS5 proxy") + "\n";
     strUsage += "  -seednode=<ip>         " + _("Connect to a node to retrieve peer addresses, and disconnect") + "\n";
@@ -369,6 +377,14 @@ std::string LicenseInfo()
            "\n";
 }
 
+static void BlockNotifyCallback(const uint256& hashNewTip)
+{
+    std::string strCmd = GetArg("-blocknotify", "");
+
+    boost::replace_all(strCmd, "%s", hashNewTip.GetHex());
+    boost::thread t(runCommand, strCmd); // thread runs free
+}
+
 struct CImportingNow
 {
     CImportingNow() {
@@ -392,9 +408,11 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
         int nFile = 0;
         while (true) {
             CDiskBlockPos pos(nFile, 0);
+            if (!boost::filesystem::exists(GetBlockPosFilename(pos, "blk")))
+                break; // No block files left to reindex
             FILE *file = OpenBlockFile(pos, true);
             if (!file)
-                break;
+                break; // This error is logged in OpenBlockFile
             LogPrintf("Reindexing block file blk%05u.dat...\n", (unsigned int)nFile);
             LoadExternalBlockFile(file, &pos);
             nFile++;
@@ -675,6 +693,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     std::string strWalletFile = GetArg("-wallet", "wallet.dat");
 #endif // ENABLE_WALLET
+
+    fIsBareMultisigStd = GetArg("-permitbaremultisig", true) != 0;
+
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     // Sanity check
@@ -1168,6 +1189,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif // !ENABLE_WALLET
     // ********************************************************* Step 9: import blocks
 
+    if (mapArgs.count("-blocknotify"))
+        uiInterface.NotifyBlockTip.connect(BlockNotifyCallback);
+
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
     if (!ActivateBestChain(state))
@@ -1181,22 +1205,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
 
-    // ********************************************************* Step 10: load peers
-
-    uiInterface.InitMessage(_("Loading addresses..."));
-
-    nStart = GetTimeMillis();
-
-    {
-        CAddrDB adb;
-        if (!adb.Read(addrman))
-            LogPrintf("Invalid or missing peers.dat; recreating\n");
-    }
-
-    LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
-           addrman.size(), GetTimeMillis() - nStart);
-
-    // ********************************************************* Step 11: start node
+    // ********************************************************* Step 10: start node
 
     if (!CheckDiskSpace())
         return false;
@@ -1225,7 +1234,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain);
 #endif
 
-    // ********************************************************* Step 12: finished
+    // ********************************************************* Step 11: finished
 
     uiInterface.InitMessage(_("Done loading"));
 
