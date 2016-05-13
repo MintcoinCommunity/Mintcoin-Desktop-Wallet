@@ -35,8 +35,8 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <openssl/crypto.h>
 
-using namespace std;
 using namespace boost;
+using namespace std;
 
 #ifdef ENABLE_WALLET
 std::string strWalletFile;
@@ -60,6 +60,7 @@ enum BindFlags {
     BF_WHITELIST    = (1U << 2),
 };
 
+static const char* FEE_ESTIMATES_FILENAME="fee_estimates.dat";
 CClientUIInterface uiInterface;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -107,10 +108,11 @@ static CCoinsViewDB *pcoinsdbview;
 
 void Shutdown()
 {
-    LogPrintf("Shutdown : In progress...\n");
+    LogPrintf("%s: In progress...\n", __func__);
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
-    if (!lockShutdown) return;
+    if (!lockShutdown)
+        return;
 
     RenameThread("bitcoin-shutoff");
     mempool.AddTransactionsUpdated(1);
@@ -122,6 +124,16 @@ void Shutdown()
 #endif
     StopNode();
     UnregisterNodeSignals(GetNodeSignals());
+
+    {
+        boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
+        CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION);
+        if (est_fileout)
+            mempool.WriteFeeEstimates(est_fileout);
+        else
+            LogPrintf("%s: Failed to write fee estimates to %s\n", __func__, est_path.string());
+    }
+
     {
         LOCK(cs_main);
 #ifdef ENABLE_WALLET
@@ -132,9 +144,12 @@ void Shutdown()
             pblocktree->Flush();
         if (pcoinsTip)
             pcoinsTip->Flush();
-        delete pcoinsTip; pcoinsTip = NULL;
-        delete pcoinsdbview; pcoinsdbview = NULL;
-        delete pblocktree; pblocktree = NULL;
+        delete pcoinsTip;
+        pcoinsTip = NULL;
+        delete pcoinsdbview;
+        pcoinsdbview = NULL;
+        delete pblocktree;
+        pblocktree = NULL;
     }
 #ifdef ENABLE_WALLET
     if (pwalletMain)
@@ -146,7 +161,7 @@ void Shutdown()
     if (pwalletMain)
         delete pwalletMain;
 #endif
-    LogPrintf("Shutdown : done\n");
+    LogPrintf("%s: done\n", __func__);
 }
 
 //
@@ -245,10 +260,13 @@ std::string HelpMessage(HelpMessageMode mode)
 #ifdef ENABLE_WALLET
     strUsage += "\n" + _("Wallet options:") + "\n";
     strUsage += "  -disablewallet         " + _("Do not load the wallet and disable wallet RPC calls") + "\n";
+    if (GetBoolArg("-help-debug", false))
+        strUsage += "  -mintxfee=<amt>        " + strprintf(_("Fees (in MINT/Kb) smaller than this are considered zero fee for transaction creation (default: %s)"), FormatMoney(CWallet::minTxFee.GetFeePerK())) + "\n";
     strUsage += "  -paytxfee=<amt>        " + _("Fee per kB to add to transactions you send") + "\n";
     strUsage += "  -rescan                " + _("Rescan the block chain for missing wallet transactions") + " " + _("on startup") + "\n";
     strUsage += "  -salvagewallet         " + _("Attempt to recover private keys from a corrupt wallet.dat") + " " + _("on startup") + "\n";
     strUsage += "  -spendzeroconfchange   " + _("Spend unconfirmed change when sending transactions (default: 1)") + "\n";
+    strUsage += "  -txconfirmtarget=<n>   " + _("If paytxfee is not set, include enough fee so transactions are confirmed on average within n blocks (default: 1)") + "\n";
     strUsage += "  -upgradewallet         " + _("Upgrade wallet to latest format") + " " + _("on startup") + "\n";
     strUsage += "  -wallet=<file>         " + _("Specify wallet file (within data directory)") + " " + _("(default: wallet.dat)") + "\n";
     strUsage += "  -walletnotify=<cmd>    " + _("Execute command when a wallet transaction changes (%s in cmd is replaced by TxID)") + "\n";
@@ -285,8 +303,7 @@ std::string HelpMessage(HelpMessageMode mode)
         strUsage += "  -limitfreerelay=<n>    " + _("Continuously rate-limit free transactions to <n>*1000 bytes per minute (default:15)") + "\n";
         strUsage += "  -maxsigcachesize=<n>   " + _("Limit size of signature cache to <n> entries (default: 50000)") + "\n";
     }
-    strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CTransaction::nMinTxFee) + ")" + "\n";
-    strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CTransaction::nMinRelayTxFee) + ")" + "\n";
+    strUsage += "  -minrelaytxfee=<amt>   " + strprintf(_("Fees (in MINT/Kb) smaller than this are considered zero fee for relaying (default: %s)"), FormatMoney(::minRelayTxFee.GetFeePerK())) + "\n";
     strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
     if (GetBoolArg("-help-debug", false))
     {
@@ -298,6 +315,9 @@ std::string HelpMessage(HelpMessageMode mode)
     }
     strUsage += "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n";
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
+
+    strUsage += "\n" + _("Node relay options:") + "\n";
+    strUsage += "  -datacarrier           " + _("Relay and mine data carrier transactions (default: 1)") + "\n";
 
     strUsage += "\n" + _("Block creation options:") + "\n";
     strUsage += "  -blockminsize=<n>      " + _("Set minimum block size in bytes (default: 0)") + "\n";
@@ -579,31 +599,39 @@ bool AppInit2(boost::thread_group& threadGroup)
     // a transaction spammer can cheaply fill blocks using
     // 1-satoshi-fee transactions. It should be set above the real
     // cost to you of processing a transaction.
-    if (mapArgs.count("-mintxfee"))
-    {
-        int64_t n = 0;
-        if (ParseMoney(mapArgs["-mintxfee"], n) && n > 0)
-            CTransaction::nMinTxFee = n;
-        else
-            return InitError(strprintf(_("Invalid amount for -mintxfee=<amount>: '%s'"), mapArgs["-mintxfee"].c_str()));
-    }
     if (mapArgs.count("-minrelaytxfee"))
     {
         int64_t n = 0;
         if (ParseMoney(mapArgs["-minrelaytxfee"], n) && n > 0)
-            CTransaction::nMinRelayTxFee = n;
+            ::minRelayTxFee = CFeeRate(n);
         else
-            return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), mapArgs["-minrelaytxfee"].c_str()));
+            return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), mapArgs["-minrelaytxfee"]));
     }
 
 #ifdef ENABLE_WALLET
+    if (mapArgs.count("-mintxfee"))
+    {
+        int64_t n = 0;
+        if (ParseMoney(mapArgs["-mintxfee"], n) && n > 0)
+            CWallet::minTxFee = CFeeRate(n);
+        else
+            return InitError(strprintf(_("Invalid amount for -mintxfee=<amount>: '%s'"), mapArgs["-mintxfee"]));
+    }
     if (mapArgs.count("-paytxfee"))
     {
-        if (!ParseMoney(mapArgs["-paytxfee"], nTransactionFee))
+        int64_t nFeePerK = 0;
+        if (!ParseMoney(mapArgs["-paytxfee"], nFeePerK))
             return InitError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s'"), mapArgs["-paytxfee"]));
-        if (nTransactionFee > 0.25 * COIN)
+        if (nFeePerK > nHighTransactionFeeWarning)
             InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
+        payTxFee = CFeeRate(nFeePerK, 1000);
+        if (payTxFee < ::minRelayTxFee)
+        {
+            return InitError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s' (must be at least %s)"),
+                                       mapArgs["-paytxfee"], ::minRelayTxFee.ToString()));
+        }
     }
+    nTxConfirmTarget = GetArg("-txconfirmtarget", 1);
     bSpendZeroConfChange = GetArg("-spendzeroconfchange", true);
 
     strWalletFile = GetArg("-wallet", "wallet.dat");
@@ -950,6 +978,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
 
+    boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
+    CAutoFile est_filein = CAutoFile(fopen(est_path.string().c_str(), "rb"), SER_DISK, CLIENT_VERSION);
+    // Allowed to fail as this file IS missing on first startup.
+    if (est_filein)
+        mempool.ReadFeeEstimates(est_filein);
 
     // ********************************************************* Step 8: load wallet
 #ifdef ENABLE_WALLET

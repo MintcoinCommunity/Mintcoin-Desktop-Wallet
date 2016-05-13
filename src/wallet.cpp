@@ -7,9 +7,9 @@
 #include "wallet.h"
 
 #include "base58.h"
+#include "checkpoints.h"
 #include "coincontrol.h"
 #include "net.h"
-#include "checkpoints.h"
 #include "kernel.h"
 #include "chainparams.h"
 #include "timedata.h"
@@ -21,8 +21,12 @@
 using namespace std;
 
 // Settings
-int64_t nTransactionFee = CTransaction::nMinTxFee;
+CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE);
+unsigned int nTxConfirmTarget = 1;
 bool bSpendZeroConfChange = true;
+
+/** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
+CFeeRate CWallet::minTxFee = CFeeRate(10 * CENT);  // Override with -mintxfee
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1318,6 +1322,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
         return false;
     }
 
+    wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
     txNew.nTime = GetAdjustedTime();
@@ -1325,7 +1330,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
     {
         LOCK2(cs_main, cs_wallet);
         {
-            nFeeRet = nTransactionFee;
+            nFeeRet = payTxFee.GetFeePerK();
             while (true)
             {
                 txNew.vin.clear();
@@ -1338,7 +1343,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                 BOOST_FOREACH (const PAIRTYPE(CScript, int64_t)& s, vecSend)
                 {
                     CTxOut txout(s.second, s.first);
-                    if (txout.IsDust(CTransaction::nMinRelayTxFee))
+                    if (txout.IsDust(::minRelayTxFee))
                     {
                         strFailReason = _("Transaction amount too small");
                         return false;
@@ -1364,15 +1369,6 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                 }
 
                 int64_t nChange = nValueIn - nValue - nFeeRet;
-                // if sub-cent change is required, the fee must be raised to at least nMinTxFee
-                // or until nChange becomes zero
-                // NOTE: this depends on the exact behaviour of GetMinFee
-                if (nFeeRet < CTransaction::nMinTxFee && nChange > 0 && nChange < CENT)
-                {
-                    int64_t nMoveToFee = min(nChange, CTransaction::nMinTxFee - nFeeRet);
-                    nChange -= nMoveToFee;
-                    nFeeRet += nMoveToFee;
-                }
 
                 // ppcoin: sub-cent change is moved to fee
                 if (nChange > 0 && nChange < MIN_TXOUT_AMOUNT)
@@ -1383,16 +1379,15 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
 
                 if (nChange > 0)
                 {
-                   
                     // Fill a vout to ourself
                     // TODO: pass in scriptChange instead of reservekey so
                     // change transaction isn't always pay-to-bitcoin-address
                     CScript scriptChange;
-					
+
                     // coin control: send change to custom address
                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
                         scriptChange.SetDestination(coinControl->destChange);
- 
+
                     // no coin control: send change to newly generated address
                     else
                     {
@@ -1416,7 +1411,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
 
                     // Never create dust outputs; if we would, just
                     // add the dust to the fee.
-                    if (newTxOut.IsDust(CTransaction::nMinRelayTxFee))
+                    if (newTxOut.IsDust(::minRelayTxFee))
                     {
                         nFeeRet += nChange;
                         reservekey.ReturnKey();
@@ -1456,18 +1451,31 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                 }
                 dPriority = wtxNew.ComputePriority(dPriority, nBytes);
 
-                // Check that enough fee is included
-                int64_t nPayFee = nTransactionFee * (1 + (int64_t)nBytes / 1000);
-                int64_t nMinFee = GetMinFee(wtxNew, nBytes, GMF_SEND);
-                if (nFeeRet < max(nPayFee, nMinFee))
+                int64_t nFeeNeeded = GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
+
+                if (nFeeRet >= nFeeNeeded)
+                    break; // Done, enough fee included.
+
+                // Too big to send for free? Include more fee and try again:
+                if (nBytes > MAX_FREE_TRANSACTION_CREATE_SIZE)
                 {
-                    nFeeRet = max(nPayFee, nMinFee);
+                    nFeeRet = nFeeNeeded;
                     continue;
                 }
 
-                wtxNew.fTimeReceivedIsTxTime = true;
+                // Not enough fee: enough priority?
+                double dPriorityNeeded = mempool.estimatePriority(nTxConfirmTarget);
+                // Not enough mempool history to estimate: use hard-coded AllowFree.
+                if (dPriorityNeeded <= 0 && AllowFree(dPriority))
+                    break;
 
-                break;
+                // Small enough, and priority high enough, to send for free
+                if (dPriorityNeeded > 0 && dPriority >= dPriorityNeeded)
+                    break;
+
+                // Include more fee and try again.
+                nFeeRet = nFeeNeeded;
+                continue;
             }
         }
     }
@@ -1546,7 +1554,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 	const CBlockIndex* pIndex0 = GetLastBlockIndex(chainActive.Tip(), false);
     int64_t nCombineThreshold = 0;
 	if(pIndex0->pprev)
-		nCombineThreshold = GetProofOfWorkReward(pIndex0->nHeight, CTransaction::nMinTxFee, pIndex0->pprev->GetBlockHash()) / 3;
+		nCombineThreshold = GetProofOfWorkReward(pIndex0->nHeight, minTxFee.GetFeePerK(), pIndex0->pprev->GetBlockHash()) / 3;
 
     CMutableTransaction txNew;
     txNew.nTime = GetAdjustedTime();
@@ -1741,9 +1749,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             return error("CreateCoinStake : exceeded coinstake size limit");
 
         // Check enough fee is paid
-        if (nMinFee < GetMinFee(txNew) - CTransaction::nMinTxFee)
+        if (nMinFee < minTxFee.GetFeePerK())
         {
-            nMinFee = GetMinFee(txNew) - CTransaction::nMinTxFee;
+            nMinFee = minTxFee.GetFeePerK();
             continue; // try signing again
         }
         else
@@ -1766,7 +1774,7 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
 {
     {
         LOCK2(cs_main, cs_wallet);
-        LogPrintf("CommitTransaction:\n%s", wtxNew.ToString().c_str());
+        LogPrintf("CommitTransaction:\n%s", wtxNew.ToString());
         {
             // This is only to keep the database open to defeat the auto-flush for the
             // duration of this scope.  This is the only place where this optimization
@@ -1850,7 +1858,7 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64_t nV
     // Check amount
     if (nValue <= 0)
         return _("Invalid amount");
-    if (nValue + nTransactionFee > GetBalance())
+    if (nValue > GetBalance())
         return _("Insufficient funds");
 
     // Parse Bitcoin address
@@ -1858,6 +1866,20 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64_t nV
     scriptPubKey.SetDestination(address);
 
     return SendMoney(scriptPubKey, nValue, wtxNew);
+}
+
+int64_t CWallet::GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool)
+{
+    // payTxFee is user-set "I want to pay this much"
+    int64_t nFeeNeeded = payTxFee.GetFee(nTxBytes);
+    // User didn't set: use -txconfirmtarget to estimate...
+    if (nFeeNeeded == 0)
+        nFeeNeeded = pool.estimateFee(nConfirmTarget).GetFee(nTxBytes);
+    // ... unless we don't have enough mempool data, in which case fall
+    // back to a hard-coded fee
+    if (nFeeNeeded == 0)
+        nFeeNeeded = minTxFee.GetFee(nTxBytes);
+    return nFeeNeeded;
 }
 
 

@@ -43,8 +43,6 @@ using namespace boost;
 
 CCriticalSection cs_main;
 
-CTxMemPool mempool;
-
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
@@ -58,10 +56,10 @@ bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 
-/** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
-int64_t CTransaction::nMinTxFee = 10 * CENT;  // Override with -mintxfee
-/** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
-int64_t CTransaction::nMinRelayTxFee = 10 * CENT;
+/** Fees smaller than this (in satoshi) are considered zero fee (for relaying and mining) */
+CFeeRate minRelayTxFee = CFeeRate(10 * CENT);
+
+CTxMemPool mempool(::minRelayTxFee);
 
 struct COrphanBlock {
     uint256 hashBlock;
@@ -562,7 +560,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
     // Treat non-final transactions as non-standard to prevent a specific type
     // of double-spend attack, as well as DoS attacks. (if the transaction
     // can't be mined, the attacker isn't expending resources broadcasting it)
-    // Basically we don't want to propagate transactions that can't included in
+    // Basically we don't want to propagate transactions that can't be included in
     // the next block.
     //
     // However, IsFinalTx() is confusing... Without arguments, it uses
@@ -595,7 +593,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
     {
         // Biggest 'standard' txin is a 15-of-15 P2SH multisig with compressed
         // keys. (remember the 520 byte limit on redeemScript size) That works
-        // out to a (15*(33+1))+3=513 byte redeemScript, 513+1+15*(73+1)=1624
+        // out to a (15*(33+1))+3=513 byte redeemScript, 513+1+15*(73+1)+3=1627
         // bytes of scriptSig, which we round off to 1650 bytes for some minor
         // future-proofing. That's also enough to spend a 20-of-20
         // CHECKMULTISIG scriptPubKey, though such a scriptPubKey is not
@@ -621,9 +619,10 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
             reason = "scriptpubkey";
             return false;
         }
+
         if (whichType == TX_NULL_DATA)
             nDataOut++;
-        else if (txout.IsDust(CTransaction::nMinRelayTxFee)) {
+        else if (txout.IsDust(::minRelayTxFee)) {
             reason = "dust";
             return false;
         }
@@ -867,20 +866,20 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
     return true;
 }
 
-int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes, enum GetMinFee_mode mode)
+int64_t GetMinRelayFee(const CTransaction& tx, unsigned int nBytes)
 {
-    // Base fee is either nMinTxFee or nMinRelayTxFee
-    int64_t nBaseFee = (mode == GMF_RELAY) ? tx.nMinRelayTxFee : tx.nMinTxFee;
-
-    int64_t nMinFee = (1 + (int64_t)nBytes / 1000) * nBaseFee;
-
-    // To limit dust spam, require base fee if any output is less than 0.01
-    if (nMinFee < nBaseFee)
     {
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
-            if (txout.nValue < CENT)
-                nMinFee = nBaseFee;
+        LOCK(mempool.cs);
+        uint256 hash = tx.GetHash();
+        double dPriorityDelta = 0;
+        int64_t nFeeDelta = 0;
+        mempool.ApplyDeltas(hash, dPriorityDelta, nFeeDelta);
+        if (dPriorityDelta > 0 || nFeeDelta > 0)
+            return 0;
     }
+
+    int64_t nMinFee = ::minRelayTxFee.GetFee(nBytes);
+
 
     if (!MoneyRange(nMinFee))
         nMinFee = MAX_MONEY;
@@ -938,6 +937,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         CCoinsView dummy;
         CCoinsViewCache view(dummy);
 
+        int64_t nValueIn = 0;
         {
         LOCK(pool.cs);
         CCoinsViewMemPool viewMemPool(*pcoinsTip, pool);
@@ -966,6 +966,8 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         // Bring the best block into scope
         view.GetBestBlock();
 
+        nValueIn = view.GetValueIn(tx);
+
         // we have all inputs cached now, so switch back to dummy, so we don't need to keep lock on mempool
         view.SetBackend(dummy);
         }
@@ -978,7 +980,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         // you should add code here to check that the transaction does a
         // reasonable number of ECDSA signature verifications.
 
-        int64_t nValueIn = view.GetValueIn(tx);
         int64_t nValueOut = tx.GetValueOut();
         int64_t nFees = nValueIn-nValueOut;
         double dPriority = view.GetPriority(tx, chainActive.Height());
@@ -987,16 +988,16 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
         unsigned int nSize = entry.GetTxSize();
 
         // Don't accept it if it can't get into a block
-        int64_t txMinFee = GetMinFee(tx, nSize, GMF_RELAY);
+        int64_t txMinFee = GetMinRelayFee(tx, nSize);
         if (fLimitFree && nFees < txMinFee)
             return state.DoS(0, error("AcceptToMemoryPool : not enough fees %s, %d < %d",
                                       hash.ToString(), nFees, txMinFee),
                              REJECT_INSUFFICIENTFEE, "insufficient fee");
 
-        // Continuously rate-limit free transactions
+        // Continuously rate-limit free (really, very-low-fee)transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
         // be annoying or make others' transactions take longer to confirm.
-        if (fLimitFree && nFees < CTransaction::nMinRelayTxFee)
+        if (fLimitFree && nFees < ::minRelayTxFee.GetFee(nSize))
         {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
@@ -1017,10 +1018,10 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
             dFreeCount += nSize;
         }
 
-        if (fRejectInsaneFee && nFees > CTransaction::nMinRelayTxFee * 10000)
+        if (fRejectInsaneFee && nFees > ::minRelayTxFee.GetFee(nSize) * 100)
             return error("AcceptToMemoryPool: : insane fees %s, %d > %d",
                          hash.ToString(),
-                         nFees, CTransaction::nMinRelayTxFee * 10000);
+                         nFees, ::minRelayTxFee.GetFee(nSize) * 100);
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
@@ -1082,10 +1083,10 @@ int CMerkleTx::GetBlocksToMaturity() const
 }
 
 
-bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
+bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree, bool fRejectInsaneFee)
 {
     CValidationState state;
-    return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL);
+    return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL, fRejectInsaneFee);
 }
 
 
@@ -1587,6 +1588,40 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 
         }
 
+        if (tx.IsCoinStake())
+        {
+            // ppcoin: coin stake tx earns reward instead of paying fee
+            uint64_t nCoinAge;
+            if (!tx.GetCoinAge(nCoinAge))
+                return state.Invalid(error("CheckInputs() : %s unable to get coin age for coinstake", tx.GetHash().ToString()),
+                             REJECT_INVALID, "no-coinage");
+            int64_t nStakeReward = tx.GetValueOut() - nValueIn;
+            if (nStakeReward > GetProofOfStakeReward(nCoinAge, pindexBlock->nBits, tx.nTime, pindexBlock->nHeight))
+                return state.DoS(100, error("CheckInputs() : %s stake reward exceeded", tx.GetHash().ToString()),
+                             REJECT_INVALID, "stake-reward-exceeded");
+        }
+        else
+        {
+            if (nValueIn < tx.GetValueOut())
+                return state.DoS(100, error("CheckInputs() : %s value in < value out", tx.GetHash().ToString()),
+                             REJECT_INVALID, "bad-txns-in-belowout");
+
+            // Tally transaction fees
+            int64_t nTxFee = nValueIn - tx.GetValueOut();
+            if (nTxFee < 0)
+                return state.DoS(100, error("CheckInputs() : %s nTxFee < 0", tx.GetHash().ToString()),
+                             REJECT_INVALID, "bad-txns-fee-negative");
+            // ppcoin: enforce transaction fees for every block
+            if (nTxFee < ::minRelayTxFee.GetFeePerK())
+                return state.DoS(100, error("CheckInputs() : %s not paying required fee=%s, paid=%s", tx.GetHash().ToString().substr(0,10).c_str(), FormatMoney(minRelayTxFee.GetFeePerK()).c_str(), FormatMoney(nTxFee).c_str()),
+                             REJECT_INVALID, "bad-txns-fee-outofrange");
+
+            nFees += nTxFee;
+            if (!MoneyRange(nFees))
+                return state.DoS(100, error("CheckInputs() : nFees out of range"),
+                             REJECT_INVALID, "bad-txns-fee-outofrange");
+        }
+
         // The first loop above does all the inexpensive checks.
         // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
         // Helps prevent CPU exhaustion attacks.
@@ -1629,39 +1664,6 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
             }
         }
 
-        if (tx.IsCoinStake())
-        {
-            // ppcoin: coin stake tx earns reward instead of paying fee
-            uint64_t nCoinAge;
-            if (!tx.GetCoinAge(nCoinAge))
-                return state.Invalid(error("ConnectInputs() : %s unable to get coin age for coinstake", tx.GetHash().ToString().substr(0,10).c_str()),
-                             REJECT_INVALID, "no coin age");
-            int64_t nStakeReward = tx.GetValueOut() - nValueIn;
-            if (nStakeReward > GetProofOfStakeReward(nCoinAge, pindexBlock->nBits, tx.nTime, pindexBlock->nHeight) - GetMinFee(tx) + CTransaction::nMinTxFee)
-                return state.DoS(100, error("ConnectInputs() : %s stake reward exceeded", tx.GetHash().ToString().substr(0,10).c_str()),
-                             REJECT_INVALID, "stake reward exceeded");
-        }
-        else
-        {
-            if (nValueIn < tx.GetValueOut())
-                return state.DoS(100, error("ConnectInputs() : %s value in < value out", tx.GetHash().ToString().substr(0,10).c_str()),
-                             REJECT_INVALID, "excessive output");
-
-            // Tally transaction fees
-            int64_t nTxFee = nValueIn - tx.GetValueOut();
-            if (nTxFee < 0)
-                return state.DoS(100, error("ConnectInputs() : %s nTxFee < 0", tx.GetHash().ToString().substr(0,10).c_str()),
-                             REJECT_INVALID, "fee out of range");
-            // ppcoin: enforce transaction fees for every block
-            if (nTxFee < GetMinFee(tx))
-                return state.DoS(100, error("ConnectInputs() : %s not paying required fee=%s, paid=%s", tx.GetHash().ToString().substr(0,10).c_str(), FormatMoney(GetMinFee(tx)).c_str(), FormatMoney(nTxFee).c_str()),
-                             REJECT_INVALID, "fee out of range");
-
-            nFees += nTxFee;
-            if (!MoneyRange(nFees))
-                return state.DoS(100, error("ConnectInputs() : nFees out of range"),
-                             REJECT_INVALID, "fee out of range");
-        }
     }
 
     return true;
@@ -2112,11 +2114,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
         return false;
     // Remove conflicting transactions from the mempool.
     list<CTransaction> txConflicted;
-    BOOST_FOREACH(const CTransaction &tx, block.vtx) {
-        list<CTransaction> unused;
-        mempool.remove(tx, unused);
-        mempool.removeConflicts(tx, txConflicted);
-    }
+    mempool.removeForBlock(block.vtx, pindexNew->nHeight, txConflicted);
     mempool.check(pcoinsTip);
     // Update chainActive & related variables.
     UpdateTip(pindexNew);
@@ -4378,7 +4376,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vRecv >> block;
 
         LogPrint("net", "received block %s peer=%d\n", block.GetHash().ToString(), pfrom->id);
-        
+
         CInv inv(MSG_BLOCK, block.GetHash());
         pfrom->AddInventoryKnown(inv);
 

@@ -2015,10 +2015,11 @@ Value settxfee(const Array& params, bool fHelp)
         );
 
     // Amount
+    int64_t nAmount = 0;
     if (params[0].get_real() != 0.0)
-        nTransactionFee = AmountFromValue(params[0]);        // rejects 0.0 amounts
+        nAmount = AmountFromValue(params[0]);        // rejects 0.0 amounts
 
-    nTransactionFee = (nTransactionFee / CENT) * CENT;  // round to cent
+    payTxFee = CFeeRate(nAmount, 1000);
     return true;
 }
 

@@ -12,6 +12,9 @@
 
 #include "netbase.h"
 #include "txdb.h" // for -dbcache defaults
+#ifdef ENABLE_WALLET
+#include "wallet.h" // for CWallet::minTxFee
+#endif
 
 #include <QDir>
 #include <QIntValidator>
@@ -86,7 +89,9 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     }
 
     ui->unit->setModel(new BitcoinUnits(this));
-    ui->transactionFee->setSingleStep(CTransaction::nMinTxFee);
+#ifdef ENABLE_WALLET
+    ui->transactionFee->setSingleStep(CWallet::minTxFee.GetFeePerK());
+#endif
 
     /* Widget-to-option mapper */
     mapper = new MonitoredDataMapper(this);

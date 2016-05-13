@@ -24,9 +24,17 @@
 #include <vector>
 
 // Settings
-extern int64_t nTransactionFee;
+extern CFeeRate payTxFee;
+extern unsigned int nTxConfirmTarget;
 extern bool bSpendZeroConfChange;
 extern bool fWalletUnlockMintOnly;
+
+// -paytxfee default
+static const int64_t DEFAULT_TRANSACTION_FEE = 0;
+// -paytxfee will warn if called with a higher fee than this amount (in satoshis) per KB
+static const int nHighTransactionFeeWarning = 0.01 * COIN;
+// Largest (in bytes) free transaction we're willing to create
+static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000;
 
 class CAccountingEntry;
 class CCoinControl;
@@ -261,6 +269,9 @@ public:
     bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CTransaction& txNew);
     std::string SendMoney(CScript scriptPubKey, int64_t nValue, CWalletTx& wtxNew);
     std::string SendMoneyToDestination(const CTxDestination &address, int64_t nValue, CWalletTx& wtxNew);
+
+    static CFeeRate minTxFee;
+    static int64_t GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool);
 
     bool NewKeyPool();
     bool TopUpKeyPool(unsigned int kpSize = 0);

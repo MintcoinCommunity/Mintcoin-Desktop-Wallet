@@ -97,16 +97,6 @@ Value ValueFromAmount(int64_t amount)
     return (double)amount / (double)COIN;
 }
 
-std::string HexBits(unsigned int nBits)
-{
-    union {
-        int32_t nBits;
-        char cBits[4];
-    } uBits;
-    uBits.nBits = htonl((int32_t)nBits);
-    return HexStr(BEGIN(uBits.cBits), END(uBits.cBits));
-}
-
 uint256 ParseHashV(const Value& v, string strName)
 {
     string strHex;
@@ -256,6 +246,7 @@ static const CRPCCommand vRPCCommands[] =
     /* Mining */
     { "getblocktemplate",       &getblocktemplate,       true,      false,      false },
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
+    { "prioritisetransaction",  &prioritisetransaction,  true,      false,      false },
     { "submitblock",            &submitblock,            true,     false,      false },
 
     /* Raw transactions */
@@ -270,6 +261,8 @@ static const CRPCCommand vRPCCommands[] =
     { "createmultisig",         &createmultisig,         true,      true ,      false },
     { "validateaddress",        &validateaddress,        true,      false,      false },
     { "verifymessage",          &verifymessage,          false,     false,      false },
+    { "estimatefee",            &estimatefee,            true,      true,       false },
+    { "estimatepriority",       &estimatepriority,       true,      true,       false },
 
 #ifdef ENABLE_WALLET
     /* Wallet */

@@ -73,6 +73,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "listaccounts"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "walletpassphrase"       && n > 2) ConvertTo<bool>(params[2]);
+    if (strMethod == "prioritisetransaction"  && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "prioritisetransaction"  && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "sendmany"               && n > 1) ConvertTo<Object>(params[1]);
@@ -107,6 +109,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
+	if (strMethod == "estimatefee"            && n > 0) ConvertTo<boost::int64_t>(params[0]);
+	if (strMethod == "estimatepriority"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
 
     return params;
 }
