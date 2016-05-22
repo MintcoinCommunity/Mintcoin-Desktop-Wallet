@@ -57,7 +57,7 @@ bool fFeeEstimatesInitialized = false;
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
 
-// Used to pass flags to the Bind() function
+/** Used to pass flags to the Bind() function */
 enum BindFlags {
     BF_NONE         = 0,
     BF_EXPLICIT     = (1U << 0),
@@ -147,14 +147,9 @@ void Shutdown()
 
     {
         LOCK(cs_main);
-#ifdef ENABLE_WALLET
-        if (pwalletMain)
-            pwalletMain->SetBestChain(chainActive.GetLocator());
-#endif
-        if (pblocktree)
-            pblocktree->Flush();
-        if (pcoinsTip)
-            pcoinsTip->Flush();
+        if (pcoinsTip != NULL) {
+            FlushStateToDisk();
+        }
         delete pcoinsTip;
         pcoinsTip = NULL;
         delete pcoinsdbview;
@@ -177,9 +172,9 @@ void Shutdown()
     LogPrintf("%s: done\n", __func__);
 }
 
-//
-// Signal handlers are very limited in what they are allowed to do, so:
-//
+/**
+ * Signal handlers are very limited in what they are allowed to do, so:
+ */
 void HandleSIGTERM(int)
 {
     fRequestShutdown = true;
@@ -985,7 +980,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way around).
-                if (!mapBlockIndex.empty() && chainActive.Genesis() == NULL)
+                if (!mapBlockIndex.empty() && mapBlockIndex.count(Params().HashGenesisBlock()) == 0)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
                 // Initialize the block index (no-op if non-empty database was already loaded)

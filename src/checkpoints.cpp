@@ -216,7 +216,8 @@ namespace Checkpoints {
         // Select the last proof-of-work block
         const CBlockIndex *pindex = GetLastBlockIndex(chainActive.Tip(), false);
         // Search forward for a block within max span and maturity window
-        while (chainActive.Next(pindex) && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN <= chainActive.Tip()->GetBlockTime() || pindex->nHeight + std::min(6u, Params().CoinbaseMaturity() - 20) <= chainActive.Tip()->nHeight))
+        while (chainActive.Next(pindex) && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN <= chainActive.Tip()->GetBlockTime() 
+            || pindex->nHeight + std::min(6u, Params().CoinbaseMaturity() - 20) <= chainActive.Tip()->nHeight))
             pindex = chainActive.Next(pindex);
         return pindex->GetBlockHash();
     }
@@ -256,9 +257,6 @@ namespace Checkpoints {
             return false;
         if (hashBlock == hashPendingCheckpoint)
             return true;
-        if (mapOrphanBlocks.count(hashPendingCheckpoint) 
-            && hashBlock == WantedByOrphan(mapOrphanBlocks[hashPendingCheckpoint]))
-            return true;
         return false;
     }
 
@@ -273,9 +271,6 @@ namespace Checkpoints {
             // checkpoint block accepted but not yet in main chain
             LogPrintf("ResetSyncCheckpoint: ActivateBestChain to hardened checkpoint %s\n", hash.ToString().c_str());
             
-            CBlock block;
-            if (!ReadBlockFromDisk(block, mapBlockIndex[hash]))
-                return error("ResetSyncCheckpoint: ReadFromDisk failed for hardened checkpoint %s", hash.ToString().c_str());
             if (!ActivateBestChain(state) && chainActive.Contains(mapBlockIndex[hash]))
             {
                 return error("ResetSyncCheckpoint: SetBestChain failed for hardened checkpoint %s", hash.ToString().c_str());
@@ -308,7 +303,7 @@ namespace Checkpoints {
     void AskForPendingSyncCheckpoint(CNode* pfrom)
     {
         LOCK(cs_hashSyncCheckpoint);
-        if (pfrom && hashPendingCheckpoint != 0 && (!mapBlockIndex.count(hashPendingCheckpoint)) && (!mapOrphanBlocks.count(hashPendingCheckpoint)))
+        if (pfrom && hashPendingCheckpoint != 0 && (!mapBlockIndex.count(hashPendingCheckpoint)))
             pfrom->AskFor(CInv(MSG_BLOCK, hashPendingCheckpoint));
     }
 
@@ -416,14 +411,7 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
         Checkpoints::hashPendingCheckpoint = hashCheckpoint;
         Checkpoints::checkpointMessagePending = *this;
         LogPrintf("ProcessSyncCheckpoint: pending for sync-checkpoint %s\n", hashCheckpoint.ToString().c_str());
-        // Ask this guy to fill in what we're missing
-        if (pfrom)
-        {
-            PushGetBlocks(pfrom, chainActive.Tip(), hashCheckpoint);
-            // ask directly as well in case rejected earlier by duplicate
-            // proof-of-stake because getblocks may not get it this time
-            pfrom->AskFor(CInv(MSG_BLOCK, mapOrphanBlocks.count(hashCheckpoint)? WantedByOrphan(mapOrphanBlocks[hashCheckpoint]) : hashCheckpoint));
-        }
+        
         return false;
     }
 

@@ -89,50 +89,6 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     return true;
 }
 
-//
-// true if nBits is greater than the minimum amount of proof that could
-// possibly be required deltaTime after minimum proof required was nBase
-//
-bool ComputeMaxBits(uint256 bnTargetLimit, unsigned int nBits, unsigned int nBase, int64_t deltaTime)
-{
-    bool fOverflow = false;
-    uint256 bnNewBlock;
-    bnNewBlock.SetCompact(nBits, NULL, &fOverflow);
-    if (fOverflow)
-        return false;
-
-    uint256 bnResult;
-    bnResult.SetCompact(nBase);
-    bnResult *= 2;
-    while (deltaTime > 0 && bnResult < bnTargetLimit)
-    {
-        // Maximum 200% adjustment per day...
-        bnResult *= 2;
-        deltaTime -= 24 * 60 * 60;
-    }
-    if (bnResult > bnTargetLimit)
-        bnResult = bnTargetLimit;
-    return bnNewBlock <= bnResult;
-}
-
-//
-// true if nBits is greater than the minimum amount of work that could possibly be required nTime after
-// possibly be required deltaTime after minimum work required was nBase
-//
-bool CheckMinWork(unsigned int nBits, unsigned int nBase, int64_t nTime)
-{
-    return ComputeMaxBits(Params().ProofOfWorkLimit(), nBits, nBase, nTime);
-}
-
-//
-// true if nBits is greater than the minimum amount of stake that could 
-// possibly be required deltaTime after minimum stake required was nBase
-//
-bool CheckMinStake(unsigned int nBits, unsigned int nBase, int64_t nTime, unsigned int nBlockTime)
-{
-    return ComputeMaxBits(Params().ProofOfStakeLimit(), nBits, nBase, nTime);
-}
-
 
 // ppcoin: find last block index up to pindex
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
