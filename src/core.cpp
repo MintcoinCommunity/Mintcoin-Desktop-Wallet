@@ -5,9 +5,11 @@
 
 #include "core.h"
 
+#include "hash.h"
 #include "scrypt_mine.h"
 #include "tinyformat.h"
 #include "utilmoneystr.h"
+#include "utilstrencodings.h"
 
 #include <boost/foreach.hpp>
 
@@ -351,6 +353,21 @@ std::string CBlock::ToString() const
         s << " " << vMerkleTree[i].ToString();
     s << "\n";
 	return s.str();
+}
+
+unsigned int CBlock::GetTxOffset(CTransaction &tx)
+{
+    unsigned int txOffset = ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(vtx.size());
+    int i=0;
+    uint256 hash = tx.GetHash();
+    if(hash == vtx[i].GetHash())
+        return txOffset;
+    do
+    {
+        txOffset += ::GetSerializeSize(vtx[i], SER_DISK, CLIENT_VERSION);
+        i++;
+    }while(hash != vtx[i].GetHash());
+    return txOffset;
 }
 
 // ppcoin: get max transaction timestamp

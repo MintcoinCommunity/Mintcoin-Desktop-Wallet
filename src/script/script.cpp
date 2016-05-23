@@ -5,7 +5,18 @@
 
 #include "script.h"
 
-#include <boost/foreach.hpp>
+#include "tinyformat.h"
+#include "utilstrencodings.h"
+
+namespace {
+inline std::string ValueString(const std::vector<unsigned char>& vch)
+{
+    if (vch.size() <= 4)
+        return strprintf("%d", CScriptNum(vch).getint());
+    else
+        return HexStr(vch);
+}
+} // anon namespace
 
 using namespace std;
 
@@ -225,6 +236,29 @@ bool CScript::IsPushOnly() const
             return false;
     }
     return true;
+}
+
+std::string CScript::ToString() const
+{
+    std::string str;
+    opcodetype opcode;
+    std::vector<unsigned char> vch;
+    const_iterator pc = begin();
+    while (pc < end())
+    {
+        if (!str.empty())
+            str += " ";
+        if (!GetOp(pc, opcode, vch))
+        {
+            str += "[error]";
+            return str;
+        }
+        if (0 <= opcode && opcode <= OP_PUSHDATA4)
+            str += ValueString(vch);
+        else
+            str += GetOpName(opcode);
+    }
+    return str;
 }
 
 bool CScript::HasCanonicalPushes() const

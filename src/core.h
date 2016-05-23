@@ -613,20 +613,7 @@ public:
     // ppcoin: get max transaction timestamp
     int64_t GetMaxTransactionTime() const;
 
-    unsigned int GetTxOffset(CTransaction &tx)
-    {
-        unsigned int txOffset = ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(vtx.size());
-        int i=0;
-        uint256 hash = tx.GetHash();
-        if(hash == vtx[i].GetHash())
-            return txOffset;
-        do
-        {
-            txOffset += ::GetSerializeSize(vtx[i], SER_DISK, CLIENT_VERSION);
-            i++;
-        }while(hash != vtx[i].GetHash());
-        return txOffset;
-    }
+    unsigned int GetTxOffset(CTransaction &tx);
 
     bool GetCoinAge(uint64_t& nCoinAge) const; // ppcoin: calculate total coin age spent in block
 };
