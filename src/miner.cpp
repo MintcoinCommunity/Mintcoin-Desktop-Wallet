@@ -89,15 +89,14 @@ void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev)
 
 // CreateNewBlock:
 //   fProofOfStake: try (best effort) to make a proof-of-stake block
-CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
+CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, CBlockIndex*& pindexPrev, bool fProofOfStake)
 {
-    CReserveKey reservekey(pwallet);
-
     // Create new block
-    auto_ptr<CBlock> pblocktemp(new CBlock());
-    if (!pblocktemp.get())
+    auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+    if(!pblocktemplate.get())
         return NULL;
-    CBlock *pblock = pblocktemp.get(); // pointer for convenience
+    CBlock *pblock = &pblocktemplate->block; // pointer for convenience
+
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (Params().MineBlocksOnDemand())
@@ -108,13 +107,12 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
-    CPubKey pubkey;
-    if (!reservekey.GetReservedKey(pubkey))
-        return NULL;
-    txNew.vout[0].scriptPubKey << pubkey << OP_CHECKSIG;
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
 
     // Add dummy coinbase tx as first transaction
     pblock->vtx.push_back(CTransaction());
+    pblocktemplate->vTxFees.push_back(-1); // updated at end
+    pblocktemplate->vTxSigOps.push_back(-1); // updated at end
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -133,8 +131,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
     // ppcoin: if coinstake available add coinstake tx
     static int64_t nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
-    CBlockIndex* pindexPrev = chainActive.Tip();
-
+    
     if (fProofOfStake)  // attempt to find a coinstake
     {
         pblock->nBits = GetNextTargetRequired(pindexPrev, true);
@@ -321,6 +318,8 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 
             // Added
             pblock->vtx.push_back(tx);
+            pblocktemplate->vTxFees.push_back(nTxFees);
+            pblocktemplate->vTxSigOps.push_back(nTxSigOps);
             nBlockSize += nTxSize;
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
@@ -361,6 +360,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         {
             txNew.vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees, pindexPrev->GetBlockHash());
             pblock->vtx[0] = txNew;
+            pblocktemplate->vTxFees[0] = -nFees;
         }
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
@@ -371,6 +371,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         if (pblock->IsProofOfWork())
             UpdateTime(pblock, pindexPrev);
         pblock->nNonce         = 0;
+        pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
         CBlockIndex indexDummy(*pblock);
         indexDummy.pprev = pindexPrev;
         indexDummy.nHeight = pindexPrev->nHeight + 1;
@@ -380,7 +381,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
     }
 
-    return pblocktemp.release();
+    return pblocktemplate.release();
 }
 
 
@@ -447,6 +448,16 @@ int64_t nHPSTimerStart = 0;
     }
 }*/
 
+CBlockTemplate* CreateNewBlockWithKey(CWallet* pwallet, CReserveKey& reservekey, CBlockIndex*& pindexPrev, bool fProofOfStake)
+{
+    CPubKey pubkey;
+    if (!reservekey.GetReservedKey(pubkey))
+        return NULL;
+
+    CScript scriptPubKey = CScript() << pubkey << OP_CHECKSIG;
+    return CreateNewBlock(pwallet, scriptPubKey, pindexPrev, fProofOfStake);
+}
+
 bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
     LogPrintf("%s\n", pblock->ToString());
@@ -502,12 +513,12 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             // Create new block
             //
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            CBlockIndex* pindexPrev = chainActive.Tip();
+            CBlockIndex* pindexPrev;
 
-            auto_ptr<CBlock> pblocktemp(CreateNewBlock(pwallet, fProofOfStake));
-            if (!pblocktemp.get())
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(pwallet, reservekey, pindexPrev, fProofOfStake));
+            if (!pblocktemplate.get())
                 return;
-            CBlock *pblock = pblocktemp.get();
+            CBlock *pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
             if (fProofOfStake)
