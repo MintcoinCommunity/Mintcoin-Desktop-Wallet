@@ -69,6 +69,7 @@ private:
     CMinerPolicyEstimator* minerPolicyEstimator;
 
     CFeeRate minRelayFee; // Passed to constructor to avoid dependency on main
+    uint64_t totalTxSize; // sum of all mempool tx' byte sizes
 
 public:
     mutable CCriticalSection cs;
@@ -90,6 +91,7 @@ public:
 
     bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry);
     void remove(const CTransaction &tx, std::list<CTransaction>& removed, bool fRecursive = false);
+    void removeCoinbaseSpends(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight);
     void removeConflicts(const CTransaction &tx, std::list<CTransaction>& removed);
     void removeForBlock(const std::vector<CTransaction>& vtx, unsigned int nBlockHeight,
                         std::list<CTransaction>& conflicts);
@@ -108,6 +110,11 @@ public:
     {
         LOCK(cs);
         return mapTx.size();
+    }
+    uint64_t GetTotalTxSize()
+    {
+        LOCK(cs);
+        return totalTxSize;
     }
 
     bool exists(uint256 hash)
