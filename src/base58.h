@@ -18,6 +18,7 @@
 #include "key.h"
 #include "script/script.h"
 #include "script/standard.h"
+#include "support/allocators/zeroafterfree.h"
 
 #include <string>
 #include <vector>
