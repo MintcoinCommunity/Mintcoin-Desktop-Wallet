@@ -1476,7 +1476,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
         {
             // ppcoin: coin stake tx earns reward instead of paying fee
             uint64_t nCoinAge;
-            if (!tx.GetCoinAge(nCoinAge))
+            if (!GetCoinAge(tx, nCoinAge))
                 return state.Invalid(error("CheckInputs() : %s unable to get coin age for coinstake", tx.GetHash().ToString()),
                              REJECT_INVALID, "no-coinage");
             int64_t nStakeReward = tx.GetValueOut() - nValueIn;
@@ -2098,72 +2098,6 @@ static CBlockIndex* FindMostWorkChain() {
     } while(true);
 }
 
-// ppcoin: total coin age spent in transaction, in the unit of coin-days.
-// Only those coins meeting minimum age requirement counts. As those
-// transactions not in main chain are not currently indexed so we
-// might not find out about their coin age. Older transactions are 
-// guaranteed to be in main chain by sync-checkpoint. This rule is
-// introduced to help nodes establish a consistent view of the coin
-// age (trust score) of competing branches.
-bool CTransaction::GetCoinAge(uint64_t& nCoinAge) const
-{
-    uint256 bnCentSecond = 0;  // coin age in the unit of cent-seconds
-    nCoinAge = 0;
-    uint256 hashBlock;
-
-    if (IsCoinBase())
-        return true;
-
-    BOOST_FOREACH(const CTxIn& txin, vin)
-    {
-        // First try finding the previous transaction in database
-        CTransaction txPrev;
-        if (!GetTransaction(txin.prevout.hash, txPrev, hashBlock, true))
-            continue;  // previous transaction not in main chain
-        if (nTime < txPrev.nTime)
-            return false;  // Transaction timestamp violation
-
-        // Read block header
-        CBlock block;
-        if (!ReadBlockFromDisk(block, mapBlockIndex[hashBlock]))
-            return false; // unable to read block of previous transaction
-        if (block.GetBlockTime() + Params().StakeMinAge() > nTime)
-            continue; // only count coins meeting min age requirement
-
-        int64_t nValueIn = txPrev.vout[txin.prevout.n].nValue;
-        bnCentSecond += uint256(nValueIn) * (nTime-txPrev.nTime) / CENT;
-
-        if (fDebug && GetBoolArg("-printcoinage", false))
-            LogPrintf("coin age nValueIn=%d nTimeDiff=%d bnCentSecond=%s\n", nValueIn, nTime - txPrev.nTime, bnCentSecond.ToString());
-    }
-
-    uint256 bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
-    if (fDebug && GetBoolArg("-printcoinage", false))
-        LogPrintf("coin age bnCoinDay=%s\n", bnCoinDay.ToString());
-    nCoinAge = bnCoinDay.getuint64();
-    return true;
-}
-
-// ppcoin: total coin age spent in block, in the unit of coin-days.
-bool CBlock::GetCoinAge(uint64_t& nCoinAge) const
-{
-    nCoinAge = 0;
-
-    BOOST_FOREACH(const CTransaction& tx, vtx)
-    {
-        uint64_t nTxCoinAge;
-        if (tx.GetCoinAge(nTxCoinAge))
-            nCoinAge += nTxCoinAge;
-        else
-            return false;
-    }
-
-    if (nCoinAge == 0) // block coin age minimum 1 coin-day
-        nCoinAge = 1;
-    if (fDebug && GetBoolArg("-printcoinage", false))
-        LogPrintf("block coin age total nCoinDays=%d\n", nCoinAge);
-    return true;
-}
 
 /** Delete all entries in setBlockIndexCandidates that are worse than the current tip. */
 static void PruneBlockIndexCandidates() {
@@ -2349,7 +2283,7 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
         pindexNew->SetProofOfStake(block);
 
     // ppcoin: compute stake entropy bit for stake modifier
-    if (!pindexNew->SetStakeEntropyBit(block.GetStakeEntropyBit(pindexNew->nHeight)))
+    if (!pindexNew->SetStakeEntropyBit(GetStakeEntropyBit(block, pindexNew->nHeight)))
         return state.Invalid(error("AddToBlockIndex() : SetStakeEntropyBit() failed"));
 
     // ppcoin: record proof-of-stake hash value

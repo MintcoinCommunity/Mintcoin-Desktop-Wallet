@@ -41,6 +41,83 @@ int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd)
     return min(nIntervalEnd - nIntervalBeginning - Params().StakeMinAge(), (int64_t)Params().StakeMaxAge());
 }
 
+// ppcoin: total coin age spent in transaction, in the unit of coin-days.
+// Only those coins meeting minimum age requirement counts. As those
+// transactions not in main chain are not currently indexed so we
+// might not find out about their coin age. Older transactions are 
+// guaranteed to be in main chain by sync-checkpoint. This rule is
+// introduced to help nodes establish a consistent view of the coin
+// age (trust score) of competing branches.
+bool GetCoinAge(const CTransaction& tx, uint64_t& nCoinAge)
+{
+    uint256 bnCentSecond = 0;  // coin age in the unit of cent-seconds
+    nCoinAge = 0;
+    uint256 hashBlock;
+
+    if (tx.IsCoinBase())
+        return true;
+
+    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    {
+        // First try finding the previous transaction in database
+        CTransaction txPrev;
+        if (!GetTransaction(txin.prevout.hash, txPrev, hashBlock, true))
+            continue;  // previous transaction not in main chain
+        if (tx.nTime < txPrev.nTime)
+            return false;  // Transaction timestamp violation
+
+        // Read block header
+        CBlock block;
+        if (!ReadBlockFromDisk(block, mapBlockIndex[hashBlock]))
+            return false; // unable to read block of previous transaction
+        if (block.GetBlockTime() + Params().StakeMinAge() > tx.nTime)
+            continue; // only count coins meeting min age requirement
+
+        int64_t nValueIn = txPrev.vout[txin.prevout.n].nValue;
+        bnCentSecond += uint256(nValueIn) * (tx.nTime-txPrev.nTime) / CENT;
+
+        if (fDebug && GetBoolArg("-printcoinage", false))
+            LogPrintf("coin age nValueIn=%d nTimeDiff=%d bnCentSecond=%s\n", nValueIn, tx.nTime - txPrev.nTime, bnCentSecond.ToString());
+    }
+
+    uint256 bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
+    if (fDebug && GetBoolArg("-printcoinage", false))
+        LogPrintf("coin age bnCoinDay=%s\n", bnCoinDay.ToString());
+    nCoinAge = bnCoinDay.getuint64();
+    return true;
+}
+
+// ppcoin: total coin age spent in block, in the unit of coin-days.
+bool GetBlockCoinAge(const CBlock& block, uint64_t& nCoinAge)
+{
+    nCoinAge = 0;
+
+    BOOST_FOREACH(const CTransaction& tx, block.vtx)
+    {
+        uint64_t nTxCoinAge;
+        if (GetCoinAge(tx, nTxCoinAge))
+            nCoinAge += nTxCoinAge;
+        else
+            return false;
+    }
+
+    if (nCoinAge == 0) // block coin age minimum 1 coin-day
+        nCoinAge = 1;
+    if (fDebug && GetBoolArg("-printcoinage", false))
+        LogPrintf("block coin age total nCoinDays=%d\n", nCoinAge);
+    return true;
+}
+
+// ppcoin: entropy bit for stake modifier if chosen by modifier
+unsigned int GetStakeEntropyBit(const CBlock& block, unsigned int nHeight)
+{
+    // Take last bit of block hash as entropy bit
+    unsigned int nEntropyBit = ((block.GetHash().GetLow64()) & 1ull);
+    if (fDebug && GetBoolArg("-printstakemodifier", false))
+        LogPrintf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, block.GetHash().ToString().c_str(), nEntropyBit);
+    return nEntropyBit;
+}
+
 // Get the last stake modifier and its generation time from a given block
 static bool GetLastStakeModifier(const CBlockIndex* pindex, uint64_t& nStakeModifier, int64_t& nModifierTime)
 {

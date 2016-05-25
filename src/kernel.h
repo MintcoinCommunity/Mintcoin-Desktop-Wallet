@@ -36,4 +36,11 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
 // Get time weight using supplied timestamps
 int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
+// Total coin age spent in block, in the unit of coin-days.
+bool GetBlockCoinAge(const CBlock& block, uint64_t& nCoinAge);
+
+bool GetCoinAge(const CTransaction& tx, uint64_t& nCoinAge);
+
+unsigned int GetStakeEntropyBit(const CBlock& block, unsigned int nHeight);
+
 #endif // PPCOIN_KERNEL_H
