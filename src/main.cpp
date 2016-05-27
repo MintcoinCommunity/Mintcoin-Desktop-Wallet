@@ -21,6 +21,7 @@
 #include "undo.h"
 #include "util.h"
 #include "utilmoneystr.h"
+#include "validationinterface.h"
 
 #include <sstream>
 
@@ -52,6 +53,8 @@ uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 CChain chainActive;
 CBlockIndex *pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
+CWaitableCriticalSection csBestBlock;
+CConditionVariable cvBlockChange;
 int nScriptCheckThreads = 0;
 bool fImporting = false;
 bool fReindex = false;
@@ -151,71 +154,6 @@ namespace {
     /** Dirty block file entries. */
     set<int> setDirtyFileInfo;
 } // anon namespace
-// Used during database migration.
-bool fDisableSignatureChecking = false;
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// dispatching functions
-//
-
-// These functions dispatch to one or all registered wallets
-
-namespace {
-
-struct CMainSignals {
-    // Notifies listeners of updated transaction data (transaction, and optionally the block it is found in.
-    boost::signals2::signal<void (const CTransaction &, const CBlock *, bool fConnect)> SyncTransaction;
-    // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
-    boost::signals2::signal<void (const uint256 &)> EraseTransaction;
-    // Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible).
-    boost::signals2::signal<void (const uint256 &)> UpdatedTransaction;
-    // Notifies listeners of a new active block chain.
-    boost::signals2::signal<void (const CBlockLocator &)> SetBestChain;
-    // Notifies listeners about an inventory item being seen on the network.
-    boost::signals2::signal<void (const uint256 &)> Inventory;
-    // Tells listeners to broadcast their data.
-    boost::signals2::signal<void ()> Broadcast;
-} g_signals;
-
-} // anon namespace
-
-void RegisterWallet(CWalletInterface* pwalletIn) {
-    g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
-    g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseFromWallet, pwalletIn, _1));
-    g_signals.UpdatedTransaction.connect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
-    g_signals.SetBestChain.connect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
-    g_signals.Inventory.connect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
-    g_signals.Broadcast.connect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
-}
-
-void UnregisterWallet(CWalletInterface* pwalletIn) {
-    g_signals.Broadcast.disconnect(boost::bind(&CWalletInterface::ResendWalletTransactions, pwalletIn));
-    g_signals.Inventory.disconnect(boost::bind(&CWalletInterface::Inventory, pwalletIn, _1));
-    g_signals.SetBestChain.disconnect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
-    g_signals.UpdatedTransaction.disconnect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
-    g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseFromWallet, pwalletIn, _1));
-    g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
-}
-
-void UnregisterAllWallets() {
-    g_signals.Broadcast.disconnect_all_slots();
-    g_signals.Inventory.disconnect_all_slots();
-    g_signals.SetBestChain.disconnect_all_slots();
-    g_signals.UpdatedTransaction.disconnect_all_slots();
-    g_signals.EraseTransaction.disconnect_all_slots();
-    g_signals.SyncTransaction.disconnect_all_slots();
-}
-
-void SyncWithWallets(const CTransaction &tx, const CBlock *pblock, bool fConnect) {
-    g_signals.SyncTransaction(tx, pblock, fConnect);
-}
-void ResendWalletTransactions()
-{
-    g_signals.Broadcast();
-}
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1927,7 +1865,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     // Watch for changes to the previous coinbase transaction.
     static uint256 hashPrevBestCoinBase;
-    g_signals.UpdatedTransaction(hashPrevBestCoinBase);
+    GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
     hashPrevBestCoinBase = block.vtx[0].GetHash();
 
 
@@ -1984,7 +1922,7 @@ bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
             return state.Abort("Failed to write to coin database");
         // Update best block in wallet (so we can detect restored wallets).
         if (mode != FLUSH_STATE_IF_NEEDED) {
-            g_signals.SetBestChain(chainActive.GetLocator());
+            GetMainSignals().SetBestChain(chainActive.GetLocator());
         }
         nLastWrite = GetTimeMicros();
     }
@@ -2011,6 +1949,8 @@ void static UpdateTip(CBlockIndex *pindexNew) {
       chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainTrust.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
       DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
       Checkpoints::GuessVerificationProgress(chainActive.Tip()), (unsigned int)pcoinsTip->GetCacheSize());
+
+    cvBlockChange.notify_all();
 
     LogPrintf("Stake checkpoint: %x\n", chainActive.Tip()->nStakeModifierChecksum);
 
@@ -2099,7 +2039,9 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew, CBlock *
     {
         CCoinsViewCache view(pcoinsTip);
         CInv inv(MSG_BLOCK, pindexNew->GetBlockHash());
-        if (!ConnectBlock(*pblock, state, pindexNew, view)) {
+        bool rv = ConnectBlock(*pblock, state, pindexNew, view);
+        GetMainSignals().BlockChecked(*pblock, state);
+        if (!rv) {
             if (state.IsInvalid())
                 InvalidBlockFound(pindexNew, state);
             return error("ConnectTip() : ConnectBlock %s failed", pindexNew->GetBlockHash().ToString());
@@ -3803,7 +3745,7 @@ void static ProcessGetData(CNode* pfrom)
             }
 
             // Track requests for our stuff.
-            g_signals.Inventory(inv.hash);
+            GetMainSignals().Inventory(inv.hash);
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
                 break;
@@ -4093,7 +4035,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
 
             // Track requests for our stuff
-            g_signals.Inventory(inv.hash);
+            GetMainSignals().Inventory(inv.hash);
 
             if (pfrom->nSendSize > (SendBufferSize() * 2)) {
                 Misbehaving(pfrom->GetId(), 50);
@@ -4890,7 +4832,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // transactions become unconfirmed and spams other nodes.
         if (!fReindex && !fImporting && !IsInitialBlockDownload())
         {
-            g_signals.Broadcast();
+            GetMainSignals().Broadcast(nTimeBestReceived);
         }
 
         //

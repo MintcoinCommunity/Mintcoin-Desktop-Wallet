@@ -7,7 +7,7 @@
 
 #include "base58.h"
 #include "init.h"
-//#include "main.h"
+#include "main.h" // For strMessageMagic
 #include "wallet.h"
 
 #include <string>

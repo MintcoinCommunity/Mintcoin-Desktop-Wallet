@@ -2,17 +2,21 @@
 
 #include "addresstablemodel.h"
 #include "guiconstants.h"
-#include "optionsmodel.h"
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
 
+#include "base58.h"
+#include "keystore.h"
+#include "main.h"
+#include "sync.h"
 #include "ui_interface.h"
 #include "walletdb.h" // for BackupWallet
-#include "base58.h"
 
+#include <stdint.h>
+
+#include <QDebug>
 #include <QSet>
 #include <QTimer>
-#include <QDebug>
 
 using namespace std;
 

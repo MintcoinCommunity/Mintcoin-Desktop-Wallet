@@ -70,6 +70,12 @@ Value getinfo(const Array& params, bool fHelp)
             + HelpExampleRpc("getinfo", "")
         );
 
+#ifdef ENABLE_WALLET
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+#else
+    LOCK(cs_main);
+#endif
+
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
@@ -175,6 +181,12 @@ Value validateaddress(const Array& params, bool fHelp)
             + HelpExampleCli("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")
             + HelpExampleRpc("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")
         );
+
+#ifdef ENABLE_WALLET
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+#else
+    LOCK(cs_main);
+#endif
 
     CBitcoinAddress address(params[0].get_str());
     bool isValid = address.IsValid();
@@ -329,6 +341,8 @@ Value verifymessage(const Array& params, bool fHelp)
             + HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"signature\", \"my message\"")
         );
 
+    LOCK(cs_main);
+
     string strAddress  = params[0].get_str();
     string strSign     = params[1].get_str();
     string strMessage  = params[2].get_str();
@@ -358,12 +372,40 @@ Value verifymessage(const Array& params, bool fHelp)
     return (pubkey.GetID() == keyID);
 }
 
+Value setmocktime(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "setmocktime timestamp\n"
+            "\nSet the local time to given timestamp (-regtest only)\n"
+            "\nArguments:\n"
+            "1. timestamp  (integer, required) Unix seconds-since-epoch timestamp\n"
+            "   Pass 0 to go back to using the system time."
+        );
+
+    if (!Params().MineBlocksOnDemand())
+        throw runtime_error("setmocktime for regression testing (-regtest mode) only");
+
+    LOCK(cs_main);
+
+    RPCTypeCheck(params, boost::assign::list_of(int_type));
+    SetMockTime(params[0].get_int64());
+
+    return Value::null;
+}
+
 Value validatepubkey(const Array& params, bool fHelp)
 {
     if (fHelp || !params.size() || params.size() > 2)
         throw runtime_error(
             "validatepubkey <MintCoinpubkey>\n"
             "Return information about <MintCoinpubkey>.");
+
+#ifdef ENABLE_WALLET
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+#else
+    LOCK(cs_main);
+#endif
 
     std::vector<unsigned char> vchPubKey = ParseHex(params[0].get_str());
     CPubKey pubKey(vchPubKey);

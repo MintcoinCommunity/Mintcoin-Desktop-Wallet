@@ -83,6 +83,9 @@ typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
 /** Wrapped boost mutex: supports waiting but not recursive locking */
 typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
 
+/** Just a typedef for boost::condition_variable, can be wrapped later if desired */
+typedef boost::condition_variable CConditionVariable;
+
 #ifdef DEBUG_LOCKORDER
 void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
 void LeaveCritical();
@@ -133,6 +136,17 @@ private:
 public:
     CMutexLock(Mutex& mutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) : lock(mutexIn, boost::defer_lock)
     {
+        if (fTry)
+            TryEnter(pszName, pszFile, nLine);
+        else
+            Enter(pszName, pszFile, nLine);
+    }
+
+    CMutexLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false)
+    {
+        if (!pmutexIn) return;
+
+        lock = boost::unique_lock<Mutex>(*pmutexIn, boost::defer_lock);
         if (fTry)
             TryEnter(pszName, pszFile, nLine);
         else

@@ -6,15 +6,17 @@
 #ifndef BITCOIN_TXDB_LEVELDB_H
 #define BITCOIN_TXDB_LEVELDB_H
 
+#include "coins.h"
 #include "leveldbwrapper.h"
-#include "main.h"
 
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
-class CCoins;
+class CBlockFileInfo;
+class CBlockIndex;
+struct CDiskTxPos;
 class uint256;
 
 // -dbcache default (MiB)

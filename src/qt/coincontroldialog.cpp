@@ -13,6 +13,7 @@
 #include "walletmodel.h"
 
 #include "coincontrol.h"
+#include "main.h"
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 
 #include <QApplication>

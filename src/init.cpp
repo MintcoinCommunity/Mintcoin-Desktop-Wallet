@@ -14,6 +14,7 @@
 #include "checkpoints.h"
 #include "compat/sanity.h"
 #include "key.h"
+#include "main.h"
 #include "miner.h"
 #include "net.h"
 #include "rpcserver.h"
@@ -165,7 +166,7 @@ void Shutdown()
 #ifndef WIN32
     boost::filesystem::remove(GetPidFile());
 #endif
-    UnregisterAllWallets();
+    UnregisterAllValidationInterfaces();
 #ifdef ENABLE_WALLET
     delete pwalletMain;
     pwalletMain = NULL;
@@ -208,6 +209,26 @@ bool static Bind(const CService &addr, unsigned int flags) {
         return false;
     }
     return true;
+}
+
+void OnRPCStopped()
+{
+    cvBlockChange.notify_all();
+    LogPrint("rpc", "RPC stopped.\n");
+}
+
+void OnRPCPreCommand(const CRPCCommand& cmd)
+{
+#ifdef ENABLE_WALLET
+    if (cmd.reqWallet && !pwalletMain)
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
+#endif
+
+    // Observe safe mode
+    string strWarning = GetWarnings("rpc");
+    if (strWarning != "" && !GetBoolArg("-disablesafemode", false) &&
+        !cmd.okSafeMode)
+        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);
 }
 
 std::string HelpMessage(HelpMessageMode mode)
@@ -736,6 +757,19 @@ bool AppInit2(boost::thread_group& threadGroup)
             threadGroup.create_thread(&ThreadScriptCheck);
     }
 
+    /* Start the RPC server already.  It will be started in "warmup" mode
+     * and not really process calls already (but it will signify connections
+     * that the server is there and will be ready later).  Warmup mode will
+     * be disabled when initialisation is finished.
+     */
+    if (fServer)
+    {
+        uiInterface.InitMessage.connect(SetRPCWarmupStatus);
+        RPCServer::OnStopped(&OnRPCStopped);
+        RPCServer::OnPreCommand(&OnRPCPreCommand);
+        StartRPCThreads();
+    }
+
     int64_t nStart;
 
     // ********************************************************* Step 5: verify wallet database integrity
@@ -1132,7 +1166,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrintf("%s", strErrors.str());
         LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 
-        RegisterWallet(pwalletMain);
+        RegisterValidationInterface(pwalletMain);
 
         CBlockIndex *pindexRescan = chainActive.Tip();
         if (GetBoolArg("-rescan", false))
@@ -1221,8 +1255,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 
     StartNode(threadGroup);
-    if (fServer)
-        StartRPCThreads();
 
 #ifdef ENABLE_WALLET
     // Generate coins in the background
@@ -1232,6 +1264,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 11: finished
 
+    SetRPCWarmupFinished();
     uiInterface.InitMessage(_("Done loading"));
 
 #ifdef ENABLE_WALLET

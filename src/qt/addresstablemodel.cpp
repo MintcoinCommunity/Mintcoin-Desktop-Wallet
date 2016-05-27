@@ -9,6 +9,8 @@
 #include "base58.h"
 #include "wallet.h"
 
+#include <boost/foreach.hpp>
+
 #include <QFont>
 #include <QDebug>
 #include <QTimer>

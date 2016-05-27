@@ -20,6 +20,16 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_writer_template.h"
 
+class CRPCCommand;
+
+namespace RPCServer
+{
+    void OnStarted(boost::function<void ()> slot);
+    void OnStopped(boost::function<void ()> slot);
+    void OnPreCommand(boost::function<void (const CRPCCommand&)> slot);
+    void OnPostCommand(boost::function<void (const CRPCCommand&)> slot);
+}
+
 class CBlockIndex;
 class CNetAddr;
 
@@ -42,6 +52,16 @@ void StartRPCThreads();
 void StartDummyRPCThread();
 /* Stop RPC threads */
 void StopRPCThreads();
+/** Query whether RPC is running */
+bool IsRPCRunning();
+
+/** 
+ * Set the RPC warmup status.  When this is done, all RPC calls will error out
+ * immediately with RPC_IN_WARMUP.
+ */
+void SetRPCWarmupStatus(const std::string& newStatus);
+/* Mark warmup as done.  RPC calls will be processed from now on.  */
+void SetRPCWarmupFinished();
 
 /*
   Type-check arguments; throws JSONRPCError if wrong type given. Does not check that
@@ -71,10 +91,10 @@ typedef json_spirit::Value(*rpcfn_type)(const json_spirit::Array& params, bool f
 class CRPCCommand
 {
 public:
+    std::string category;
     std::string name;
     rpcfn_type actor;
     bool okSafeMode;
-    bool threadSafe;
     bool reqWallet;
 };
 
@@ -188,6 +208,8 @@ extern json_spirit::Value getinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getwalletinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblockchaininfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value setmocktime(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value resendwallettransactions(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reservebalance(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value checkwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value repairwallet(const json_spirit::Array& params, bool fHelp);

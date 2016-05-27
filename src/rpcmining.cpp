@@ -44,6 +44,7 @@ Value getgenerate(const Array& params, bool fHelp)
             + HelpExampleRpc("getgenerate", "")
         );
 
+    LOCK(cs_main);
     return GetBoolArg("-gen", false);
 }
 
@@ -134,6 +135,9 @@ Value getmininginfo(const Array& params, bool fHelp)
             + HelpExampleRpc("getmininginfo", "")
         );
 
+
+    LOCK(cs_main);
+
     Object obj;
     obj.push_back(Pair("blocks",           (int)chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
@@ -208,6 +212,8 @@ Value prioritisetransaction(const Array& params, bool fHelp)
             + HelpExampleRpc("prioritisetransaction", "\"txid\", 0.0, 0.00010000")
         );
 
+    LOCK(cs_main);
+
     uint256 hash;
     hash.SetHex(params[0].get_str());
 
@@ -281,7 +287,10 @@ Value getblocktemplate(const Array& params, bool fHelp)
             + HelpExampleRpc("getblocktemplate", "")
          );
 
+    LOCK(cs_main);
+
     std::string strMode = "template";
+    Value lpval = Value::null;
     if (params.size() > 0)
     {
         const Object& oparam = params[0].get_obj();
@@ -294,6 +303,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
         }
         else
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
+        lpval = find_value(oparam, "longpollid");
     }
 
     if (strMode != "template")
@@ -305,9 +315,55 @@ Value getblocktemplate(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "MintCoin is downloading blocks...");
 
+    static unsigned int nTransactionsUpdatedLast;
+
+    if (lpval.type() != null_type)
+    {
+        // Wait to respond until either the best block changes, OR a minute has passed and there are more transactions
+        uint256 hashWatchedChain;
+        boost::system_time checktxtime;
+        unsigned int nTransactionsUpdatedLastLP;
+
+        if (lpval.type() == str_type)
+        {
+            // Format: <hashBestChain><nTransactionsUpdatedLast>
+            std::string lpstr = lpval.get_str();
+
+            hashWatchedChain.SetHex(lpstr.substr(0, 64));
+            nTransactionsUpdatedLastLP = atoi64(lpstr.substr(64));
+        }
+        else
+        {
+            // NOTE: Spec does not specify behaviour for non-string longpollid, but this makes testing easier
+            hashWatchedChain = chainActive.Tip()->GetBlockHash();
+            nTransactionsUpdatedLastLP = nTransactionsUpdatedLast;
+        }
+
+        // Release the wallet and main lock while waiting
+        LEAVE_CRITICAL_SECTION(cs_main);
+        {
+            checktxtime = boost::get_system_time() + boost::posix_time::minutes(1);
+
+            boost::unique_lock<boost::mutex> lock(csBestBlock);
+            while (chainActive.Tip()->GetBlockHash() == hashWatchedChain && IsRPCRunning())
+            {
+                if (!cvBlockChange.timed_wait(lock, checktxtime))
+                {
+                    // Timeout: Check transactions for update
+                    if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLastLP)
+                        break;
+                    checktxtime += boost::posix_time::seconds(10);
+                }
+            }
+        }
+        ENTER_CRITICAL_SECTION(cs_main);
+
+        if (!IsRPCRunning())
+            throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Shutting down");
+        // TODO: Maybe recheck connections/IBD and (if something wrong) send an expires-immediately template to stop miners?
+    }
 
     // Update block
-    static unsigned int nTransactionsUpdatedLast;
     static CBlockIndex* pindexPrev;
     static int64_t nStart;
     static CBlockTemplate* pblocktemplate;
@@ -394,6 +450,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
     result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+    result.push_back(Pair("longpollid", chainActive.Tip()->GetBlockHash().GetHex() + i64tostr(nTransactionsUpdatedLast)));
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));
     result.push_back(Pair("mutable", aMutable));
@@ -406,6 +463,24 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     return result;
 }
+
+class submitblock_StateCatcher : public CValidationInterface
+{
+public:
+    uint256 hash;
+    bool found;
+    CValidationState state;
+
+    submitblock_StateCatcher(const uint256 &hashIn) : hash(hashIn), found(false), state() {};
+
+protected:
+    virtual void BlockChecked(const CBlock& block, const CValidationState& stateIn) {
+        if (block.GetHash() != hash)
+            return;
+        found = true;
+        state = stateIn;
+    };
+};
 
 Value submitblock(const Array& params, bool fHelp)
 {
@@ -443,12 +518,25 @@ Value submitblock(const Array& params, bool fHelp)
         throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
     CValidationState state;
+    submitblock_StateCatcher sc(pblock.GetHash());
+    RegisterValidationInterface(&sc);
     bool fAccepted = ProcessNewBlock(state, NULL, &pblock);
-    if (!fAccepted)
+    UnregisterValidationInterface(&sc);
+    if (fAccepted)
+    {
+        if (!sc.found)
+            return "inconclusive";
+        state = sc.state;
+    }
+    if (state.IsError())
+    {
+        std::string strRejectReason = state.GetRejectReason();
+        throw JSONRPCError(RPC_VERIFY_ERROR, strRejectReason);
+    }
+    if (state.IsInvalid())
         return "rejected"; // TODO: report validation state
 
-    return Value::null;
-}
+    return Value::null;}
 
 Value estimatefee(const Array& params, bool fHelp)
 {

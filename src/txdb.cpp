@@ -14,6 +14,7 @@
 #include "txdb.h"
 #include "kernel.h"
 
+#include "main.h"
 #include "pow.h"
 #include "uint256.h"
 
