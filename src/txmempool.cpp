@@ -5,7 +5,6 @@
 
 #include "txmempool.h"
 
-#include "core.h"
 #include "streams.h"
 #include "main.h"
 #include "util.h"
@@ -477,7 +476,7 @@ void CTxMemPool::removeCoinbaseSpends(const CCoinsViewCache *pcoins, unsigned in
                 continue;
             const CCoins *coins = pcoins->AccessCoins(txin.prevout.hash);
             if (fSanityCheck) assert(coins);
-            if (!coins || (coins->IsCoinBase() || coins->IsCoinStake() && nMemPoolHeight - coins->nHeight < COINBASE_MATURITY)) {
+            if (!coins || ((coins->IsCoinBase() || coins->IsCoinStake()) && nMemPoolHeight - coins->nHeight < COINBASE_MATURITY)) {
                 transactionsToRemove.push_back(tx);
                 break;
             }
@@ -577,9 +576,9 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
         if (fDependsWait)
             waitingOnDependants.push_back(&it->second);
         else {
-            CValidationState state; CTxUndo undo;
+            CValidationState state;
             assert(CheckInputs(tx, state, mempoolDuplicate, false, 0, false, NULL));
-            UpdateCoins(tx, state, mempoolDuplicate, undo, 1000000);
+            UpdateCoins(tx, state, mempoolDuplicate, 1000000);
         }
     }
     unsigned int stepsSinceLastRemove = 0;
@@ -593,8 +592,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
             assert(stepsSinceLastRemove < waitingOnDependants.size());
         } else {
             assert(CheckInputs(entry->GetTx(), state, mempoolDuplicate, false, 0, false, NULL));
-            CTxUndo undo;
-            UpdateCoins(entry->GetTx(), state, mempoolDuplicate, undo, 1000000);
+            UpdateCoins(entry->GetTx(), state, mempoolDuplicate, 1000000);
             stepsSinceLastRemove = 0;
         }
     }

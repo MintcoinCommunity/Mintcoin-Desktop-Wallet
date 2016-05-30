@@ -67,7 +67,7 @@ BITCOIN_CORE_H = \
   coincontrol.h \
   coins.h \
   compat.h \
-  core.h \
+  compressor.h \
   core_io.h \
   crypter.h \
   db.h \
@@ -84,12 +84,13 @@ BITCOIN_CORE_H = \
   net.h \
   noui.h \
   pow.h \
+  primitives/block.h \
+  primitives/transaction.h \
   protocol.h \
   random.h \
   rpcclient.h \
   rpcprotocol.h \
   rpcserver.h \
-  script/compressor.h \
   script/interpreter.h \
   script/script.h \
   script/sigcache.h \
@@ -109,6 +110,7 @@ BITCOIN_CORE_H = \
   txmempool.h \
   ui_interface.h \
   uint256.h \
+  undo.h \
   util.h \
   utilstrencodings.h \
   utilmoneystr.h \
@@ -201,10 +203,13 @@ univalue_libbitcoin_univalue_a_SOURCES = \
 # common: shared between bitcoind, and bitcoin-qt and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_common_a_SOURCES = \
+  amount.cpp \
   base58.cpp \
   chainparams.cpp \
   coins.cpp \
-  core.cpp \
+  compressor.cpp \
+  primitives/block.cpp \
+  primitives/transaction.cpp \
   core_read.cpp \
   core_write.cpp \
   hash.cpp \
@@ -212,7 +217,6 @@ libbitcoin_common_a_SOURCES = \
   keystore.cpp \
   netbase.cpp \
   protocol.cpp \
-  script/compressor.cpp \
   script/interpreter.cpp \
   script/script.cpp \
   script/sigcache.cpp \

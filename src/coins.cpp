@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "coins.h"
@@ -8,9 +8,11 @@
 
 #include <assert.h>
 
-// calculate number of bytes for the bitmask, and its number of non-zero bytes
-// each bit in the bitmask represents the availability of one output, but the
-// availabilities of the first two outputs are encoded separately
+/**
+ * calculate number of bytes for the bitmask, and its number of non-zero bytes
+ * each bit in the bitmask represents the availability of one output, but the
+ * availabilities of the first two outputs are encoded separately
+ */
 void CCoins::CalcMaskSize(unsigned int &nBytes, unsigned int &nNonzeroBytes) const {
     unsigned int nLastUsedByte = 0;
     for (unsigned int b = 0; 2+b*8 < vout.size(); b++) {
@@ -29,30 +31,14 @@ void CCoins::CalcMaskSize(unsigned int &nBytes, unsigned int &nNonzeroBytes) con
     nBytes += nLastUsedByte;
 }
 
-bool CCoins::Spend(const COutPoint &out, CTxInUndo &undo) {
-    if (out.n >= vout.size())
+bool CCoins::Spend(uint32_t nPos) 
+{
+    if (nPos >= vout.size() || vout[nPos].IsNull())
         return false;
-    if (vout[out.n].IsNull())
-        return false;
-    undo = CTxInUndo(vout[out.n]);
-    vout[out.n].SetNull();
+    vout[nPos].SetNull();
     Cleanup();
-    if (vout.size() == 0) {
-        undo.nHeight = nHeight;
-        undo.nTime = nTime;
-        undo.fCoinBase = fCoinBase;
-        undo.fCoinStake = fCoinStake;
-        undo.nVersion = this->nVersion;
-    }
     return true;
 }
-
-bool CCoins::Spend(int nPos) {
-    CTxInUndo undo;
-    COutPoint out(0, nPos);
-    return Spend(out, undo);
-}
-
 
 bool CCoinsView::GetCoins(const uint256 &txid, CCoins &coins) const { return false; }
 bool CCoinsView::HaveCoins(const uint256 &txid) const { return false; }

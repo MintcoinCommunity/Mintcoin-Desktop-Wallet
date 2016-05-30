@@ -1,7 +1,8 @@
 
 #include "core_io.h"
 
-#include "core.h"
+#include "primitives/block.h"
+#include "primitives/transaction.h"
 #include "script/script.h"
 #include "serialize.h"
 #include "streams.h"

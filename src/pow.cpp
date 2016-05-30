@@ -7,7 +7,7 @@
 
 #include "chain.h"
 #include "chainparams.h"
-#include "core.h"
+#include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
 

@@ -5,11 +5,10 @@
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
 
-#include "core.h"
+#include "primitives/block.h"
+
 #include <stdint.h>
 
-class CBlock;
-class CBlockHeader;
 class CBlockIndex;
 class CReserveKey;
 class CScript;

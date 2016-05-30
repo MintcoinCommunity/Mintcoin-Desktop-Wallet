@@ -5,7 +5,8 @@
 
 #include "miner.h"
 
-#include "core.h"
+#include "amount.h"
+#include "primitives/transaction.h"
 #include "hash.h"
 #include "main.h"
 #include "net.h"
@@ -165,6 +166,7 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
     {
         LOCK2(cs_main, mempool.cs);
         CBlockIndex* pindexPrev = chainActive.Tip();
+        const int nHeight = pindexPrev->nHeight + 1;
         CCoinsViewCache view(pcoinsTip);
 
         // Priority order to process transactions
@@ -179,7 +181,7 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
              mi != mempool.mapTx.end(); ++mi)
         {
             const CTransaction& tx = mi->second.GetTx();
-            if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, pindexPrev->nHeight + 1))
+            if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight))
                 continue;
 
             COrphan* porphan = NULL;
@@ -222,7 +224,7 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
                 CAmount nValueIn = coins->vout[txin.prevout.n].nValue;
                 nTotalIn += nValueIn;
 
-                int nConf = pindexPrev->nHeight - coins->nHeight + 1;
+                int nConf = nHeight - coins->nHeight;
 
                 dPriority += (double)nValueIn * nConf;
             }
@@ -313,8 +315,7 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
             if (!CheckInputs(tx, state, view, true, MANDATORY_SCRIPT_VERIFY_FLAGS, true))
                 continue;
 
-            CTxUndo txundo;
-            UpdateCoins(tx, state, view, txundo, pindexPrev->nHeight+1);
+            UpdateCoins(tx, state, view, nHeight);
 
             // Added
             pblock->vtx.push_back(tx);
@@ -358,7 +359,8 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
         // Compute final coinbase transaction.
         if (pblock->IsProofOfWork())
         {
-            txNew.vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees, pindexPrev->GetBlockHash());
+            txNew.vout[0].nValue = GetProofOfWorkReward(nHeight, nFees, pindexPrev->GetBlockHash());
+            txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
             pblock->vtx[0] = txNew;
             pblocktemplate->vTxFees[0] = -nFees;
         }
@@ -415,10 +417,10 @@ int64_t nHPSTimerStart = 0;
 
 //
 // ScanHash scans nonces looking for a hash with at least some zero bits.
-// The nonce is usually preserved between calls, but periodically or if the
-// nonce is 0xffff0000 or above, the block is rebuilt and nNonce starts over at
-// zero.
+// The nonce is usually preserved between calls, but periodically the block is
+// rebuilt and nNonce starts over at zero.
 //
+/*
 /*bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash)
 {
     // Write the first 76 bytes of the block header to a double-SHA256 state.
