@@ -1,7 +1,7 @@
 #include "recurringsendentry.h"
 #include <QApplication>
 #include <QTimer>
-#include "wallet.h"
+#include "wallet/wallet.h"
 #include "walletmodeltransaction.h"
 #include "ui_recurringEntry.h"
 #include "uint256.h"

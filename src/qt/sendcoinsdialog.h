@@ -1,15 +1,16 @@
 // Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SENDCOINSDIALOG_H
-#define SENDCOINSDIALOG_H
+#ifndef BITCOIN_QT_SENDCOINSDIALOG_H
+#define BITCOIN_QT_SENDCOINSDIALOG_H
 
 #include "walletmodel.h"
 
 #include <QDialog>
 #include <QString>
 
+class ClientModel;
 class OptionsModel;
 class WalletView;
 class SendCoinsEntry;
@@ -32,6 +33,7 @@ public:
     explicit SendCoinsDialog(QWidget *parent = 0);
     ~SendCoinsDialog();
 
+    void setClientModel(ClientModel *clientModel);
     void setModel(WalletModel *model);
 
     /** Set up the tab chain manually, as Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907).
@@ -54,8 +56,10 @@ public slots:
 
 private:
     Ui::SendCoinsDialog *ui;
+    ClientModel *clientModel;
     WalletModel *model;
     bool fNewRecipientAllowed;
+    bool fFeeMinimized;
     WalletView *walletView;
 
     void updateBalance(const CAmount& balance);
@@ -64,9 +68,13 @@ private:
     // of a message and message flags for use in emit message().
     // Additional parameter msgArg can be used via .arg(msgArg).
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
+    void minimizeFeeSection(bool fMinimize);
+    void updateFeeMinimizedLabel();
 
 private slots:
     void on_sendButton_clicked();
+    void on_buttonChooseFee_clicked();
+    void on_buttonMinimizeFee_clicked();
     void removeEntry(SendCoinsEntry* entry);
     void updateDisplayUnit();
     void coinControlFeatureChanged(bool);
@@ -82,10 +90,15 @@ private slots:
     void coinControlClipboardPriority();
     void coinControlClipboardLowOutput();
     void coinControlClipboardChange();
+    void setMinimumFee();
+    void updateFeeSectionControls();
+    void updateMinFeeLabel();
+    void updateSmartFeeLabel();
+    void updateGlobalFeeVariables();
 
 signals:
     // Fired when a message should be reported to the user
     void message(const QString &title, const QString &message, unsigned int style);
 };
 
-#endif // SENDCOINSDIALOG_H
+#endif // BITCOIN_QT_SENDCOINSDIALOG_H

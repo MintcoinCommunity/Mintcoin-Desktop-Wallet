@@ -14,7 +14,7 @@
 #include "main.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 #include <cstdlib>
 
@@ -500,27 +500,23 @@ bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, SendCoins
         return false;
 
     if (request.IsInitialized()) {
-        const payments::PaymentDetails& details = request.getDetails();
-
         // Payment request network matches client network?
-        if (details.network() != Params().NetworkIDString())
-        {
+        if (!verifyNetwork(request.getDetails())) {
             emit message(tr("Payment request rejected"), tr("Payment request network doesn't match client network."),
                 CClientUIInterface::MSG_ERROR);
 
             return false;
         }
 
-        // Expired payment request?
-        if (details.has_expires() && (int64_t)details.expires() < GetTime())
-        {
-            emit message(tr("Payment request rejected"), tr("Payment request has expired."),
+        // Make sure any payment requests involved are still valid.
+        // This is re-checked just before sending coins in WalletModel::sendCoins().
+        if (verifyExpired(request.getDetails())) {
+            emit message(tr("Payment request rejected"), tr("Payment request expired."),
                 CClientUIInterface::MSG_ERROR);
 
             return false;
         }
-    }
-    else {
+    } else {
         emit message(tr("Payment request error"), tr("Payment request is not initialized."),
             CClientUIInterface::MSG_ERROR);
 
@@ -716,3 +712,28 @@ void PaymentServer::handlePaymentACK(const QString& paymentACKMsg)
     // currently we don't futher process or store the paymentACK message
     emit message(tr("Payment acknowledged"), paymentACKMsg, CClientUIInterface::ICON_INFORMATION | CClientUIInterface::MODAL);
 }
+
+bool PaymentServer::verifyNetwork(const payments::PaymentDetails& requestDetails)
+{
+    bool fVerified = requestDetails.network() == Params().NetworkIDString();
+    if (!fVerified) {
+        qWarning() << QString("PaymentServer::%1: Payment request network \"%2\" doesn't match client network \"%3\".")
+            .arg(__func__)
+            .arg(QString::fromStdString(requestDetails.network()))
+            .arg(QString::fromStdString(Params().NetworkIDString()));
+    }
+    return fVerified;
+}
+
+bool PaymentServer::verifyExpired(const payments::PaymentDetails& requestDetails)
+{
+    bool fVerified = (requestDetails.has_expires() && (int64_t)requestDetails.expires() < GetTime());
+    if (fVerified) {
+        const QString requestExpires = QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M:%S", (int64_t)requestDetails.expires()));
+        qWarning() << QString("PaymentServer::%1: Payment request expired \"%2\".")
+            .arg(__func__)
+            .arg(requestExpires);
+    }
+    return fVerified;
+}
+

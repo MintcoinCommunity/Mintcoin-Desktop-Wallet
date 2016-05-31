@@ -25,6 +25,8 @@ namespace Ui {
     class CoinControlDialog;
 }
 
+#define ASYMP_UTF8 "\xE2\x89\x88"
+
 class CoinControlDialog : public QDialog
 {
     Q_OBJECT
@@ -37,10 +39,11 @@ public:
 
     // static because also called from sendcoinsdialog
     static void updateLabels(WalletModel*, QDialog*);
-    static QString getPriorityLabel(const CTxMemPool& pool, double);
+    static QString getPriorityLabel(double dPriority, double mempoolEstimatePriority);
 
     static QList<CAmount> payAmounts;
     static CCoinControl *coinControl;
+    static bool fSubtractFeeFromAmount;
 
 private:
     Ui::CoinControlDialog *ui;

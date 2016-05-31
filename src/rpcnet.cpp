@@ -12,8 +12,8 @@
 #include "timedata.h"
 #include "util.h"
 #include "alert.h"
-#include "db.h"
-#include "walletdb.h"
+#include "wallet/db.h"
+#include "wallet/walletdb.h"
 
 #include <boost/foreach.hpp>
 #include "json/json_spirit_value.h"

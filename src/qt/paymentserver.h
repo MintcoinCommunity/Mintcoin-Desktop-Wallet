@@ -1,9 +1,10 @@
 // Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PAYMENTSERVER_H
-#define PAYMENTSERVER_H
+#ifndef BITCOIN_QT_PAYMENTSERVER_H
+#define BITCOIN_QT_PAYMENTSERVER_H
+
 // This class handles payment requests from clicking on
 // bitcoin: URIs
 //
@@ -83,6 +84,11 @@ public:
 
     // OptionsModel is used for getting proxy settings and display unit
     void setOptionsModel(OptionsModel *optionsModel);
+
+    // Verify that the payment request network matches the client network
+    static bool verifyNetwork(const payments::PaymentDetails& requestDetails);
+    // Verify if the payment request is expired
+    static bool verifyExpired(const payments::PaymentDetails& requestDetails);
 
 signals:
     // Fired when a valid payment request is received

@@ -19,9 +19,10 @@
 #include "rpcconsole.h"
 #include "utilitydialog.h"
 #ifdef ENABLE_WALLET
+#include "wallet/wallet.h"
 #include "walletframe.h"
 #include "walletmodel.h"
-#endif
+#endif // ENABLE_WALLET
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -79,19 +80,19 @@ BitcoinGUI::BitcoinGUI(const NetworkStyle *networkStyle, QWidget *parent) :
     overviewAction(0),
     historyAction(0),
     quitAction(0),
-    checkWalletAction(0),
-    repairWalletAction(0),
     sendCoinsAction(0),
     usedSendingAddressesAction(0),
     usedReceivingAddressesAction(0),
     signMessageAction(0),
     verifyMessageAction(0),
+    checkWalletAction(0),
     aboutAction(0),
     receiveCoinsAction(0),
     optionsAction(0),
     toggleHideAction(0),
     encryptWalletAction(0),
     backupWalletAction(0),
+    repairWalletAction(0),
     changePassphraseAction(0),
     lockWalletToggleAction(0),
     aboutQtAction(0),
@@ -496,8 +497,8 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         setNumConnections(clientModel->getNumConnections());
         connect(clientModel, SIGNAL(numConnectionsChanged(int)), this, SLOT(setNumConnections(int)));
 
-        setNumBlocks(clientModel->getNumBlocks());
-        connect(clientModel, SIGNAL(numBlocksChanged(int)), this, SLOT(setNumBlocks(int)));
+        setNumBlocks(clientModel->getNumBlocks(), clientModel->getLastBlockDate());
+        connect(clientModel, SIGNAL(numBlocksChanged(int,QDateTime)), this, SLOT(setNumBlocks(int,QDateTime)));
 
         // Receive and report messages from client model
         connect(clientModel, SIGNAL(message(QString,QString,unsigned int)), this, SLOT(message(QString,QString,unsigned int)));
@@ -663,24 +664,26 @@ void BitcoinGUI::openClicked()
 
 void BitcoinGUI::checkWallet()
 {
-  int nMismatchSpent;
-  int64_t nBalanceInQuestion;
-  pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, true);
-  if (nMismatchSpent == 0)
-  {
-      QMessageBox::information(
-          this,
-          tr("Check Wallet"),
-          tr("wallet check passed") );
-  }
-  else
-  {
-      QMessageBox::information(
-          this,
-          tr("Check Wallet"),
-          tr("mismatched spent coins ") + QString::number(nMismatchSpent),
-          tr("amount in question ") + QString::number(nBalanceInQuestion));
-  }
+    #ifdef ENABLE_WALLET
+    int nMismatchSpent;
+    int64_t nBalanceInQuestion;
+    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, true);
+    if (nMismatchSpent == 0)
+    {
+        QMessageBox::information(
+            this,
+            tr("Check Wallet"),
+            tr("wallet check passed") );
+    }
+    else
+    {
+        QMessageBox::information(
+            this,
+            tr("Check Wallet"),
+            tr("mismatched spent coins ") + QString::number(nMismatchSpent),
+            tr("amount in question ") + QString::number(nBalanceInQuestion));
+    }
+    #endif
 }
 
 void BitcoinGUI::gotoOverviewPage()
@@ -745,7 +748,7 @@ void BitcoinGUI::setNumConnections(int count)
     labelConnectionsIcon->setToolTip(tr("%n active connection(s) to MintCoin network.", "", count));
 }
 
-void BitcoinGUI::setNumBlocks(int count)
+void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate)
 {
     if(!clientModel)
         return;
@@ -774,9 +777,8 @@ void BitcoinGUI::setNumBlocks(int count)
     QString tooltip;
     tooltip = tr("Current difficulty is %1.").arg(clientModel->GetDifficulty()) + QString("<br>") + tooltip;
 
-    QDateTime lastBlockDate = clientModel->getLastBlockDate();
     QDateTime currentDate = QDateTime::currentDateTime();
-    int secs = lastBlockDate.secsTo(currentDate);
+    qint64 secs = blockDate.secsTo(currentDate);
 
     tooltip = tr("Processed %1 blocks of transaction history.").arg(count);
 
@@ -816,8 +818,8 @@ void BitcoinGUI::setNumBlocks(int count)
         }
         else
         {
-            int years = secs / YEAR_IN_SECONDS;
-            int remainder = secs % YEAR_IN_SECONDS;
+            qint64 years = secs / YEAR_IN_SECONDS;
+            qint64 remainder = secs % YEAR_IN_SECONDS;
             timeBehindText = tr("%1 and %2").arg(tr("%n year(s)", "", years)).arg(tr("%n week(s)","", remainder/WEEK_IN_SECONDS));
         }
 

@@ -1,6 +1,10 @@
-#ifndef WALLETMODELTRANSACTION_H
-#define WALLETMODELTRANSACTION_H
+// Copyright (c) 2011-2013 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifndef BITCOIN_QT_WALLETMODELTRANSACTION_H
+#define BITCOIN_QT_WALLETMODELTRANSACTION_H
+//#include "amount.h"
 #include "walletmodel.h"
 
 #include <QObject>
@@ -21,6 +25,7 @@ public:
     QList<SendCoinsRecipient> getRecipients();
 
     CWalletTx *getTransaction();
+    unsigned int getTransactionSize();
 
     void setTransactionFee(const CAmount& newFee);
     CAmount getTransactionFee();
@@ -30,8 +35,10 @@ public:
     void newPossibleKeyChange(CWallet *wallet);
     CReserveKey *getPossibleKeyChange();
 
+    void reassignAmounts(int nChangePosRet); // needed for the subtract-fee-from-amount feature
+
 private:
-    const QList<SendCoinsRecipient> recipients;
+    QList<SendCoinsRecipient> recipients;
     CWalletTx *walletTransaction;
     CReserveKey *keyChange;
     CAmount fee;

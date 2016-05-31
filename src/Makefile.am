@@ -69,8 +69,7 @@ BITCOIN_CORE_H = \
   compat.h \
   compressor.h \
   core_io.h \
-  crypter.h \
-  db.h \
+  wallet/db.h \
   hash.h \
   init.h \
   key.h \
@@ -117,9 +116,10 @@ BITCOIN_CORE_H = \
   utiltime.h \
   validationinterface.h \
   version.h \
-  wallet.h \
-  wallet_ismine.h \
-  walletdb.h \
+  wallet/crypter.h \
+  wallet/walletdb.h \
+  wallet/wallet.h \
+  wallet/wallet_ismine.h \
   compat/sanity.h \
   scrypt_mine.h \
   kernel.h \
@@ -174,13 +174,13 @@ libbitcoin_server_a_SOURCES = \
 # when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_SOURCES = \
-  db.cpp \
-  crypter.cpp \
-  rpcdump.cpp \
-  rpcwallet.cpp \
-  wallet.cpp \
-  wallet_ismine.cpp \
-  walletdb.cpp \
+  wallet/crypter.cpp \
+  wallet/db.cpp \
+  wallet/rpcdump.cpp \
+  wallet/rpcwallet.cpp \
+  wallet/wallet.cpp \
+  wallet/wallet_ismine.cpp \
+  wallet/walletdb.cpp \
   $(BITCOIN_CORE_H)
 
 # crypto primitives library

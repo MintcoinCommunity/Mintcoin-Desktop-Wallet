@@ -5,29 +5,34 @@
  * The Bitcoin Developers 2011-2013
  */
 #include "walletview.h"
-#include "bitcoingui.h"
-#include "transactiontablemodel.h"
+
 #include "addressbookpage.h"
+#include "askpassphrasedialog.h"
+#include "bitcoingui.h"
+#include "clientmodel.h"
+#include "guiutil.h"
+#include "optionsmodel.h"
 #include "merchantpage.h"
 #include "recurringsendpage.h"
-#include "sendcoinsdialog.h"
-#include "receivecoinsdialog.h"
-#include "signverifymessagedialog.h"
-#include "clientmodel.h"
-#include "walletmodel.h"
-#include "optionsmodel.h"
-#include "transactionview.h"
 #include "overviewpage.h"
-#include "askpassphrasedialog.h"
-#include "ui_interface.h"
-#include "wallet.h"
-#include "guiutil.h"
+#include "receivecoinsdialog.h"
+#include "sendcoinsdialog.h"
+#include "signverifymessagedialog.h"
+#include "transactiontablemodel.h"
+#include "transactionview.h"
+#include "walletmodel.h"
 
+#include "ui_interface.h"
+
+#include <QAction>
+#include <QActionGroup>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QProgressDialog>
-#include <QVBoxLayout>
-#include <QAction>
 #include <QPushButton>
+#include <QVBoxLayout>
+
+extern bool fWalletUnlockMintOnly;
 
 WalletView::WalletView(QWidget *parent):
     QStackedWidget(parent),
@@ -106,6 +111,7 @@ void WalletView::setClientModel(ClientModel *clientModel)
     this->clientModel = clientModel;
 
     overviewPage->setClientModel(clientModel);
+    sendCoinsPage->setClientModel(clientModel);
 	recurringSendPage->setOptionsModel(clientModel->getOptionsModel());
 }
 

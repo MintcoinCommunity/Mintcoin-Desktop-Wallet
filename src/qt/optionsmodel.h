@@ -34,8 +34,6 @@ public:
         ProxyUse,               // bool
         ProxyIP,                // QString
         ProxyPort,              // int
-        ProxySocksVersion,      // int
-        Fee,                    // qint64
         DisplayUnit,            // BitcoinUnits::Unit
         Language,               // QString
         CoinControlFeatures,    // bool
@@ -98,7 +96,6 @@ private:
 
 signals:
     void displayUnitChanged(int unit);
-    void transactionFeeChanged(const CAmount&);
     void coinControlFeaturesChanged(bool);
 };
 

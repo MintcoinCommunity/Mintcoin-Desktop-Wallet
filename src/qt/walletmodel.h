@@ -1,14 +1,19 @@
-#ifndef WALLETMODEL_H
-#define WALLETMODEL_H
+// Copyright (c) 2011-2014 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <QObject>
-#include <vector>
-#include <map>
+#ifndef BITCOIN_QT_WALLETMODEL_H
+#define BITCOIN_QT_WALLETMODEL_H
+
+#include "paymentrequestplus.h"
+#include "walletmodeltransaction.h"
 
 #include "support/allocators/secure.h"
-#include "wallet.h"
-#include "walletmodeltransaction.h"
-#include "paymentrequestplus.h"
+
+#include <map>
+#include <vector>
+
+#include <QObject>
 
 class AddressTableModel;
 class OptionsModel;
@@ -31,11 +36,11 @@ QT_END_NAMESPACE
 class SendCoinsRecipient
 {
 public:
-    explicit SendCoinsRecipient() : amount(0), nVersion(SendCoinsRecipient::CURRENT_VERSION) { }
+    explicit SendCoinsRecipient() : amount(0), fSubtractFeeFromAmount(false), nVersion(SendCoinsRecipient::CURRENT_VERSION) { }
     explicit SendCoinsRecipient(const QString &addr, const QString &label, const CAmount& amount, const QString &message):
-        address(addr), label(label), amount(amount), message(message), nVersion(SendCoinsRecipient::CURRENT_VERSION) {}
+        address(addr), label(label), amount(amount), message(message), fSubtractFeeFromAmount(false), nVersion(SendCoinsRecipient::CURRENT_VERSION) {}
 
-    // If from an insecure payment request, this is used for storing
+    // If from an unauthenticated payment request, this is used for storing
     // the addresses, e.g. address-A<br />address-B<br />address-C.
     // Info: As we don't need to process addresses in here when using
     // payment requests, we can abuse it for displaying an address list.
@@ -50,6 +55,8 @@ public:
     PaymentRequestPlus paymentRequest;
     // Empty if no authentication or invalid signature/cert/etc.
     QString authenticatedMerchant;
+
+    bool fSubtractFeeFromAmount; // memory only
 
     static const int CURRENT_VERSION = 1;
     int nVersion;
@@ -105,7 +112,9 @@ public:
         AmountWithFeeExceedsBalance,
         DuplicateAddress,
         TransactionCreationFailed, // Error returned when wallet is still locked
-        TransactionCommitFailed
+        TransactionCommitFailed,
+        AbsurdFee,
+        PaymentRequestExpired
     };
 
     enum EncryptionStatus
