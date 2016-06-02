@@ -7,10 +7,10 @@
 
 #include "tinyformat.h"
 
+#include <cstdlib>
+#include <cstring>
 #include <errno.h>
 #include <limits>
-
-#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -96,9 +96,9 @@ long hex2long(const char* hexString)
 
 bool IsHex(const string& str)
 {
-    BOOST_FOREACH(char c, str)
+    for(std::string::const_iterator it(str.begin()); it != str.end(); ++it)
     {
-        if (HexDigit(c) < 0)
+        if (HexDigit(*it) < 0)
             return false;
     }
     return (str.size() > 0) && (str.size()%2 == 0);
