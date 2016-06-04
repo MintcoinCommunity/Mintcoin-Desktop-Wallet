@@ -197,6 +197,7 @@ crypto_libbitcoin_crypto_a_SOURCES = \
 # univalue JSON library
 univalue_libbitcoin_univalue_a_SOURCES = \
   univalue/univalue.cpp \
+  univalue/univalue_escapes.h \
   univalue/univalue_read.cpp \
   univalue/univalue_write.cpp \
   univalue/univalue_escapes.h \
