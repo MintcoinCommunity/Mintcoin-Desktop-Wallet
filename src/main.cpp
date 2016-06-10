@@ -2288,7 +2288,6 @@ CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
 /** Mark a block as having its data received and checked (up to BLOCK_VALID_TRANSACTIONS). */
 bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBlockIndex *pindexNew, const CDiskBlockPos& pos)
 {
-    uint256 hash = block.GetHash();
     pindexNew->nTx = block.vtx.size();
     pindexNew->nChainTx = 0;
     pindexNew->nFile = pos.nFile;
@@ -2296,34 +2295,6 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
     pindexNew->nUndoPos = 0;
     pindexNew->nStatus |= BLOCK_HAVE_DATA;
     pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS);
-
-    // ppcoin: Now that transaction have arrived check for proof of stake and set.
-    if (block.IsProofOfStake())
-        pindexNew->SetProofOfStake(block);
-
-    // ppcoin: compute stake entropy bit for stake modifier
-    if (!pindexNew->SetStakeEntropyBit(GetStakeEntropyBit(block, pindexNew->nHeight)))
-        return state.Invalid(error("AddToBlockIndex() : SetStakeEntropyBit() failed"));
-
-    // ppcoin: record proof-of-stake hash value
-    if (pindexNew->IsProofOfStake())
-    {
-        setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
-        if (!mapProofOfStake.count(hash))
-            return state.Invalid(error("AddToBlockIndex() : hashProofOfStake not found in map"));
-        pindexNew->hashProofOfStake = mapProofOfStake[hash];
-    }
-
-    // ppcoin: compute stake modifier
-    uint64_t nStakeModifier = 0;
-    bool fGeneratedStakeModifier = false;
-    if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
-        return state.Invalid(error("AddToBlockIndex() : ComputeNextStakeModifier() failed"));
-    pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
-    pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
-    if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
-        return state.Invalid(error("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016x", pindexNew->nHeight, nStakeModifier));
-
 
     {
          LOCK(cs_nBlockSequenceId);
@@ -2336,7 +2307,7 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
         deque<CBlockIndex*> queue;
         queue.push_back(pindexNew);
 
-        
+        bool fProofOfStake;
         // Recursively process any descendant blocks that now may be eligible to be connected.
         while (!queue.empty()) {
             CBlockIndex *pindex = queue.front();
@@ -2344,6 +2315,28 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
             pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
             // ppcoin: compute chain trust score
             pindex->nChainTrust = (pindex->pprev ? pindex->pprev->nChainTrust : 0) + GetBlockProof(*pindex);
+
+            // ppcoin: compute stake entropy bit for stake modifier
+            if (!pindex->SetStakeEntropyBit(GetStakeEntropyBit(pindex->GetBlockHash(), pindex->nHeight)))
+                return state.Invalid(error("%s : SetStakeEntropyBit() failed", __func__));
+
+            // ppcoin: compute stake modifier
+            uint64_t nStakeModifier = 0;
+            bool fGeneratedStakeModifier = false;
+            if (!ComputeNextStakeModifier(pindex->pprev, nStakeModifier, fGeneratedStakeModifier))
+                return state.Invalid(error("%s : ComputeNextStakeModifier() failed", __func__));
+            pindex->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
+            pindex->nStakeModifierChecksum = GetStakeModifierChecksum(pindex);
+            if (!CheckStakeModifierCheckpoints(pindex->nHeight, pindex->nStakeModifierChecksum))
+                return state.Invalid(error("%s : Rejected by stake modifier checkpoint height=%d, modifier=0x%016x", __func__, pindex->nHeight, nStakeModifier));
+
+            // Check proof-of-work or proof-of-stake
+            fProofOfStake = pindex->IsProofOfStake();
+            if (pindex->nBits != GetNextTargetRequired(pindex->pprev, fProofOfStake))
+                return state.DoS(100, error("%s : incorrect %s", __func__, !fProofOfStake ? "proof-of-work" : "proof-of-stake"),
+                                 REJECT_INVALID, "bad-diffbits");
+
+            setDirtyBlockIndex.insert(pindex);
             if (chainActive.Tip() == NULL || !setBlockIndexCandidates.value_comp()(pindex, chainActive.Tip())) {
                 setBlockIndexCandidates.insert(pindex);
             }
@@ -2635,7 +2628,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     AssertLockHeld(cs_main);
 
     CBlockIndex *&pindex = *ppindex;
-
+    uint256 hash = block.GetHash();
+    
     if (!AcceptBlockHeader(block, state, &pindex))
         return false;
 
@@ -2656,13 +2650,15 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     int nHeight = pindex->nHeight;
 	bool fProofOfStake = block.IsProofOfStake();
 
-    if (fProofOfStake)
+    if (fProofOfStake){
         pindex->SetProofOfStake(block);
 
-    // Check proof-of-work or proof-of-stake
-    if (block.nBits != GetNextTargetRequired(pindex->pprev, fProofOfStake))
-        return state.DoS(100, error("%s : incorrect %s", !fProofOfStake ? "proof-of-work" : "proof-of-stake", __func__),
-                         REJECT_INVALID, "bad-diffbits");
+        // ppcoin: record proof-of-stake hash value
+        setStakeSeen.insert(make_pair(pindex->prevoutStake, pindex->nStakeTime));
+        if (!mapProofOfStake.count(hash))
+            return state.Invalid(error("%s : hashProofOfStake not found in map", __func__));
+        pindex->hashProofOfStake = mapProofOfStake[hash];
+    }
 
     if (!fProofOfStake && nHeight > CUTOFF_POW_BLOCK)
         return state.DoS(100, error("%s : No proof-of-work allowed anymore (height = %d)", __func__, nHeight),
@@ -2672,7 +2668,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
         if (!IsFinalTx(tx, nHeight, block.GetBlockTime())) {
             pindex->nStatus |= BLOCK_FAILED_VALID;
-            return state.DoS(10, error("AcceptBlock() : contains a non-final transaction"),
+            return state.DoS(10, error("%s : contains a non-final transaction", __func__),
                              REJECT_INVALID, "bad-txns-nonfinal");
         }
 
@@ -2681,7 +2677,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
         !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
 		pindex->nStatus |= BLOCK_FAILED_VALID;
-        return state.DoS(100, error("AcceptBlock() : block height mismatch in coinbase"),
+        return state.DoS(100, error("%s : block height mismatch in coinbase", __func__),
                                      REJECT_INVALID, "bad-cb-height");
     }
 
@@ -2692,12 +2688,12 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         if (dbp != NULL)
             blockPos = *dbp;
         if (!FindBlockPos(state, blockPos, nBlockSize+8, nHeight, block.GetBlockTime(), dbp != NULL))
-            return error("AcceptBlock() : FindBlockPos failed");
+            return error("%s : FindBlockPos failed", __func__);
         if (dbp == NULL)
             if (!WriteBlockToDisk(block, blockPos))
                 return state.Abort(_("Failed to write block"));
         if (!ReceivedBlockTransactions(block, state, pindex, blockPos))
-            return error("AcceptBlock() : ReceivedBlockTransactions failed");
+            return error("%s : ReceivedBlockTransactions failed", __func__);
     } catch(std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
     }

@@ -41,6 +41,6 @@ bool GetBlockCoinAge(const CBlock& block, uint64_t& nCoinAge);
 
 bool GetCoinAge(const CTransaction& tx, uint64_t& nCoinAge);
 
-unsigned int GetStakeEntropyBit(const CBlock& block, unsigned int nHeight);
+unsigned int GetStakeEntropyBit(const uint256& block, unsigned int nHeight);
 
 #endif // PPCOIN_KERNEL_H

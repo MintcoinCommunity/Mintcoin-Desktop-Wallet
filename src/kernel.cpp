@@ -109,12 +109,12 @@ bool GetBlockCoinAge(const CBlock& block, uint64_t& nCoinAge)
 }
 
 // ppcoin: entropy bit for stake modifier if chosen by modifier
-unsigned int GetStakeEntropyBit(const CBlock& block, unsigned int nHeight)
+unsigned int GetStakeEntropyBit(const uint256& block, unsigned int nHeight)
 {
     // Take last bit of block hash as entropy bit
-    unsigned int nEntropyBit = ((block.GetHash().GetLow64()) & 1ull);
+    unsigned int nEntropyBit = ((block.GetLow64()) & 1ull);
     if (fDebug && GetBoolArg("-printstakemodifier", false))
-        LogPrintf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, block.GetHash().ToString().c_str(), nEntropyBit);
+        LogPrintf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, block.ToString(), nEntropyBit);
     return nEntropyBit;
 }
 
