@@ -2594,19 +2594,6 @@ bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBloc
         if (pcheckpoint && nHeight < pcheckpoint->nHeight)
             return state.DoS(100, error("%s : forked chain older than last checkpoint (height %d)", __func__, nHeight));
 
-        // ppcoin: check that the block satisfies synchronized checkpoint
-        if (!Checkpoints::CheckSync(hash, pindexPrev))
-        {
-            if(!GetBoolArg("-nosynccheckpoints", false))
-            {
-                return state.Invalid(error("%s : rejected by synchronized checkpoint", __func__),
-                                     REJECT_OBSOLETE, "checkpoint-rejection");
-            }
-            else
-            {
-                strMiscWarning = _("WARNING: syncronized checkpoint violation detected, but skipped!");
-            }
-        }
     }
 
     int networkId = BaseParams().NetworkID();
@@ -2679,6 +2666,20 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 		pindex->nStatus |= BLOCK_FAILED_VALID;
         return state.DoS(100, error("%s : block height mismatch in coinbase", __func__),
                                      REJECT_INVALID, "bad-cb-height");
+    }
+
+    // ppcoin: check that the block satisfies synchronized checkpoint
+    if (!Checkpoints::CheckSync(hash, pindex))
+    {
+        if(!GetBoolArg("-nosynccheckpoints", false))
+        {
+            return state.Invalid(error("%s : rejected by synchronized checkpoint", __func__),
+                                 REJECT_OBSOLETE, "checkpoint-rejection");
+        }
+        else
+        {
+            strMiscWarning = _("WARNING: syncronized checkpoint violation detected, but skipped!");
+        }
     }
 
     // Write block to history file
