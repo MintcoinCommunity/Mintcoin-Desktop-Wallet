@@ -136,6 +136,7 @@ public:
         vSeeds.push_back(CDNSSeedData("seed.mintcoinofficial.com", "seed.mintcoinofficial.com"));
         vSeeds.push_back(CDNSSeedData("mintseed.mintcoinfund.org", "mintseed.mintcoinfund.org"));
         vSeeds.push_back(CDNSSeedData("mintseed.keremhd.name.tr", "mintseed.keremhd.name.tr"));
+        vSeeds.push_back(CDNSSeedData("mint.seed.fuzzbawls.pw", "mint.seed.fuzzbawls.pw"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(51);  // MintCoin: address begin with 'M'
         base58Prefixes[SCRIPT_ADDRESS] = list_of(8);
