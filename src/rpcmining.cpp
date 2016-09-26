@@ -520,7 +520,7 @@ Value submitblock(const Array& params, bool fHelp)
     CValidationState state;
     submitblock_StateCatcher sc(pblock.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(state, NULL, &pblock);
+    bool fAccepted = ProcessNewBlock(state, NULL, &pblock, true, NULL);
     UnregisterValidationInterface(&sc);
     if (fAccepted)
     {

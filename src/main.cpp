@@ -273,7 +273,8 @@ void FinalizeNode(NodeId nodeid) {
 }
 
 // Requires cs_main.
-void MarkBlockAsReceived(const uint256& hash) {
+// Returns a bool indicating whether we requested this block.
+bool MarkBlockAsReceived(const uint256& hash) {
     map<uint256, pair<NodeId, list<QueuedBlock>::iterator> >::iterator itInFlight = mapBlocksInFlight.find(hash);
     if (itInFlight != mapBlocksInFlight.end()) {
         CNodeState *state = State(itInFlight->second.first);
@@ -283,7 +284,9 @@ void MarkBlockAsReceived(const uint256& hash) {
         state->nBlocksInFlight--;
         state->nStallingSince = 0;
         mapBlocksInFlight.erase(itInFlight);
+        return true;
     }
+    return false;
 }
 
 // Requires cs_main.
@@ -2628,7 +2631,7 @@ bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBloc
     return true;
 }
 
-bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, CDiskBlockPos* dbp)
+bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, bool fRequested, CDiskBlockPos* dbp)
 {
     AssertLockHeld(cs_main);
 
@@ -2638,11 +2641,17 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     if (!AcceptBlockHeader(block, state, &pindex))
         return false;
 
-    if (pindex->nStatus & BLOCK_HAVE_DATA) {
-        LogPrintf("Already have block %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
-        // TODO: deal better with duplicate blocks.
-        // return state.DoS(20, error("AcceptBlock(): already have block %d %s", pindex->nHeight, pindex->GetBlockHash().ToString()), REJECT_DUPLICATE, "duplicate");
-        return true;
+    // Try to process all requested blocks that we don't have, but only
+    // process an unrequested block if it's new and has enough work to
+    // advance our tip.
+    bool fAlreadyHave = pindex->nStatus & BLOCK_HAVE_DATA;
+    bool fHasMoreWork = (chainActive.Tip() ? pindex->nChainTrust > chainActive.Tip()->nChainTrust : true);
+    // TODO: deal better with return value and error conditions for duplicate
+    // and unrequested blocks.
+    if (fAlreadyHave) return true;
+    if (!fRequested) {  // If we didn't ask for it:
+        if (pindex->nTx != 0) return true;  // This is a previously-processed block that was pruned
+        if (!fHasMoreWork) return true;     // Don't process less-work chains
     }
 
     if (!CheckBlock(block, state)) {
@@ -2786,13 +2795,14 @@ void CBlockIndex::BuildSkip()
         pskip = pprev->GetAncestor(GetSkipHeight(nHeight));
 }
 
-bool ProcessNewBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp)
+bool ProcessNewBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, bool fForceProcessing, CDiskBlockPos *dbp)
 {
     uint256 hash = pblock->GetHash();
 
     {
         LOCK(cs_main);
-        MarkBlockAsReceived(pblock->GetHash());
+        bool fRequested = MarkBlockAsReceived(pblock->GetHash());
+        fRequested |= fForceProcessing;
 
         // ppcoin: check proof-of-stake
         // Limited duplicity on stake: prevents block flood attack
@@ -2819,7 +2829,7 @@ bool ProcessNewBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDis
 
         // Store to disk
         CBlockIndex *pindex = NULL;
-        bool ret = AcceptBlock(*pblock, state, &pindex, dbp);
+        bool ret = AcceptBlock(*pblock, state, &pindex, fRequested, dbp);
         if (pindex && pfrom) {
             mapBlockSource[pindex->GetBlockHash()] = pfrom->GetId();
         }
@@ -3503,7 +3513,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
                 // process in case the block isn't known yet
                 if (mapBlockIndex.count(hash) == 0 || (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) {
                     CValidationState state;
-                    if (ProcessNewBlock(state, NULL, &block, dbp))
+                    if (ProcessNewBlock(state, NULL, &block, true, dbp))
                         nLoaded++;
                     if (state.IsError())
                         break;
@@ -3525,7 +3535,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
                             LogPrintf("%s: Processing out of order child %s of %s\n", __func__, block.GetHash().ToString(),
                                     head.ToString());
                             CValidationState dummy;
-                            if (ProcessNewBlock(dummy, NULL, &block, &it->second))
+                            if (ProcessNewBlock(dummy, NULL, &block, true, &it->second))
                             {
                                 nLoaded++;
                                 queue.push_back(block.GetHash());
@@ -4358,7 +4368,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         pfrom->AddInventoryKnown(inv);
 
         CValidationState state;
-        ProcessNewBlock(state, pfrom, &block);
+        // Process all blocks from whitelisted peers, even if not requested.
+        ProcessNewBlock(state, pfrom, &block, pfrom->fWhitelisted, NULL);
         int nDoS;
         if (state.IsInvalid(nDoS)) {
             pfrom->PushMessage("reject", strCommand, state.GetRejectCode(),
@@ -4909,7 +4920,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         // Detect whether we're stalling
         int64_t nNow = GetTimeMicros();
-        if (!pto->fDisconnect && state.nStallingSince && state.nStallingSince < nNow - 1000000 * BLOCK_STALLING_TIMEOUT) {
+        if (!pto->fDisconnect && state.nStallingSince && state.nStallingSince < nNow - 500000 * BLOCK_STALLING_TIMEOUT) {
             // Stalling only triggers when the block download window cannot move. During normal steady state,
             // the download window should be much larger than the to-be-downloaded set of blocks, so disconnection
             // should only happen during initial block download.
