@@ -1,0 +1,34 @@
+src/*.exe
+src/mintcoin
+src/mintcoind
+src/test_mintcoin
+.*.swp
+*.*~*
+*.bak
+*.rej
+*.orig
+*.o
+*.patch
+.mintcoin
+
+# Compilation and Qt preprocessor part
+*.qm
+Makefile
+MintCoin-Qt
+Mintcoin-Qt.app
+
+# Unit-tests
+Makefile.test
+mintcoin-qt_test
+
+# Resources cpp
+qrc_*.cpp
+
+# Qt creator
+*.pro.user
+
+# Mac specific
+.DS_Store
+build
+
+!src/leveldb-*/Makefile
