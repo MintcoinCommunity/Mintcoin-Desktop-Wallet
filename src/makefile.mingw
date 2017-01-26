@@ -10,11 +10,11 @@ INCLUDEPATHS= \
  -I"C:/deps/boost_1_53_0" \
  -I"C:/deps/db-4.8.30.NC/build_unix" \
  -I"C:/deps/openssl-1.0.1h/include"
- 
+
 LIBPATHS= \
  -L"C:/deps/boost_1_53_0/stage/lib" \
  -L"C:/deps/db-4.8.30.NC/build_unix" \
- -L"C:/deps/openssl-1.0.1h" 
+ -L"C:/deps/openssl-1.0.1h"
 
 
 LIBS= \
@@ -40,7 +40,7 @@ ifneq (${USE_UPNP}, -)
  INCLUDEPATHS += -I"C:/deps/"
  LIBPATHS += -L"C:/deps/miniupnpc"
  LIBS += -l miniupnpc -l iphlpapi
- DEFS += -DSTATICLIB -DUSE_UPNP=$(USE_UPNP)
+ DEFS += -DSTATICLIB -DMINIUPNP_STATICLIB -DUSE_UPNP=$(USE_UPNP)
 endif
 
 ifneq (${USE_IPV6}, -)
