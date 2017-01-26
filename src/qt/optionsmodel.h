@@ -32,8 +32,6 @@ public:
         ThirdPartyTxUrls,       // QString
         Language,          // QString
         CoinControlFeatures, // bool
-        ShowShopDonate,    // bool
-        ShowOverviewNews,  // bool
         PasswordOnSend,    // bool
         recurringSendEntries,//string
         OptionIDRowCount,
@@ -56,8 +54,6 @@ public:
     bool getDisplayAddresses();
     QString getThirdPartyTxUrls() { return strThirdPartyTxUrls; }
     bool getCoinControlFeatures();
-    bool getShowShopDonate();
-    bool getShowOverviewNews();
     QString getRecurringSendEntries();
     bool getPasswordOnSend();
     void setRecurringSendEntries(QString recurringSendEntries);
@@ -73,8 +69,6 @@ private:
     bool fMinimizeToTray;
     bool fMinimizeOnClose;
     bool fCoinControlFeatures;
-    bool bShowShopDonate;
-    bool bShowOverviewNews;
     bool bPasswordOnSend;
     QString sRecurringSendEntries;
     QString language;
