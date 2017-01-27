@@ -43,11 +43,11 @@ bin_PROGRAMS =
 TESTS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += bitcoind
+  bin_PROGRAMS += mintcoind
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += bitcoin-cli bitcoin-tx
+  bin_PROGRAMS += mintcoin-cli mintcoin-tx
 endif
 
 .PHONY: FORCE
@@ -262,7 +262,7 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # Mintcoind binary #
-bitcoind_LDADD = \
+mintcoind_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UNIVALUE) \
@@ -271,20 +271,20 @@ bitcoind_LDADD = \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
 if ENABLE_WALLET
-bitcoind_LDADD += libbitcoin_wallet.a
+mintcoind_LDADD += libbitcoin_wallet.a
 endif
-bitcoind_SOURCES = mintcoind.cpp
+mintcoind_SOURCES = mintcoind.cpp
 #
 
 if TARGET_WINDOWS
-bitcoind_SOURCES += bitcoind-res.rc
+mintcoind_SOURCES += bitcoind-res.rc
 endif
 
-bitcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
-bitcoind_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
+mintcoind_CPPFLAGS = $(BITCOIN_INCLUDES)
 
-# bitcoin-cli binary #
-bitcoin_cli_LDADD = \
+# mintcoin-cli binary #
+mintcoin_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
@@ -293,28 +293,28 @@ bitcoin_cli_LDADD = \
   $(SSL_LIBS) \
   $(CRYPTO_LIBS)
 
-bitcoin_cli_SOURCES = \
+mintcoin_cli_SOURCES = \
   bitcoin-cli.cpp
-bitcoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
 #
 
-# bitcoin-tx binary #
-bitcoin_tx_LDADD = \
+# mintcoin-tx binary #
+mintcoin_tx_LDADD = \
   $(LIBBITCOIN_UNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
 
-  bitcoin_tx_LDADD += $(BOOST_LIBS) \
+  mintcoin_tx_LDADD += $(BOOST_LIBS) \
   $(SSL_LIBS) \
   $(CRYPTO_LIBS)
-bitcoin_tx_SOURCES = bitcoin-tx.cpp
-bitcoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoin_tx_SOURCES = bitcoin-tx.cpp
+mintcoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
 #
 
 if TARGET_WINDOWS
-bitcoin_cli_SOURCES += bitcoin-cli-res.rc
+mintcoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
