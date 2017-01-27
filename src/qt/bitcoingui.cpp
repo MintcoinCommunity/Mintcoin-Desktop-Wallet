@@ -316,13 +316,6 @@ void BitcoinGUI::createActions(const NetworkStyle *networkStyle)
     historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(historyAction);
 
-    merchantAction = new QAction(QIcon(":/icons/address-book"), tr("&Shop/Donate"), this);
-    merchantAction->setStatusTip(tr("Merchants"));
-    merchantAction->setToolTip(merchantAction->statusTip());
-    merchantAction->setCheckable(true);
-    merchantAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
-    tabGroup->addAction(merchantAction);
-
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -335,8 +328,6 @@ void BitcoinGUI::createActions(const NetworkStyle *networkStyle)
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(recurringSendAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(recurringSendAction, SIGNAL(triggered()), this, SLOT(gotoRecurringSendPage()));
-    connect(merchantAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(merchantAction, SIGNAL(triggered()), this, SLOT(gotoMerchantPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -475,7 +466,6 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
         toolbar->addAction(recurringSendAction);
-        toolbar->addAction(merchantAction);
         overviewAction->setChecked(true);
 
         QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
@@ -702,12 +692,6 @@ void BitcoinGUI::gotoRecurringSendPage()
 {
     recurringSendAction->setChecked(true);
     if (walletFrame) walletFrame->gotoRecurringSendPage();
-}
-
-void BitcoinGUI::gotoMerchantPage()
-{
-    merchantAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoMerchantPage();
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage()

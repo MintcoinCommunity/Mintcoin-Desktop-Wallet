@@ -64,18 +64,10 @@ void OptionsModel::Init()
         settings.setValue("fCoinControlFeatures", false);
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
 
-    if (!settings.contains("bShowShopDonate"))
-        settings.setValue("bShowShopDonate", true);
-    bShowShopDonate = settings.value("bShowShopDonate", true).toBool();
-    
-    if (!settings.contains("bShowOverviewNews"))
-        settings.setValue("bShowOverviewNews", true);
-    bShowOverviewNews = settings.value("bShowOverviewNews", true).toBool();
-
     if (!settings.contains("sRecurringSendEntries"))
         settings.setValue("sRecurringSendEntries", "");
     sRecurringSendEntries = settings.value("sRecurringSendEntries", "").toString();
-    
+
     if (!settings.contains("bPasswordOnSend"))
         settings.setValue("bPasswordOnSend", false);
     bPasswordOnSend = settings.value("bPasswordOnSend", false).toBool();
@@ -196,10 +188,6 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return settings.value("nDatabaseCache");
         case ThreadsScriptVerif:
             return settings.value("nThreadsScriptVerif");
-        case ShowShopDonate:
-            return bShowShopDonate;
-        case ShowOverviewNews:
-            return bShowOverviewNews;
         case PasswordOnSend:
             return bPasswordOnSend;
         case recurringSendEntries:
@@ -301,14 +289,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 setRestartRequired(true);
             }
             break;
-        case ShowShopDonate: {
-            bShowShopDonate = value.toBool();
-            settings.setValue("bShowShopDonate", bShowShopDonate);
-            }
-        case ShowOverviewNews: {
-            bShowOverviewNews = value.toBool();
-            settings.setValue("bShowOverviewNews", bShowOverviewNews);
-            }
         case recurringSendEntries: {
             sRecurringSendEntries = value.toString();
             settings.setValue("sRecurringSendEntries", sRecurringSendEntries);
@@ -366,16 +346,6 @@ bool OptionsModel::isRestartRequired()
 {
     QSettings settings;
     return settings.value("fRestartRequired", false).toBool();
-}
-
-bool OptionsModel::getShowShopDonate()
-{
-     return bShowShopDonate;
-}
-
-bool OptionsModel::getShowOverviewNews()
-{
-     return bShowOverviewNews;
 }
 
 bool OptionsModel::getMinimizeToTray()

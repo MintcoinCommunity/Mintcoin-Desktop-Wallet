@@ -37,8 +37,6 @@ public:
 
     void showOutOfSyncWarning(bool fShow);
 
-    void setDonate(bool set);
-
 private:
     QStackedWidget *walletStack;
     BitcoinGUI *gui;
@@ -54,8 +52,6 @@ public slots:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
-    /** Switch to merchant page */
-    void gotoMerchantPage();
     /** Switch to recurring Send page */
     void gotoRecurringSendPage();
     /** Switch to receive coins page */

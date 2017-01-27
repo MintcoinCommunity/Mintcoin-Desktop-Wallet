@@ -7,7 +7,6 @@
 
 #include "amount.h"
 
-#include <webviewhandler.h>
 #include <QWidget>
 
 class ClientModel;
@@ -58,7 +57,6 @@ private:
 
     TxViewDelegate *txdelegate;
     TransactionFilterProxy *filter;
-    WebViewHandler webViewHandler;
 
 private slots:
     void updateDisplayUnit();

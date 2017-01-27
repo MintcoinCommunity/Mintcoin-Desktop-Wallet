@@ -85,7 +85,6 @@ QT_FORMS_UI = \
   qt/forms/transactiondescdialog.ui \
   qt/forms/recurringSend.ui \
   qt/forms/recurringEntry.ui \
-  qt/forms/merchants.ui \
   qt/forms/repairwalletdialog.ui
 
 QT_MOC_CPP = \
@@ -133,11 +132,9 @@ QT_MOC_CPP = \
   qt/moc_walletframe.cpp \
   qt/moc_walletmodel.cpp \
   qt/moc_walletview.cpp \
-  qt/moc_merchantpage.cpp \
   qt/moc_recurringsendpage.cpp \
   qt/moc_recurringsendentry.cpp \
-  qt/moc_repairwalletdialog.cpp \
-  qt/moc_webviewhandler.cpp
+  qt/moc_repairwalletdialog.cpp
 
 BITCOIN_MM = \
   qt/macdockiconhandler.mm \
@@ -210,11 +207,9 @@ BITCOIN_QT_H = \
   qt/walletmodeltransaction.h \
   qt/walletview.h \
   qt/winshutdownmonitor.h \
-  qt/merchantpage.h \
   qt/recurringsendentry.h \
   qt/recurringsendpage.h \
-  qt/repairwalletdialog.h \
-  qt/webviewhandler.h
+  qt/repairwalletdialog.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -311,8 +306,6 @@ BITCOIN_QT_CPP += \
   qt/walletmodel.cpp \
   qt/walletmodeltransaction.cpp \
   qt/walletview.cpp \
-  qt/webviewhandler.cpp \
-  qt/merchantpage.cpp \
   qt/recurringsendpage.cpp \
   qt/recurringsendentry.cpp \
   qt/repairwalletdialog.cpp

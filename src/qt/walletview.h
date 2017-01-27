@@ -59,7 +59,6 @@ public:
     bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 
     void showOutOfSyncWarning(bool fShow);
-    void setDonate(bool set);
 
 private:
     ClientModel *clientModel;
@@ -69,7 +68,6 @@ private:
     QWidget *transactionsPage;
     ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
-    MerchantPage *merchantPage;
 
     TransactionView *transactionView;
 
@@ -82,8 +80,6 @@ public slots:
     void gotoHistoryPage();
     /** Switch to recurring Send page */
     void gotoRecurringSendPage();
-    /** Switch to merchant page */
-    void gotoMerchantPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

@@ -234,10 +234,6 @@ void OverviewPage::setWalletModel(WalletModel *model)
         updateWatchOnlyLabels(model->haveWatchOnly());
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
 
-        if(model->getOptionsModel()->getShowOverviewNews()==true)
-        {
-          webViewHandler.setWebView(ui->webView,"http://mintcoinofficial.com/download-wallet/mintcoin-news/");
-        }
     }
 
     // update the display unit, to not use the default ("MINT")

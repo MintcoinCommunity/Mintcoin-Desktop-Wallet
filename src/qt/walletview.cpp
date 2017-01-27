@@ -12,7 +12,6 @@
 #include "clientmodel.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
-#include "merchantpage.h"
 #include "recurringsendpage.h"
 #include "overviewpage.h"
 #include "receivecoinsdialog.h"
@@ -59,7 +58,6 @@ WalletView::WalletView(QWidget *parent):
 
     receiveCoinsPage = new ReceiveCoinsDialog();
     sendCoinsPage = new SendCoinsDialog();
-    merchantPage = new MerchantPage();
     recurringSendPage = new RecurringSendPage();
 
     addWidget(overviewPage);
@@ -67,7 +65,6 @@ WalletView::WalletView(QWidget *parent):
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(recurringSendPage);
-    addWidget(merchantPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -113,14 +110,6 @@ void WalletView::setClientModel(ClientModel *clientModel)
     overviewPage->setClientModel(clientModel);
     sendCoinsPage->setClientModel(clientModel);
 	recurringSendPage->setOptionsModel(clientModel->getOptionsModel());
-}
-
-void WalletView::setDonate(bool set)
-{
-    if(set==false)
-        merchantPage->setVisible(false);
-    else
-        merchantPage->loadPage();
 }
 
 void WalletView::setWalletModel(WalletModel *walletModel)
@@ -184,11 +173,6 @@ void WalletView::gotoHistoryPage()
 void WalletView::gotoRecurringSendPage()
 {
     setCurrentWidget(recurringSendPage);
-}
-
-void WalletView::gotoMerchantPage()
-{
-    setCurrentWidget(merchantPage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

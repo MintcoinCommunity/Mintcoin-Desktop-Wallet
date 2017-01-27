@@ -96,7 +96,6 @@ private:
     QAction *sendCoinsAction;
     QAction *usedSendingAddressesAction;
     QAction *usedReceivingAddressesAction;
-    QAction *merchantAction;
     QAction *recurringSendAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
@@ -184,8 +183,6 @@ private slots:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
-    /** Switch to merchant page */
-    void gotoMerchantPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to recurring send page */

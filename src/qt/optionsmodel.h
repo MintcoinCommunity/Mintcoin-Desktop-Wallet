@@ -37,10 +37,8 @@ public:
         DisplayUnit,            // BitcoinUnits::Unit
         Language,               // QString
         CoinControlFeatures,    // bool
-        ShowShopDonate,    		// bool
-        ShowOverviewNews,  		// bool
-        PasswordOnSend,    		// bool
-        recurringSendEntries,	//string
+        PasswordOnSend,         // bool
+        recurringSendEntries,   //string
         ThreadsScriptVerif,     // int
         DatabaseCache,          // int
         SpendZeroConfChange,    // bool
@@ -60,8 +58,6 @@ public:
     bool getMinimizeToTray();
     bool getMinimizeOnClose();
     int getDisplayUnit();
-    bool getShowShopDonate();
-    bool getShowOverviewNews();
     QString getRecurringSendEntries();
     bool getPasswordOnSend();
     void setRecurringSendEntries(QString recurringSendEntries);
@@ -89,8 +85,6 @@ private:
     /// Add option to list of GUI options overridden through command line/config file
     void addOverriddenOption(const std::string &option);
 
-    bool bShowShopDonate;
-    bool bShowOverviewNews;
     bool bPasswordOnSend;
     QString sRecurringSendEntries;
 

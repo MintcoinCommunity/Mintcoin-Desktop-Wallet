@@ -71,12 +71,6 @@ bool WalletFrame::setCurrentWallet(const QString& name)
     return true;
 }
 
-void WalletFrame::setDonate(bool set)
-{
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
-    walletView->setDonate(set);
-}
-
 bool WalletFrame::removeWallet(const QString &name)
 {
     if (mapWalletViews.count(name) == 0)
@@ -131,13 +125,6 @@ void WalletFrame::gotoRecurringSendPage()
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
         i.value()->gotoRecurringSendPage();
-}
-
-void WalletFrame::gotoMerchantPage()
-{
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->gotoMerchantPage();
 }
 
 void WalletFrame::gotoReceiveCoinsPage()
@@ -228,4 +215,3 @@ WalletView *WalletFrame::currentWalletView()
 {
     return qobject_cast<WalletView*>(walletStack->currentWidget());
 }
-
