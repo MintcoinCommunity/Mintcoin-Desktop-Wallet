@@ -14,15 +14,17 @@
 static const int64_t nTargetTimespan = 30 * 30;
 const int64_t nTargetSpacingWorkMax = 3 * 30;
 
-unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake) 
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
 {
-    uint256 bnTargetLimit = Params().ProofOfWorkLimit();
+    while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
+        pindex = pindex->pprev;
 
-    if(fProofOfStake)
-    {
-        // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
-        bnTargetLimit = Params().ProofOfStakeLimit();
-    }
+    return pindex;
+}
+
+unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
+{
+    uint256 bnTargetLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
 
     if (pindexLast == NULL)
         return bnTargetLimit.GetCompact(); // genesis block
@@ -30,21 +32,22 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
     if (pindexPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // first block
+
     const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-	if(nActualSpacing < 0)
-	{
-		// LogPrintf(">> nActualSpacing = %d corrected to 1.\n", nActualSpacing);
-		nActualSpacing = 1;
-	}
-	else if(nActualSpacing > nTargetTimespan)
-	{
-		// LogPrintf(">> nActualSpacing = %d corrected to nTargetTimespan (900).\n", nActualSpacing);
-		nActualSpacing = nTargetTimespan;
-	}
+	  if(nActualSpacing < 0)
+	  {
+		    //LogPrintf(">> nActualSpacing = %d corrected to 1.\n", nActualSpacing);
+		    nActualSpacing = 1;
+	  }
+	  else if(nActualSpacing > nTargetTimespan)
+	  {
+		    //LogPrintf(">> nActualSpacing = %d corrected to nTargetTimespan (900).\n", nActualSpacing);
+		    nActualSpacing = nTargetTimespan;
+	  }
 
     // ppcoin: target change every block
     // ppcoin: retarget with exponential moving toward target spacing
@@ -55,13 +58,13 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     int64_t nInterval = nTargetTimespan / nTargetSpacing;
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);
-	
+
 	/*
-	LogPrintf(">> Height = %d, fProofOfStake = %d, nInterval = %d, nTargetSpacing = %d, nActualSpacing = %d\n", 
-		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);  
-	LogPrintf(">> pindexPrev->GetBlockTime() = %d, pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %d, pindexPrevPrev->nHeight = %d\n", 
-		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);  
-	*/
+	LogPrintf(">> Height = %d, fProofOfStake = %d, nInterval = %d, nTargetSpacing = %d, nActualSpacing = %d\n",
+		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);
+	LogPrintf(">> pindexPrev->GetBlockTime() = %d, pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %d, pindexPrevPrev->nHeight = %d\n",
+		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);
+  */
 
     if (bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
@@ -87,15 +90,6 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
         return error("CheckProofOfWork() : hash doesn't match nBits");
 
     return true;
-}
-
-
-// ppcoin: find last block index up to pindex
-const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
-{
-    while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
-        pindex = pindex->pprev;
-    return pindex;
 }
 
 uint256 GetBlockProof(const CBlockIndex& block)

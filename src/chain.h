@@ -101,6 +101,7 @@ public:
 
     //! pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
+    CBlockIndex* pnext;
 
     //! pointer to the index of some further predecessor of this block
     CBlockIndex* pskip;
@@ -137,7 +138,7 @@ public:
     int64_t nMoneySupply;
 
     unsigned int nFlags;  // ppcoin: block index flags
-    enum  
+    enum
     {
         BLOCK_PROOF_OF_STAKE = (1 << 0), // is proof-of-stake block
         BLOCK_STAKE_ENTROPY  = (1 << 1), // entropy bit for stake modifier
@@ -151,6 +152,8 @@ public:
     COutPoint prevoutStake;
     unsigned int nStakeTime;
     uint256 hashProofOfStake;
+
+    uint256 hashProof;
 
     //! block header
     int nVersion;
@@ -167,6 +170,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         pskip = NULL;
+        pnext = NULL;
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
@@ -178,6 +182,7 @@ public:
         nStakeModifier = 0;
         nStakeModifierChecksum = 0;
         hashProofOfStake = 0;
+        hashProof = 0;
         prevoutStake.SetNull();
         nStakeTime = 0;
         nTx = 0;
@@ -200,7 +205,7 @@ public:
     CBlockIndex(const CBlockHeader& block)
     {
         SetNull();
-        
+
         nVersion       = block.nVersion;
         hashMerkleRoot = block.hashMerkleRoot;
         nTime          = block.nTime;
@@ -249,6 +254,18 @@ public:
         return (int64_t)nTime;
     }
 
+    uint256 GetBlockTrust() const;
+
+    bool CheckIndex() const
+    {
+        return true;
+    }
+
+    int64_t GetPastTimeLimit() const
+    {
+        return GetMedianTimePast();
+    }
+
     enum { nMedianTimeSpan=11 };
 
     int64_t GetMedianTimePast() const
@@ -267,7 +284,7 @@ public:
 
     /**
      * Returns true if there are nRequired or more blocks of minVersion or above
-     * in the last Params().ToCheckBlockUpgradeMajority() blocks, starting at pstart 
+     * in the last Params().ToCheckBlockUpgradeMajority() blocks, starting at pstart
      * and going backwards.
      */
     static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart,

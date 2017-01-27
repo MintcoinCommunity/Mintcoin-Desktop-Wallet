@@ -1733,12 +1733,14 @@ void ThreadScriptCheck() {
     scriptcheckqueue.Thread();
 }
 
-bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck)
+bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck, bool fCheckSig)
 {
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
-    if (!CheckBlock(block, state, !fJustCheck, !fJustCheck))
+    if (!CheckBlock(block, state, !fJustCheck, !fJustCheck, fCheckSig)) {
+        LogPrintf("ConnectBlock(): CheckBlock Failed!\n");
         return false;
+    }
 
     // verify that the view's current state corresponds to the previous block
     uint256 hashPrevBlock = pindex->pprev == NULL ? uint256(0) : pindex->pprev->GetBlockHash();
@@ -1769,7 +1771,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     bool fStrictPayToScriptHash = true; // Always active in MintCoin
 
     // BIP30
-	BOOST_FOREACH(const CTransaction& tx, block.vtx) {
+    BOOST_FOREACH(const CTransaction& tx, block.vtx) {
         const CCoins* coins = view.AccessCoins(tx.GetHash());
         if (coins && !coins->IsPruned())
             return state.DoS(100, error("ConnectBlock() : tried to overwrite transaction"),
@@ -1850,7 +1852,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     // ppcoin: track money supply and mint amount info
     pindex->nMint = nValueOut - nValueIn + nFees;
     pindex->nMoneySupply = (pindex->pprev? pindex->pprev->nMoneySupply : 0) + nValueOut - nValueIn;
-    
+
     // ppcoin: fees are not collected by miners as in bitcoin
     // ppcoin: fees are destroyed to compensate the entire network
     if (fDebug && GetBoolArg("-printcreation", false))
@@ -1873,7 +1875,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     if (block.vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees, prevHash))
         return false;
-    
+
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || !pindex->IsValid(BLOCK_VALID_SCRIPTS))
     {
@@ -2488,7 +2490,7 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
     return true;
 }
 
-bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot)
+bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
     if (block.GetHash() == Params().HashGenesisBlock())
             return true;
@@ -2496,8 +2498,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
-    if (!CheckBlockHeader(block, state, fCheckPOW))
+    if (!CheckBlockHeader(block, state, fCheckPOW)) {
+        LogPrintf("CheckBlock(): Failed CheckBlockHeader!\n");
         return false;
+    }
 
     if (fCheckPOW && block.IsProofOfWork() && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader() : proof of work failed"),
@@ -2528,6 +2532,12 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                          REJECT_INVALID, "bad-blk-length");
 
     // First transaction must be coinbase, the rest must not be
+    if (block.vtx.empty()) {
+        LogPrintf("Empty first transaction!\n");
+    }
+    if (!block.vtx[0].IsCoinBase()) {
+        LogPrintf("first tx is not coinbase!\n");
+    }
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
         return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
                          REJECT_INVALID, "bad-cb-missing");
@@ -2548,8 +2558,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                              REJECT_INVALID, "non empty coinbase");
 
     // Check coinbase timestamp
-    if (block.GetBlockTime() > (int64_t)block.vtx[0].nTime + GetClockDrift((int64_t)block.vtx[0].nTime))
-        return state.DoS(50, error("CheckBlock() : coinbase timestamp is too early"),
+    if (fCheckSig && block.GetBlockTime() > (int64_t)block.vtx[0].nTime + GetClockDrift((int64_t)block.vtx[0].nTime))
+        return state.DoS(50, error("CheckBlock() : coinbase timestamp is too early. nTimeBlock=%d nTimeTx=%u", block.GetBlockTime(), (int64_t)block.vtx[0].nTime + GetClockDrift((int64_t)block.vtx[0].nTime)),
                              REJECT_INVALID, "coinbase timestamp violation");
     // Check coinstake timestamp
     if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), (int64_t)block.vtx[1].nTime))
@@ -2577,7 +2587,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                          REJECT_INVALID, "bad-blk-sigops", true);
 
     // ppcoin: check block signature
-    if (!CheckBlockSignature(block))
+    if (fCheckSig && !CheckBlockSignature(block))
         return state.DoS(100, error("CheckBlock() : bad block signature"),
                              REJECT_INVALID, "bad-blk-sig", true);
 
@@ -3089,44 +3099,21 @@ bool CheckBlockSignature(const CBlock& block)
 
     vector<valtype> vSolutions;
     txnouttype whichType;
+    const CTxOut& txout = block.IsProofOfStake()? block.vtx[1].vout[1] : block.vtx[0].vout[0];
 
-    if(block.IsProofOfStake())
-    {
-        const CTxOut& txout = block.vtx[1].vout[1];
-
-        if (!Solver(txout.scriptPubKey, whichType, vSolutions))
-            return false;
-        if (whichType == TX_PUBKEY)
-        {
-            valtype& vchPubKey = vSolutions[0];
-            CPubKey key(vchPubKey);
-            if (block.vchBlockSig.empty())
-                return false;
-            return key.Verify(block.GetHash(), block.vchBlockSig);
-        }
+    if (!Solver(txout.scriptPubKey, whichType, vSolutions)) {
+        LogPrintf("Bad Solver!\n");
+        return false;
     }
-    else
+    if (whichType == TX_PUBKEY)
     {
-        for(unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
-        {
-            const CTxOut& txout = block.vtx[0].vout[i];
-
-            if (!Solver(txout.scriptPubKey, whichType, vSolutions))
-                return false;
-
-            if (whichType == TX_PUBKEY)
-            {
-                // Verify
-                valtype& vchPubKey = vSolutions[0];
-                CPubKey key(vchPubKey);
-                if (block.vchBlockSig.empty())
-                    continue;
-                if(!key.Verify(block.GetHash(), block.vchBlockSig))
-                    continue;
-
-                return true;
-            }
+        valtype& vchPubKey = vSolutions[0];
+        CPubKey key(vchPubKey);
+        if (block.vchBlockSig.empty()) {
+            LogPrintf("Empty Sig!\n");
+            return false;
         }
+        return key.Verify(block.GetHash(), block.vchBlockSig);
     }
     return false;
 }

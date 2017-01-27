@@ -132,7 +132,7 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
 
     // ppcoin: if coinstake available add coinstake tx
     static int64_t nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
-    
+
     if (fProofOfStake)  // attempt to find a coinstake
     {
         pblock->nBits = GetNextTargetRequired(pindexPrev, true);
@@ -140,12 +140,13 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
         int64_t nSearchTime = GetAdjustedTime(); // search to current time
         if (nSearchTime > nLastCoinStakeSearchTime)
         {
-			// printf(">>> OK1\n");
             if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake))
             {
-				if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime())))
-                {   // make sure coinstake would meet timestamp protocol
+                if (txCoinStake.nTime >= max(pindexPrev->GetMedianTimePast()+1, pindexPrev->GetBlockTime() - GetClockDrift(GetAdjustedTime())))
+                {
+                    // make sure coinstake would meet timestamp protocol
                     // as it would be the same as the block timestamp
+                    LogPrintf("CoinStake Created!\n");
                     txNew.vout[0].SetEmpty();
                     txNew.nTime = txCoinStake.nTime;
                     pblock->vtx.push_back(txCoinStake);
@@ -360,10 +361,11 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
         if (pblock->IsProofOfWork())
         {
             txNew.vout[0].nValue = GetProofOfWorkReward(nHeight, nFees, pindexPrev->GetBlockHash());
-            txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
-            pblock->vtx[0] = txNew;
             pblocktemplate->vTxFees[0] = -nFees;
         }
+        txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
+        pblock->vtx[0] = txNew;
+
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
         if (pblock->IsProofOfStake())
@@ -374,12 +376,13 @@ CBlockTemplate* CreateNewBlock(CWallet* pwallet, const CScript& scriptPubKeyIn, 
             UpdateTime(pblock, pindexPrev);
         pblock->nNonce         = 0;
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
+
         CBlockIndex indexDummy(*pblock);
         indexDummy.pprev = pindexPrev;
         indexDummy.nHeight = pindexPrev->nHeight + 1;
         CCoinsViewCache viewNew(pcoinsTip);
         CValidationState state;
-        if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
+        if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true, false))
             throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
     }
 
@@ -414,6 +417,7 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 //
 double dHashesPerSec = 0.0;
 int64_t nHPSTimerStart = 0;
+static bool fGenerateBitcoins = false;
 
 //
 // ScanHash scans nonces looking for a hash with at least some zero bits.
@@ -421,7 +425,7 @@ int64_t nHPSTimerStart = 0;
 // rebuilt and nNonce starts over at zero.
 //
 /*
-/*bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash)
+bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash)
 {
     // Write the first 76 bytes of the block header to a double-SHA256 state.
     CHash256 hasher;
@@ -448,7 +452,8 @@ int64_t nHPSTimerStart = 0;
         if ((nNonce & 0xfff) == 0)
             boost::this_thread::interruption_point();
     }
-}*/
+}
+*/
 
 CBlockTemplate* CreateNewBlockWithKey(CWallet* pwallet, CReserveKey& reservekey, CBlockIndex*& pindexPrev, bool fProofOfStake)
 {
@@ -501,21 +506,23 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-            nLastCoinStakeSearchInterval = 0;
     try {
         while (true) {
             if (Params().MiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
-                while (vNodes.empty()|| IsInitialBlockDownload() || pwallet->IsLocked())
+                while (vNodes.empty() || IsInitialBlockDownload() || pwallet->IsLocked())
+                {
+                    nLastCoinStakeSearchInterval = 0;
                     MilliSleep(1000);
+                }
             }
 
             //
             // Create new block
             //
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            CBlockIndex* pindexPrev;
+            CBlockIndex* pindexPrev = chainActive.Tip();
 
             auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(pwallet, reservekey, pindexPrev, fProofOfStake));
             if (!pblocktemplate.get())
@@ -528,7 +535,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 // ppcoin: if proof-of-stake block found then process block
                 if (pblock->IsProofOfStake())
                 {
-                    if (SignBlock(*pwallet, *pblock))
+                    if (!SignBlock(*pwallet, *pblock))
                         continue;
                     LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().GetHex());
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
@@ -641,6 +648,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                     break;  // need to update coinbase timestamp
             }
         }
+        scrypt_buffer_free(scratchbuf);
     }
 
     catch (boost::thread_interrupted)
@@ -655,6 +663,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, bool fProofOfStake)
 {
     static boost::thread_group* minerThreads = NULL;
+    fGenerateBitcoins = fGenerate;
 
     int nThreads = GetArg("-genproclimit", -1);
     if (nThreads < 0) {
@@ -681,5 +690,3 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, bool fProofOfStake)
 }
 
 #endif
-
-

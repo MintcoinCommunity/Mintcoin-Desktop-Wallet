@@ -375,7 +375,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
         nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-        CBlockIndex* pindexPrevNew;
+        CBlockIndex* pindexPrevNew = chainActive.Tip();
         nStart = GetTime();
 
         // Create new block

@@ -1984,23 +1984,25 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
     static unsigned int nStakeSplitAge = (60 * 60 * 24 * 30);
-	const CBlockIndex* pIndex0 = GetLastBlockIndex(chainActive.Tip(), false);
+    const CBlockIndex* pIndex0 = GetLastBlockIndex(chainActive.Tip(), false);
     int64_t nCombineThreshold = 0;
-	if(pIndex0->pprev)
-		nCombineThreshold = GetProofOfWorkReward(pIndex0->nHeight, minTxFee.GetFeePerK(), pIndex0->pprev->GetBlockHash()) / 3;
+    if(pIndex0->pprev)
+        nCombineThreshold = GetProofOfWorkReward(pIndex0->nHeight, minTxFee.GetFeePerK(), pIndex0->pprev->GetBlockHash()) / 3;
 
     CMutableTransaction txNew;
     txNew.nTime = GetAdjustedTime();
-    
+
     uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
     txNew.vin.clear();
     txNew.vout.clear();
+
     // Mark coin stake transaction
     CScript scriptEmpty;
     scriptEmpty.clear();
     txNew.vout.push_back(CTxOut(0, scriptEmpty));
+
     // Choose coins to use
     int64_t nBalance = GetBalance();
     int64_t nReserveBalance = 0;
@@ -2024,42 +2026,41 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     {
         uint256 blockHash;
         CTransaction tx;
-		{
-		    LOCK2(cs_main, cs_wallet);
-			if (!pcoinsTip->HaveCoins(pcoin.first->GetHash()))
-				continue;
+    {
+        LOCK2(cs_main, cs_wallet);
+        if (!pcoinsTip->HaveCoins(pcoin.first->GetHash()))
+            continue;
             ::GetTransaction(pcoin.first->GetHash(), tx, blockHash, true);
-		}
-        
+    }
 
-        // Read block header
-        CBlock block;
+    // Read block header
+    CBlock block;
 
-		{
-		    LOCK2(cs_main, cs_wallet);
-			if (!ReadBlockFromDisk(block, mapBlockIndex[blockHash]))
-				continue;
-		}
+    {
+        LOCK2(cs_main, cs_wallet);
+        if (!ReadBlockFromDisk(block, mapBlockIndex[blockHash]))
+        continue;
+    }
 
-        static int nMaxStakeSearchInterval = 15;
-		
-		// printf(">> block.GetBlockTime() = %d, nStakeMinAge = %d, txNew.nTime = %d\n", block.GetBlockTime(), nStakeMinAge,txNew.nTime); 
-        if (block.GetBlockTime() + Params().StakeMinAge() > txNew.nTime - nMaxStakeSearchInterval)
-            continue; // only count coins meeting min age requirement
+    static int nMaxStakeSearchInterval = 15;
 
-        bool fKernelFound = false;
-        for (unsigned int n=0; n<min(nSearchInterval,(int64_t)nMaxStakeSearchInterval) && !fKernelFound; n++)
+    // printf(">> block.GetBlockTime() = %d, nStakeMinAge = %d, txNew.nTime = %d\n", block.GetBlockTime(), nStakeMinAge,txNew.nTime);
+    if (block.GetBlockTime() + Params().StakeMinAge() > txNew.nTime - nMaxStakeSearchInterval)
+        continue; // only count coins meeting min age requirement
+
+    bool fKernelFound = false;
+    for (unsigned int n=0; n<min(nSearchInterval,(int64_t)nMaxStakeSearchInterval) && !fKernelFound; n++)
+    {
+        // printf(">> In.....\n");
+        // Search backward in time from the given txNew timestamp
+        // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
+        uint256 hashProofOfStake = 0;
+        COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
+        if (CheckStakeKernelHash(nBits, block, block.GetTxOffset(tx), *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake))
         {
-			// printf(">> In.....\n");
-            // Search backward in time from the given txNew timestamp 
-            // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
-            uint256 hashProofOfStake = 0;
-            COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
-            if (CheckStakeKernelHash(nBits, block, block.GetTxOffset(tx), *pcoin.first, prevoutStake, txNew.nTime - n, hashProofOfStake))
-            {
-               // Found a kernel
-                if (fDebug && GetBoolArg("-printcoinstake", false))
-                    printf("CreateCoinStake : kernel found\n");
+           // Found a kernel
+            if (fDebug && GetBoolArg("-printcoinstake", false))
+                LogPrintf("CreateCoinStake : kernel found\n");
                 vector<valtype> vSolutions;
                 txnouttype whichType;
                 CScript scriptPubKeyOut;
@@ -2067,15 +2068,15 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 if (!Solver(scriptPubKeyKernel, whichType, vSolutions))
                 {
                     if (fDebug && GetBoolArg("-printcoinstake", false))
-                        printf("CreateCoinStake : failed to parse kernel\n");
+                        LogPrintf("CreateCoinStake : failed to parse kernel\n");
                     break;
                 }
                 if (fDebug && GetBoolArg("-printcoinstake", false))
-                    printf("CreateCoinStake : parsed kernel type=%d\n", whichType);
+                    LogPrintf("CreateCoinStake : parsed kernel type=%d\n", whichType);
                 if (whichType != TX_PUBKEY && whichType != TX_PUBKEYHASH)
                 {
                     if (fDebug && GetBoolArg("-printcoinstake", false))
-                        printf("CreateCoinStake : no support for kernel type=%d\n", whichType);
+                        LogPrintf("CreateCoinStake : no support for kernel type=%d\n", whichType);
                     break;  // only support pay to public key and pay to address
                 }
                 if (whichType == TX_PUBKEYHASH) // pay to address type
@@ -2085,7 +2086,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     if (!keystore.GetKey(uint160(vSolutions[0]), key))
                     {
                         if (fDebug && GetBoolArg("-printcoinstake", false))
-                            printf("CreateCoinStake : failed to get key for kernel type=%d\n", whichType);
+                            LogPrintf("CreateCoinStake : failed to get key for kernel type=%d\n", whichType);
                         break;  // unable to find corresponding public key
                     }
                     scriptPubKeyOut << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
@@ -2093,11 +2094,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 else
                     scriptPubKeyOut = scriptPubKeyKernel;
 
-                txNew.nTime -= n; 
+                txNew.nTime -= n;
                 txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
                 nCredit += pcoin.first->vout[pcoin.second].nValue;
 
-				// printf(">> Wallet: CreateCoinStake: nCredit = %d\n", nCredit);
+                // printf(">> Wallet: CreateCoinStake: nCredit = %d\n", nCredit);
 
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
@@ -2105,7 +2106,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
 
                 if (fDebug && GetBoolArg("-printcoinstake", false))
-                    printf("CreateCoinStake : added kernel type=%d\n", whichType);
+                    LogPrintf("CreateCoinStake : added kernel type=%d\n", whichType);
                 fKernelFound = true;
                 break;
             }
@@ -2114,10 +2115,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             break; // if kernel is found stop searching
     }
     if (nCredit == 0 || nCredit > nBalance - nReserveBalance)
-	{
-		// printf(">> Wallet: CreateCoinStake: nCredit = %d, nBalance = %d, nReserveBalance = %d\n", nCredit, nBalance, nReserveBalance);
+    {
+        // printf(">> Wallet: CreateCoinStake: nCredit = %d, nBalance = %d, nReserveBalance = %d\n", nCredit, nBalance, nReserveBalance);
         return false;
-	}
+    }
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
@@ -2166,7 +2167,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             txNew.vout[2].nValue = nCredit - nMinFee - txNew.vout[1].nValue;
         }
         else
+        {
             txNew.vout[1].nValue = nCredit - nMinFee;
+        }
 
         // Sign
         int nIn = 0;
@@ -2190,8 +2193,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         else
         {
             if (fDebug && GetBoolArg("-printfee", false))
-                printf("CreateCoinStake : fee for coinstake %s\n", FormatMoney(nMinFee).c_str());
-            //LogPrintf("CreateCoinStake : fee for coinstake %s\n", FormatMoney((const CAmount)nMinFee));
+                LogPrintf("CreateCoinStake : fee for coinstake %s\n", FormatMoney(nMinFee).c_str());
+                //LogPrintf("CreateCoinStake : fee for coinstake %s\n", FormatMoney((const CAmount)nMinFee));
             break;
         }
     }
@@ -2674,12 +2677,12 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
         const CCoins* dbCoins = pcoinsTip->AccessCoins(pcoin->GetHash());
         if (!dbCoins)
             continue;
-        
+
         for (unsigned int n=0; n < pcoin->vout.size(); n++)
         {
             if (IsMine(pcoin->vout[n]) && IsSpent(wtxid, n) && (dbCoins->vout.size() <= n || dbCoins->vout[n].IsNull()))
             {
-                printf("FixSpentCoins found lost coin %sppc %s[%d], %s\n",
+                LogPrintf("FixSpentCoins found lost coin %sppc %s[%d], %s\n",
                     FormatMoney(pcoin->vout[n].nValue).c_str(), pcoin->GetHash().ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
                 nMismatchFound++;
                 nBalanceInQuestion += pcoin->vout[n].nValue;
@@ -2690,7 +2693,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
             }
             else if (IsMine(pcoin->vout[n]) && !IsSpent(wtxid, n) && (dbCoins->vout.size() > n && true))
             {
-                printf("FixSpentCoins found spent coin %sppc %s[%d], %s\n",
+                LogPrintf("FixSpentCoins found spent coin %sppc %s[%d], %s\n",
                     FormatMoney(pcoin->vout[n].nValue).c_str(), pcoin->GetHash().ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
                 nMismatchFound++;
                 nBalanceInQuestion += pcoin->vout[n].nValue;
@@ -3069,4 +3072,3 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree, bool fRejectAbsurdFee)
     CValidationState state;
     return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL, fRejectAbsurdFee);
 }
-
