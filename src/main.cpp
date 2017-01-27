@@ -697,7 +697,7 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 /**
  * Check transaction inputs to mitigate two
  * potential denial-of-service attacks:
- * 
+ *
  * 1. scriptSigs with extra data stuffed into them,
  *    not consumed by scriptPubKey (or P2SH script)
  * 2. P2SH scripts with a crazy number of expensive
@@ -1452,8 +1452,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
             const CCoins *coins = inputs.AccessCoins(prevout.hash);
             assert(coins);
 
-			int nMinConfirmations = (GetAdjustedTime() > FORK_TIME ? Params().CoinbaseMaturity() + 10 : Params().CoinbaseMaturity());
-            
+        int nMinConfirmations = (GetAdjustedTime() > FORK_TIME ? Params().CoinbaseMaturity() + 10 : Params().CoinbaseMaturity());
+
             // If prev is coinbase or coinstake, check that it's matured
             if (coins->IsCoinBase() || coins->IsCoinStake()) {
                 if (nSpendHeight - coins->nHeight < nMinConfirmations)
@@ -2066,7 +2066,7 @@ bool static DisconnectTip(CValidationState &state) {
     return true;
 }
 
-/** 
+/**
  * Connect a new block to chainActive. pblock is either NULL or a pointer to a CBlock
  * corresponding to pindexNew, to bypass loading it again from disk.
  */
@@ -2670,7 +2670,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
     CBlockIndex *&pindex = *ppindex;
     uint256 hash = block.GetHash();
-    
+
     if (!AcceptBlockHeader(block, state, &pindex))
         return false;
 
@@ -2844,7 +2844,7 @@ bool ProcessNewBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, bool
         // Limited duplicity on stake: prevents block flood attack
         if (pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
             return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
-            
+
         // ppcoin: verify hash target and signature of coinstake tx
         if (pblock->IsProofOfStake())
         {
@@ -3305,7 +3305,7 @@ bool static LoadBlockIndexDB()
     PruneBlockIndexCandidates();
 
     LogPrintf("LoadBlockIndexDB(): hashBestChain=%s  height=%d  trust=%s  date=%s progress=%f\n",
-		chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), uint256(chainActive.Tip()->nChainTrust).ToString().c_str(),
+        chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), uint256(chainActive.Tip()->nChainTrust).ToString().c_str(),
         DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
         Checkpoints::GuessVerificationProgress(chainActive.Tip()));
 
@@ -3313,7 +3313,7 @@ bool static LoadBlockIndexDB()
     if (!pblocktree->ReadSyncCheckpoint(Checkpoints::hashSyncCheckpoint))
         return error("LoadBlockIndexDB() : hashSyncCheckpoint not loaded");
     LogPrintf("%s: synchronized checkpoint %s\n", __func__, Checkpoints::hashSyncCheckpoint.ToString().c_str());
-    
+
     return true;
 }
 
