@@ -1,11 +1,11 @@
 *.tar.gz
 
 *.exe
-src/bitcoin
-src/bitcoind
-src/bitcoin-cli
-src/test/test_bitcoin
-src/qt/test/test_bitcoin-qt
+src/mintcoin
+src/mintcoind
+src/mintcoin-cli
+src/test/test_mintcoin
+src/qt/test/test_mintcoin-qt
 
 # autoreconf
 Makefile.in
@@ -72,11 +72,11 @@ doc/doxygen/
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-bitcoin-qt
-Bitcoin-Qt.app
+MintCoin-Qt
+MintCoin-Qt.app
 
 /src/qt/MintCoin-qt
-/src/bitcoind
+/src/mintcoind
 /Makefile.am.user
 /src/bitcoin-config.h.in~
 /src/qt/qrc_bitcoin.cpp
@@ -88,4 +88,4 @@ Bitcoin-Qt.app
 /src/config/bitcoin-config.h.in
 /src/config/stamp-h1
 /src/config/bitcoin-config.h.in~
-/src/bitcoin-tx
+/src/mintcoin-tx
