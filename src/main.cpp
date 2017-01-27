@@ -4036,8 +4036,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             bool fAlreadyHave = AlreadyHave(inv);
             LogPrint("net", "got inv: %s  %s peer=%d\n", inv.ToString(), fAlreadyHave ? "have" : "new", pfrom->id);
 
-            if (!fAlreadyHave && !fImporting && !fReindex && inv.type != MSG_BLOCK)
-                pfrom->AskFor(inv);
+            if (!fAlreadyHave && !fImporting && !fReindex && inv.type != MSG_BLOCK) {
+                LogPrint("net", "Asking for non-block inv data. peer=%d\n", pfrom->GetId());
+                pfrom->AskFor(inv, IsInitialBlockDownload());
+            }
 
             if (inv.type == MSG_BLOCK) {
                 UpdateBlockAvailability(pfrom->GetId(), inv.hash);

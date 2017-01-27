@@ -2042,7 +2042,7 @@ CNode::~CNode()
     GetNodeSignals().FinalizeNode(GetId());
 }
 
-void CNode::AskFor(const CInv& inv)
+void CNode::AskFor(const CInv& inv, bool fImmediateRetry)
 {
     if (mapAskFor.size() > MAPASKFOR_MAX_SZ || setAskFor.size() > SETASKFOR_MAX_SZ)
         return;
@@ -2066,8 +2066,12 @@ void CNode::AskFor(const CInv& inv)
     nNow = std::max(nNow, nLastTime);
     nLastTime = nNow;
 
-    // Each retry is 2 minutes after the last
-    nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
+    // Retry immediately if during initial sync, otherwise retry
+    // every 2 minutes
+    if (fImmediateRetry)
+        nRequestTime = nNow;
+    else
+        nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
     if (it != mapAlreadyAskedFor.end())
         mapAlreadyAskedFor.update(it, nRequestTime);
     else
