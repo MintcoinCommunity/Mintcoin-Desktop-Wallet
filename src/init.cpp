@@ -320,6 +320,7 @@ std::string HelpMessage(HelpMessageMode mode)
 
 #ifdef ENABLE_WALLET
     strUsage += "\n" + _("Wallet options:") + "\n";
+    strUsage += "  -staking               " + _("Enable PoS Minting (default: true)") + "\n";
     strUsage += "  -disablewallet         " + _("Do not load the wallet and disable wallet RPC calls") + "\n";
     if (GetBoolArg("-help-debug", false))
         strUsage += "  -mintxfee=<amt>        " + strprintf(_("Fees (in MINT/Kb) smaller than this are considered zero fee for transaction creation (default: %s)"), FormatMoney(CWallet::minTxFee.GetFeePerK())) + "\n";
@@ -1315,8 +1316,11 @@ bool AppInit2(boost::thread_group& threadGroup)
         // Run a thread to flush wallet periodically
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
 
-		// ppcoin: mint proof-of-stake blocks in the background
-	    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "stake", &ThreadStakeMinter));
+		    // ppcoin: mint proof-of-stake blocks in the background
+        if (!GetBoolArg("-staking", true))
+            LogPrintf("Minting disabled\n");
+        else
+	          threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "stake", &ThreadStakeMinter));
     }
 #endif
 
