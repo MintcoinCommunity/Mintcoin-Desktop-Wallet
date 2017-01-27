@@ -58,9 +58,4 @@ static const int MEMPOOL_GD_VERSION = 60002;
 std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
 
-#define DISPLAY_VERSION_MAJOR       2
-#define DISPLAY_VERSION_MINOR       0
-#define DISPLAY_VERSION_REVISION    0
-#define DISPLAY_VERSION_BUILD       1
-
 #endif // BITCOIN_VERSION_H
