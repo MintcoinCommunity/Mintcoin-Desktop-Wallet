@@ -36,6 +36,7 @@ static const int MIN_PEER_PROTO_VERSION_FORK = 60007;
 
 //! In this version, 'getheaders' was introduced.
 static const int GETHEADERS_VERSION = 31800;
+static const int MINT_HDF_SYNC_VERSION = 60008;
 
 //! disconnect from peers older than this proto version
 static const int MIN_PEER_PROTO_VERSION = GETHEADERS_VERSION;
