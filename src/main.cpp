@@ -377,8 +377,10 @@ CBlockIndex* LastCommonAncestor(CBlockIndex* pa, CBlockIndex* pb) {
 /** Update pindexLastCommonBlock and add not-in-flight missing successors to vBlocks, until it has
  *  at most count entries. */
 void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBlockIndex*>& vBlocks, NodeId& nodeStaller) {
-    if (count == 0)
+    if (count == 0) {
+        LogPrint("net", "FindNextBlocksToDownload: 0 blocks requested!\n");
         return;
+    }
 
     vBlocks.reserve(vBlocks.size() + count);
     CNodeState *state = State(nodeid);
@@ -387,8 +389,11 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
     // Make sure pindexBestKnownBlock is up to date, we'll need it.
     ProcessBlockAvailability(nodeid);
 
-    if (state->pindexBestKnownBlock == NULL || state->pindexBestKnownBlock->nChainTrust < chainActive.Tip()->nChainTrust) {
+    if (state->pindexBestKnownBlock == NULL) {
         // This peer has nothing interesting.
+        LogPrint("net", "FindNextBlocksToDownload: Peer %d has nothing of interest.\n",
+          nodeid);
+
         return;
     }
 
@@ -430,6 +435,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
         BOOST_FOREACH(CBlockIndex* pindex, vToFetch) {
             if (!pindex->IsValid(BLOCK_VALID_TREE)) {
                 // We consider the chain that this peer is on invalid.
+                LogPrint("net", "FindNextBlocksToDownload: Peer %d is on invalid chain!\n", nodeid);
                 return;
             }
             if (pindex->nStatus & BLOCK_HAVE_DATA) {
@@ -443,6 +449,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
                         // We aren't able to fetch anything, but we would be if the download window was one larger.
                         nodeStaller = waitingfor;
                     }
+                    LogPrint("net", "FindNextBlocksToDownload: reached end of download window!\n");
                     return;
                 }
                 vBlocks.push_back(pindex);
@@ -2754,7 +2761,10 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     }
 
     // ppcoin: check pending sync-checkpoint
-    Checkpoints::AcceptPendingSyncCheckpoint(state);
+    if (!nHeight > chainActive.Tip()->nHeight + 1) {
+        LogPrintf("Checking block against pending sync-checkpoint...\n");
+        Checkpoints::AcceptPendingSyncCheckpoint(state);
+    }
 
     return true;
 }
@@ -4057,6 +4067,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                     if (chainActive.Tip()->GetBlockTime() > GetAdjustedTime() - Params().StakeTargetSpacing() * 20 &&
                         nodestate->nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
                         vToFetch.push_back(inv);
+                        LogPrint("net", "Marking inv block %s as InFlight from peer %d\n",
+                                 inv.hash.ToString(),
+                                 pfrom->GetId());
                         // Mark block as in flight already, even though the actual "getdata" message only goes out
                         // later (within the same cs_main lock, though).
                         MarkBlockAsInFlight(pfrom->GetId(), inv.hash);
@@ -4379,6 +4392,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         ProcessNewBlock(state, pfrom, &block, pfrom->fWhitelisted, NULL);
         int nDoS;
         if (state.IsInvalid(nDoS)) {
+            LogPrint("net", "Rejected incoming block %s. peer=%d\n", inv.hash.ToString(), pfrom->GetId());
             pfrom->PushMessage("reject", strCommand, state.GetRejectCode(),
                                state.GetRejectReason(), inv.hash);
             if (nDoS > 0) {
@@ -4953,6 +4967,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         //
         vector<CInv> vGetData;
         if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+            //LogPrint("net", "Lets get more blocks from peer %d...\n", pto->id);
             vector<CBlockIndex*> vToDownload;
             NodeId staller = -1;
             FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller);
@@ -4968,6 +4983,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     LogPrint("net", "Stall started peer=%d\n", staller);
                 }
             }
+        } else {
+            //LogPrint("net", "Cannot get any more blocks from peer %d!\n", pto->id);
+            //LogPrint("net", "nBlocksInFlight: %d\n", state.nBlocksInFlight);
         }
 
         //
