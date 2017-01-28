@@ -335,7 +335,7 @@ void BitcoinGUI::createActions(const NetworkStyle *networkStyle)
     quitAction->setMenuRole(QAction::QuitRole);
     checkWalletAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Run Check Wallet"), this);
     checkWalletAction->setStatusTip(tr("Run a scan to fix transactions"));
-    aboutAction = new QAction(networkStyle->getAppIcon(), tr("&About Bitcoin Core"), this);
+    aboutAction = new QAction(networkStyle->getAppIcon(), tr("&About MintCoin"), this);
     aboutAction->setStatusTip(tr("Show information about MintCoin"));
     aboutAction->setMenuRole(QAction::AboutRole);
 #if QT_VERSION < 0x050000
@@ -375,10 +375,10 @@ void BitcoinGUI::createActions(const NetworkStyle *networkStyle)
     usedReceivingAddressesAction->setStatusTip(tr("Show the list of used receiving addresses and labels"));
 
     openAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_FileIcon), tr("Open &URI..."), this);
-    openAction->setStatusTip(tr("Open a bitcoin: URI or payment request"));
+    openAction->setStatusTip(tr("Open a mintcoin: URI or payment request"));
 
     showHelpMessageAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&Command-line options"), this);
-    showHelpMessageAction->setStatusTip(tr("Show the Bitcoin Core help message to get a list with possible Bitcoin command-line options"));
+    showHelpMessageAction->setStatusTip(tr("Show the MintCoin help message to get a list with possible MintCoin command-line options"));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(checkWalletAction, SIGNAL(triggered()), this, SLOT(checkWallet()));
@@ -451,7 +451,7 @@ void BitcoinGUI::createMenuBar()
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
 
-    // QString ss("QMenuBar::item { background-color: #effbef; color: black }"); 
+    // QString ss("QMenuBar::item { background-color: #effbef; color: black }");
     // appMenuBar->setStyleSheet(ss);
 }
 
@@ -1032,7 +1032,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
         lockWalletToggleAction->setText(tr("&Unlock Wallet..."));
         lockWalletToggleAction->setToolTip(tr("Unlock wallet"));
         clientModel->getOptionsModel()->isLocked = true;
-        
+
         break;
     }
 }
