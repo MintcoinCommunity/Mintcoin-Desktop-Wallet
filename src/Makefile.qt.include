@@ -214,6 +214,9 @@ BITCOIN_QT_H = \
 RES_ICONS = \
   qt/res/icons/add.png \
   qt/res/icons/MintCoin.png \
+  qt/res/icons/MintCoin-16.png \
+  qt/res/icons/MintCoin-128.png \
+  qt/res/icons/MintCoin-1024.png \
   qt/res/icons/address-book.png \
   qt/res/icons/MintCoin.ico \
   qt/res/icons/clock1.png \
@@ -249,6 +252,7 @@ RES_ICONS = \
   qt/res/icons/synced.png \
   qt/res/icons/transaction0.png \
   qt/res/icons/transaction2.png \
+  qt/res/icons/mining.png \
   qt/res/icons/transaction_conflicted.png \
   qt/res/icons/tx_inout.png \
   qt/res/icons/tx_input.png \
@@ -313,7 +317,7 @@ endif
 
 RES_IMAGES = \
   qt/res/images/about.png \
-  qt/res/images/splash.png
+  qt/res/images/wallet.png
 
 RES_MOVIES = $(wildcard qt/res/movies/spinner-*.png)
 
@@ -360,8 +364,8 @@ if ENABLE_WALLET
 qt_MintCoin_qt_LDADD += $(LIBBITCOIN_WALLET)
 endif
 qt_MintCoin_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) \
-  $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
-qt_MintCoin_qt_LDFLAGS = $(AM_LDFLAGS) $(QT_LDFLAGS)
+  $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
+qt_MintCoin_qt_LDFLAGS = $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 #locale/foo.ts -> locale/foo.qm
 QT_QM=$(QT_TS:.ts=.qm)

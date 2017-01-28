@@ -4,6 +4,7 @@
 src/mintcoin
 src/mintcoind
 src/mintcoin-cli
+src/mintcoin-tx
 src/test/test_mintcoin
 src/qt/test/test_mintcoin-qt
 
@@ -28,10 +29,9 @@ config.log
 config.status
 configure
 libtool
-src/bitcoin-config.h
-src/bitcoin-config.h.in
-src/build-aux/
-src/stamp-h1
+src/config/bitcoin-config.h
+src/config/bitcoin-config.h.in
+src/config/stamp-h1
 share/setup.nsi
 share/qt/Info.plist
 
@@ -43,11 +43,9 @@ src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
 
-doc/Doxyfile
-doc/doxygen/
-
 .deps
 .dirstamp
+.libs
 .*.swp
 *.*~*
 *.bak
@@ -69,23 +67,47 @@ doc/doxygen/
 *.json.h
 *.raw.h
 
+#libtool object files
+*.lo
+*.la
+
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-MintCoin-Qt
+MintCoin-qt
 MintCoin-Qt.app
 
-/src/qt/MintCoin-qt
-/src/mintcoind
-/Makefile.am.user
-/src/bitcoin-config.h.in~
-/src/qt/qrc_bitcoin.cpp
-/callgrind.out.3816
-/callgrind.out.4076
-/src/qt/qrc_bitcoin_locale.cpp
+# Unit-tests
+Makefile.test
+bitcoin-qt_test
+src/test/buildenv.py
 
-/src/config/bitcoin-config.h
-/src/config/bitcoin-config.h.in
-/src/config/stamp-h1
-/src/config/bitcoin-config.h.in~
-/src/mintcoin-tx
+# Resources cpp
+qrc_*.cpp
+
+# Qt creator
+*.pro.user
+
+# Mac specific
+.DS_Store
+build
+
+#lcov
+*.gcno
+/*.info
+test_bitcoin.coverage/
+total.coverage/
+coverage_percent.txt
+
+#build tests
+linux-coverage-build
+linux-build
+win32-build
+qa/pull-tester/run-bitcoind-for-test.sh
+qa/pull-tester/tests-config.sh
+qa/pull-tester/cache/*
+qa/pull-tester/test.*/*
+
+!src/leveldb*/Makefile
+
+/doc/doxygen/

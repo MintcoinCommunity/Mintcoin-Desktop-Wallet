@@ -4,9 +4,9 @@ SUBDIRS = src
 
 GZIP_ENV="-9n"
 
-MINTCOIND_BIN=$(top_builddir)/src/MintCoind$(EXEEXT)
+MINTCOIND_BIN=$(top_builddir)/src/mintcoind$(EXEEXT)
 MINTCOIN_QT_BIN=$(top_builddir)/src/qt/MintCoin-qt$(EXEEXT)
-MINTCOIN_CLI_BIN=$(top_builddir)/src/bitcoin-cli$(EXEEXT)
+MINTCOIN_CLI_BIN=$(top_builddir)/src/mintcoin-cli$(EXEEXT)
 MINTCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 
 OSX_APP=MintCoin-Qt.app
@@ -73,13 +73,13 @@ $(OSX_APP)/Contents/Resources/MintCoin.icns: $(OSX_INSTALLER_ICONS)
 	$(MKDIR_P) $(@D)
 	$(INSTALL) $< $@
 
-$(OSX_APP)/Contents/MacOS/MintCoin-Qt: $(BITCOIN_QT_BIN)
+$(OSX_APP)/Contents/MacOS/MintCoin-Qt: $(MINTCOIN_QT_BIN)
 	$(MKDIR_P) $(@D)
-	$(INSTALL_STRIP_PROGRAM)  $< $@
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM)  $< $@
 
 OSX_APP_BUILT=$(OSX_APP)/Contents/PkgInfo $(OSX_APP)/Contents/Resources/empty.lproj \
   $(OSX_APP)/Contents/Resources/bitcoin.icns $(OSX_APP)/Contents/Info.plist \
-  $(OSX_APP)/Contents/MacOS/Bitcoin-Qt
+  $(OSX_APP)/Contents/MacOS/MintCoin-Qt
 
 if BUILD_DARWIN
 $(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING)
@@ -100,7 +100,7 @@ appbundle: $(OSX_APP_BUILT)
 deploy: $(OSX_DMG)
 endif
 if TARGET_WINDOWS
-deploy: $(BITCOIN_WIN_INSTALLER)
+deploy: $(MINTCOIN_WIN_INSTALLER)
 endif
 
 if USE_LCOV
@@ -163,7 +163,7 @@ endif
 
 EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/pull-tester.sh $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING)
 
-CLEANFILES = $(OSX_DMG) $(BITCOIN_WIN_INSTALLER)
+CLEANFILES = $(OSX_DMG) $(MINTCOIN_WIN_INSTALLER)
 
 .INTERMEDIATE: $(COVERAGE_INFO)
 

@@ -1,3 +1,4 @@
+AM_CPPFLAGS =  $(INCLUDES)
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS)
 
 if EMBEDDED_LEVELDB
@@ -144,7 +145,7 @@ obj/build.h: FORCE
 libbitcoin_util_a-version.$(OBJEXT): obj/build.h
 
 # server: shared between bitcoind and bitcoin-qt
-libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
@@ -281,8 +282,9 @@ if TARGET_WINDOWS
 mintcoind_SOURCES += bitcoind-res.rc
 endif
 
-mintcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
+mintcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
 mintcoind_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoind_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 # mintcoin-cli binary #
 mintcoin_cli_LDADD = \
@@ -292,7 +294,8 @@ mintcoin_cli_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(BOOST_LIBS) \
   $(SSL_LIBS) \
-  $(CRYPTO_LIBS)
+  $(CRYPTO_LIBS) \
+  $(MINIUPNPC_LIBS)
 
 mintcoin_cli_SOURCES = \
   bitcoin-cli.cpp
@@ -309,14 +312,17 @@ mintcoin_tx_LDADD = \
 
   mintcoin_tx_LDADD += $(BOOST_LIBS) \
   $(SSL_LIBS) \
-  $(CRYPTO_LIBS)
+  $(CRYPTO_LIBS) \
+  $(MINIUPNPC_LIBS)
+
 mintcoin_tx_SOURCES = bitcoin-tx.cpp
 mintcoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
-#
+mintcoin_tx_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
 mintcoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
+mintcoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
