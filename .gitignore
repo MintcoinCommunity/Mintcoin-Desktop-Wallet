@@ -105,6 +105,7 @@ linux-build
 win32-build
 qa/pull-tester/run-bitcoind-for-test.sh
 qa/pull-tester/tests-config.sh
+qa/pull-tester/build-tests.sh
 qa/pull-tester/cache/*
 qa/pull-tester/test.*/*
 
