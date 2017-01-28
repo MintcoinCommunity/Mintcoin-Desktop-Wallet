@@ -3,3 +3,4 @@
 # IPv4 nodes (in old chainparams.cpp 0xDDCCBBAA format)
 #  n.b. when importing a new list, there is no need to use this format, just use IPv4 dotted addresses directly
 104.128.224.188
+109.235.67.175
