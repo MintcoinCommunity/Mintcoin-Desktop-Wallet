@@ -17,13 +17,13 @@ BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
             VALUE "CompanyName",        "MintCoin"
-            VALUE "FileDescription",    "mintcoind (MintCoin node with a JSON-RPC server)"
+            VALUE "FileDescription",    "mintcoin-tx (CLI MintCoin transaction editor utility)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "mintcoind"
+            VALUE "InternalName",       "mintcoin-tx"
             VALUE "LegalCopyright",     COPYRIGHT_STR
-            VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "MintCoind.exe"
-            VALUE "ProductName",        "MintCoind"
+            VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
+            VALUE "OriginalFilename",   "mintcoin-tx.exe"
+            VALUE "ProductName",        "mintcoin-tx"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

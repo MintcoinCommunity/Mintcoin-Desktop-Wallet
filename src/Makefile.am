@@ -264,6 +264,14 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # Mintcoind binary #
+mintcoind_SOURCES = mintcoind.cpp
+mintcoind_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoind_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+if TARGET_WINDOWS
+mintcoind_SOURCES += bitcoind-res.rc
+endif
+
 mintcoind_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
@@ -272,57 +280,49 @@ mintcoind_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
+
 if ENABLE_WALLET
 mintcoind_LDADD += libbitcoin_wallet.a
 endif
-mintcoind_SOURCES = mintcoind.cpp
-#
-
-if TARGET_WINDOWS
-mintcoind_SOURCES += bitcoind-res.rc
-endif
 
 mintcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
-mintcoind_CPPFLAGS = $(BITCOIN_INCLUDES)
-mintcoind_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+#
 
 # mintcoin-cli binary #
+mintcoin_cli_SOURCES = bitcoin-cli.cpp
+mintcoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+if TARGET_WINDOWS
+mintcoin_cli_SOURCES += bitcoin-cli-res.rc
+endif
+
 mintcoin_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_CRYPTO) \
-  $(BOOST_LIBS) \
-  $(SSL_LIBS) \
-  $(CRYPTO_LIBS) \
-  $(MINIUPNPC_LIBS)
+  $(LIBBITCOIN_CRYPTO)
 
-mintcoin_cli_SOURCES = \
-  bitcoin-cli.cpp
-mintcoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoin_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
 #
 
 # mintcoin-tx binary #
+mintcoin_tx_SOURCES = bitcoin-tx.cpp
+mintcoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
+mintcoin_tx_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+if TARGET_WINDOWS
+bitcoin_tx_sources += bitcoin-tx-res.rc
+endif
+
 mintcoin_tx_LDADD = \
   $(LIBBITCOIN_UNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-
-  mintcoin_tx_LDADD += $(BOOST_LIBS) \
-  $(SSL_LIBS) \
-  $(CRYPTO_LIBS) \
-  $(MINIUPNPC_LIBS)
-
-mintcoin_tx_SOURCES = bitcoin-tx.cpp
-mintcoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
-mintcoin_tx_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-
-if TARGET_WINDOWS
-mintcoin_cli_SOURCES += bitcoin-cli-res.rc
-endif
-mintcoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+mintcoin_tx_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
+#
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
