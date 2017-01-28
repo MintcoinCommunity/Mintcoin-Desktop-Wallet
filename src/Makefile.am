@@ -312,7 +312,7 @@ mintcoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
 mintcoin_tx_LDFLAGS = $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-bitcoin_tx_sources += bitcoin-tx-res.rc
+mintcoin_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
 mintcoin_tx_LDADD = \
