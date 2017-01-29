@@ -452,9 +452,9 @@ bool CheckProofOfStake(CValidationState &state, const CTransaction& tx, unsigned
     CTransaction txPrev;
     uint256 blockHash;
     if (!GetTransaction(txin.prevout.hash, txPrev, blockHash,true))
-        return state.DoS(1, error("CheckProofOfStake() : INFO: read txPrev failed"));  // previous transaction not in main chain, may occur during initial download
+        return state.DoS(0, error("CheckProofOfStake() : INFO: read txPrev failed"));  // previous transaction not in main chain, may occur during initial download
     const CCoins *coins = pcoinsTip->AccessCoins(txin.prevout.hash);
-    
+
     // Verify signature
     if (!coins || !CScriptCheck(*coins, tx, 0, SCRIPT_VERIFY_P2SH, false)())
         return state.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str()));
