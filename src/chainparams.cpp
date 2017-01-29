@@ -223,7 +223,7 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("mint-test.seed.fuzzbawls.pw", "mint.seed.fuzzbawls.pw"));
+        vSeeds.push_back(CDNSSeedData("mint-test.seed.fuzzbawls.pw", "mint-test.seed.fuzzbawls.pw"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(111);
         base58Prefixes[SCRIPT_ADDRESS] = list_of(196);
