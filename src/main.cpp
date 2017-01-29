@@ -2602,6 +2602,26 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     return true;
 }
 
+bool CheckWork(const CBlock block, CValidationState &state, CBlockIndex * const pindexPrev)
+{
+    // ppcoin: verify hash target and signature of coinstake tx
+    if (block.IsProofOfStake())
+    {
+        uint256 hashProofOfStake = 0;
+        uint256 hash = block.GetHash();
+
+        if (!CheckProofOfStake(state, block.vtx[1], block.nBits, hashProofOfStake))
+        {
+            LogPrintf("WARNING: ProcessBlock(): check proof-of-stake failed for block %s\n", hash.ToString().c_str());
+            return false; // do not error here as we expect this during initial block download
+        }
+        if (!mapProofOfStake.count(hash)) // add to mapProofOfStake
+            mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
+    }
+
+    return true;
+}
+
 bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex)
 {
     AssertLockHeld(cs_main);
@@ -2671,6 +2691,20 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     CBlockIndex *&pindex = *ppindex;
     uint256 hash = block.GetHash();
 
+    // Get prev block index
+    CBlockIndex* pindexPrev = NULL;
+    if (block.GetHash() != Params().HashGenesisBlock()) {
+        BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+        if (mi == mapBlockIndex.end())
+            return state.DoS(0, error("%s : prev block %s not found", __func__, block.hashPrevBlock.ToString().c_str()), 0, "bad-prevblk");
+        pindexPrev = (*mi).second;
+        if (pindexPrev->nStatus & BLOCK_FAILED_MASK)
+            return state.DoS(100, error("%s : prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
+    }
+
+    if(!CheckWork(block, state, pindexPrev))
+      return false;
+
     if (!AcceptBlockHeader(block, state, &pindex))
         return false;
 
@@ -2704,7 +2738,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     }
 
     int nHeight = pindex->nHeight;
-	bool fProofOfStake = block.IsProofOfStake();
+    bool fProofOfStake = block.IsProofOfStake();
 
     if (fProofOfStake){
         pindex->SetProofOfStake(block);
@@ -2730,9 +2764,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
     // Enforce rule that the coinbase starts with serialized block height
     CScript expect = CScript() << nHeight;
-    if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
-        !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
-		pindex->nStatus |= BLOCK_FAILED_VALID;
+    if (block.vtx[0].vin[0].scriptSig.size() < expect.size() || !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
+        pindex->nStatus |= BLOCK_FAILED_VALID;
         return state.DoS(100, error("%s : block height mismatch in coinbase", __func__),
                                      REJECT_INVALID, "bad-cb-height");
     }
@@ -2842,34 +2875,19 @@ void CBlockIndex::BuildSkip()
 bool ProcessNewBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, bool fForceProcessing, CDiskBlockPos *dbp)
 {
     uint256 hash = pblock->GetHash();
+    // ppcoin: check proof-of-stake
+    // Limited duplicity on stake: prevents block flood attack
+    if (pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
+        return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
 
+    while(true)
     {
         LOCK(cs_main);
         bool fRequested = MarkBlockAsReceived(pblock->GetHash());
         fRequested |= fForceProcessing;
 
-        // ppcoin: check proof-of-stake
-        // Limited duplicity on stake: prevents block flood attack
-        if (pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !Checkpoints::WantedByPendingSyncCheckpoint(hash))
-            return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
-
-        // ppcoin: verify hash target and signature of coinstake tx
-        if (pblock->IsProofOfStake())
-        {
-            uint256 hashProofOfStake = 0;
-            if (!CheckProofOfStake(state, pblock->vtx[1], pblock->nBits, hashProofOfStake))
-            {
-                LogPrintf("WARNING: ProcessBlock(): check proof-of-stake failed for block %s\n", hash.ToString().c_str());
-                return false; // do not error here as we expect this during initial block download
-            }
-            if (!mapProofOfStake.count(hash)) // add to mapProofOfStake
-                mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
-        }
-
-        // ppcoin: ask for pending sync-checkpoint if any
-        if (!IsInitialBlockDownload())
-            Checkpoints::AskForPendingSyncCheckpoint(pfrom);
-
+        if(!CheckBlock(*pblock, state))
+            return error("%s: CheckBlock FAILED", __func__);
 
         // Store to disk
         CBlockIndex *pindex = NULL;
@@ -2879,14 +2897,11 @@ bool ProcessNewBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, bool
         }
         if (!ret)
             return error("%s: AcceptBlock FAILED", __func__);
+        break;
     }
 
     if (!ActivateBestChain(state, pblock))
         return error("%s: ActivateBestChain failed", __func__);
-
-    // ppcoin: if responsible for sync-checkpoint send it
-    if (pfrom && !CSyncCheckpoint::strMasterPrivKey.empty())
-        Checkpoints::SendSyncCheckpoint(Checkpoints::AutoSelectSyncCheckpoint());
 
     return true;
 }
@@ -4386,9 +4401,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     {
         CBlock block;
         vRecv >> block;
-
-        CInv inv(MSG_BLOCK, block.GetHash());
+        uint256 hashBlock = block.GetHash();
+        CInv inv(MSG_BLOCK, hashBlock);
+        CBlockIndex* pindexPrev2 = mapBlockIndex[block.hashPrevBlock];
         LogPrint("net", "received block %s peer=%d\n", inv.hash.ToString(), pfrom->id);
+
+
 
         pfrom->AddInventoryKnown(inv);
 
