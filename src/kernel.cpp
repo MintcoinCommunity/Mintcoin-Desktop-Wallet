@@ -29,7 +29,7 @@ static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     (1100001, 0xda00a8efu )
     (1200001, 0x5514fb4du )
     (1300001, 0x5c64d001u )
-	;
+;
 
 // Get time weight
 int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd)
@@ -44,7 +44,7 @@ int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd)
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
-// might not find out about their coin age. Older transactions are 
+// might not find out about their coin age. Older transactions are
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
@@ -137,7 +137,7 @@ static int64_t GetStakeModifierSelectionIntervalSection(int nSection)
 {
     assert (nSection >= 0 && nSection < 64);
     int64_t a = Params().ModifierInterval() * 63 / (63 + ((63 - nSection) * (MODIFIER_INTERVAL_RATIO - 1)));
-	return a;
+    return a;
 }
 
 // Get stake modifier selection interval (in seconds)
@@ -145,9 +145,9 @@ static int64_t GetStakeModifierSelectionInterval()
 {
     int64_t nSelectionInterval = 0;
     for (int nSection=0; nSection<64; nSection++)
-	{
+    {
         nSelectionInterval += GetStakeModifierSelectionIntervalSection(nSection);
-	}
+    }
     return nSelectionInterval;
 }
 
@@ -209,7 +209,7 @@ static bool SelectBlockFromCandidates(
 // selected block of a given block group in the past.
 // The selection of a block is based on a hash of the block's proof-hash and
 // the previous stake modifier.
-// Stake modifier is recomputed at a fixed time interval instead of every 
+// Stake modifier is recomputed at a fixed time interval instead of every
 // block. This is to make it difficult for an attacker to gain control of
 // additional bits in the stake modifier, even after generating a chain of
 // blocks.
@@ -323,11 +323,11 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifi
                 return error("GetKernelStakeModifier() : reached best block %s at height %d from block %s",
                     pindex->GetBlockHash().ToString().c_str(), pindex->nHeight, hashBlockFrom.ToString().c_str());
             else
-			{
-				// LogPrintf(">> nStakeModifierTime = %d, pindexFrom->GetBlockTime() = %d, nStakeModifierSelectionInterval = %d\n",
-				// 	nStakeModifierTime, pindexFrom->GetBlockTime(), nStakeModifierSelectionInterval);
+            {
+                // LogPrintf(">> nStakeModifierTime = %d, pindexFrom->GetBlockTime() = %d, nStakeModifierSelectionInterval = %d\n",
+                // nStakeModifierTime, pindexFrom->GetBlockTime(), nStakeModifierSelectionInterval);
                 return false;
-			}
+            }
         }
         pindex = chainActive.Next(pindex);
         if (pindex->GeneratedStakeModifier())
@@ -347,13 +347,13 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifi
 // this ensures that the chance of getting a coinstake is proportional to the
 // amount of coin age one owns.
 // The reason this hash is chosen is the following:
-//   nStakeModifier: 
+//   nStakeModifier:
 //       (v0.3) scrambles computation to make it very difficult to precompute
 //              future proof-of-stake at the time of the coin's confirmation
 //       (v0.2) nBits (deprecated): encodes all past block timestamps
 //   txPrev.block.nTime: prevent nodes from guessing a good timestamp to
 //                       generate transaction for future advantage
-//   txPrev.offset: offset of txPrev inside block, to reduce the chance of 
+//   txPrev.offset: offset of txPrev inside block, to reduce the chance of
 //                  nodes generating coinstake at the same time
 //   txPrev.nTime: reduce the chance of nodes generating coinstake at the same
 //                 time
@@ -382,7 +382,7 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
     int64_t nTimeWeight = min((int64_t)nTimeTx - txPrev.nTime, (int64_t)Params().StakeMaxAge()) - Params().StakeMinAge();
     uint320 bnCoinDayWeight = uint320(nValueIn) * nTimeWeight / COIN / (24 * 60 * 60);
 
-	// LogPrintf(">>> CheckStakeKernelHash: nTimeWeight = %d\n", nTimeWeight);
+    // LogPrintf(">>> CheckStakeKernelHash: nTimeWeight = %d\n", nTimeWeight);
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
     uint64_t nStakeModifier = 0;
@@ -390,11 +390,11 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
     int64_t nStakeModifierTime = 0;
 
     if (!GetKernelStakeModifier(blockFrom.GetHash(), nStakeModifier, nStakeModifierHeight, nStakeModifierTime, fPrintProofOfStake))
-	{
-		// LogPrintf(">>> CheckStakeKernelHash: GetKernelStakeModifier return false\n");
+    {
+        // LogPrintf(">>> CheckStakeKernelHash: GetKernelStakeModifier return false\n");
         return false;
-	}
-	// LogPrintf(">>> CheckStakeKernelHash: passed GetKernelStakeModifier\n");
+    }
+    // LogPrintf(">>> CheckStakeKernelHash: passed GetKernelStakeModifier\n");
     ss << nStakeModifier;
 
     ss << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
@@ -415,18 +415,17 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
 
     // Now check if proof-of-stake hash meets target protocol
     if (uint320(hashProofOfStake) > bnCoinDayWeight * bnTargetPerCoinDay)
-	{
-		// LogPrintf(">>> bnCoinDayWeight = %s, bnTargetPerCoinDay=%s\n", 
-		//	bnCoinDayWeight.ToString().c_str(), bnTargetPerCoinDay.ToString().c_str()); 
-		// LogPrintf(">>> CheckStakeKernelHash - hashProofOfStake too much\n");
+    {
+        // LogPrintf(">>> bnCoinDayWeight = %s, bnTargetPerCoinDay=%s\n",
+        // bnCoinDayWeight.ToString().c_str(), bnTargetPerCoinDay.ToString().c_str());
+        // LogPrintf(">>> CheckStakeKernelHash - hashProofOfStake too much\n");
         return false;
-	}
-
+    }
 
     if (fDebug && !fPrintProofOfStake)
     {
         LogPrintf("CheckStakeKernelHash() : using modifier 0x%016x at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
-            nStakeModifier, nStakeModifierHeight, 
+            nStakeModifier, nStakeModifierHeight,
             DateTimeStrFormat(nStakeModifierTime).c_str(),
             mapBlockIndex[blockFrom.GetHash()]->nHeight,
             DateTimeStrFormat(blockFrom.GetBlockTime()).c_str());
@@ -496,8 +495,8 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
 {
     if (Params().TestnetToBeDeprecatedFieldRPC()) return true; // Testnet has no checkpoints
     if (mapStakeModifierCheckpoints.count(nHeight))
-	{
+    {
         return nStakeModifierChecksum == mapStakeModifierCheckpoints[nHeight];
-	}
+    }
     return true;
 }
