@@ -1218,8 +1218,6 @@ void ThreadDNSAddressSeed()
     const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
     int found = 0;
 
-    if (!Params().TestnetToBeDeprecatedFieldRPC())
-    {
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
 
     BOOST_FOREACH(const CDNSSeedData &seed, vSeeds) {
@@ -1242,7 +1240,6 @@ void ThreadDNSAddressSeed()
             addrman.Add(vAdd, CNetAddr(seed.name, true));
             }
         }
-    }
 
     LogPrintf("%d addresses found from DNS seeds\n", found);
 }
