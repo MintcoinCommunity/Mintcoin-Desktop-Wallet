@@ -146,6 +146,8 @@ public:
           }
         }
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order
+        // Even though the map is already sorted this re-sorting step is needed because the originating map
+        // is sorted by binary address, not by base58() address.
         qSort(cachedAddressTable.begin(), cachedAddressTable.end(), AddressTableEntryLessThan());
     }
 
@@ -166,7 +168,7 @@ public:
         case CT_NEW:
             if(inModel)
             {
-                qWarning() << "AddressTablePriv::updateEntry : Warning: Got CT_NEW, but entry is already in model";
+                qWarning() << "AddressTablePriv::updateEntry: Warning: Got CT_NEW, but entry is already in model";
                 break;
             }
             parent->beginInsertRows(QModelIndex(), lowerIndex, lowerIndex);
@@ -176,7 +178,7 @@ public:
         case CT_UPDATED:
             if(!inModel)
             {
-                qWarning() << "AddressTablePriv::updateEntry : Warning: Got CT_UPDATED, but entry is not in model";
+                qWarning() << "AddressTablePriv::updateEntry: Warning: Got CT_UPDATED, but entry is not in model";
                 break;
             }
             lower->type = newEntryType;
@@ -186,7 +188,7 @@ public:
         case CT_DELETED:
             if(!inModel)
             {
-                qWarning() << "AddressTablePriv::updateEntry : Warning: Got CT_DELETED, but entry is not in model";
+                qWarning() << "AddressTablePriv::updateEntry: Warning: Got CT_DELETED, but entry is not in model";
                 break;
             }
             parent->beginRemoveRows(QModelIndex(), lowerIndex, upperIndex-1);

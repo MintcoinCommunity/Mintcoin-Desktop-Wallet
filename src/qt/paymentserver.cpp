@@ -736,4 +736,3 @@ bool PaymentServer::verifyExpired(const payments::PaymentDetails& requestDetails
     }
     return fVerified;
 }
-

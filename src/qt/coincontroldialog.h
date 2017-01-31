@@ -2,8 +2,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef COINCONTROLDIALOG_H
-#define COINCONTROLDIALOG_H
+#ifndef BITCOIN_QT_COINCONTROLDIALOG_H
+#define BITCOIN_QT_COINCONTROLDIALOG_H
 
 #include "amount.h"
 
@@ -54,8 +54,8 @@ private:
     QMenu *contextMenu;
     QTreeWidgetItem *contextMenuItem;
     QAction *copyTransactionHashAction;
-    //QAction *lockAction;
-    //QAction *unlockAction;
+    QAction *lockAction;
+    QAction *unlockAction;
 
     QString strPad(QString, int, QString);
     void sortView(int, Qt::SortOrder);
@@ -108,8 +108,8 @@ private Q_SLOTS:
     void copyLabel();
     void copyAddress();
     void copyTransactionHash();
-    //void lockCoin();
-    //void unlockCoin();
+    void lockCoin();
+    void unlockCoin();
     void clipboardQuantity();
     void clipboardAmount();
     void clipboardFee();
@@ -124,7 +124,7 @@ private Q_SLOTS:
     void headerSectionClicked(int);
     void buttonBoxClicked(QAbstractButton*);
     void buttonSelectAllClicked();
-    //void updateLabelLocked();
+    void updateLabelLocked();
 };
 
-#endif // COINCONTROLDIALOG_H
+#endif // BITCOIN_QT_COINCONTROLDIALOG_H

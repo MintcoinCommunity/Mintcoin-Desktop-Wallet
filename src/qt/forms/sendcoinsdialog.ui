@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>941</width>
-    <height>556</height>
+    <width>850</width>
+    <height>526</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -324,7 +324,7 @@
                   <enum>Qt::ActionsContextMenu</enum>
                  </property>
                  <property name="text">
-                  <string>0.00 MINT</string>
+                  <string notr="true">0.00 MINT</string>
                  </property>
                  <property name="textInteractionFlags">
                   <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -404,7 +404,7 @@
                   <enum>Qt::ActionsContextMenu</enum>
                  </property>
                  <property name="text">
-                  <string>0.00 MINT</string>
+                  <string notr="true">0.00 MINT</string>
                  </property>
                  <property name="textInteractionFlags">
                   <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -484,7 +484,7 @@
                   <enum>Qt::ActionsContextMenu</enum>
                  </property>
                  <property name="text">
-                  <string>0.00 MINT</string>
+                  <string notr="true">0.00 MINT</string>
                  </property>
                  <property name="textInteractionFlags">
                   <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -609,43 +609,44 @@
    <item>
     <widget class="QFrame" name="payFromFrame">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="maximumSize">
+       <size>
+         <width>16777215</width>
+         <height>40</height>
+       </size>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
+       <enum>QFrame::Sunken</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <layout class="QHBoxLayout" name="horizontalLayoutPayFromFrame">
       <property name="leftMargin">
-       <number>2</number>
+       <number>5</number>
       </property>
       <property name="topMargin">
        <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>2</number>
+       <number>5</number>
       </property>
       <property name="bottomMargin">
-       <number>0</number>
+       <number>6</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="labelPayFrom">
           <property name="text">
            <string>Pay From</string>
           </property>
          </widget>
-        </item>
-        <item>
+      </item>
+      <item>
          <widget class="QComboBox" name="payFrom">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -654,9 +655,7 @@
            </sizepolicy>
           </property>
          </widget>
-        </item>
-       </layout>
-      </item>
+       </item>
      </layout>
     </widget>
    </item>
@@ -670,8 +669,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>921</width>
-        <height>28</height>
+        <width>830</width>
+        <height>68</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
@@ -1398,7 +1397,7 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_2">
+      <spacer name="horizontalSpacerRecurringSend">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

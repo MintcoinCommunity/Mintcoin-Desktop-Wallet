@@ -311,11 +311,11 @@ void SendCoinsDialog::on_sendButton_clicked()
                 recipientElement = tr("%1 to %2").arg(amount, address);
             }
         }
-        else if(!rcp.authenticatedMerchant.isEmpty()) // secure payment request
+        else if(!rcp.authenticatedMerchant.isEmpty()) // authenticated payment request
         {
             recipientElement = tr("%1 to %2").arg(amount, GUIUtil::HtmlEscape(rcp.authenticatedMerchant));
         }
-        else // insecure payment request
+        else // unauthenticated payment request
         {
             recipientElement = tr("%1 to %2").arg(amount, address);
         }
@@ -342,14 +342,14 @@ void SendCoinsDialog::on_sendButton_clicked()
     questionString.append("<hr />");
     CAmount totalAmount = currentTransaction.getTotalTransactionAmount() + txFee;
     QStringList alternativeUnits;
-    foreach(BitcoinUnits::Unit u, BitcoinUnits::availableUnits())
+    Q_FOREACH(BitcoinUnits::Unit u, BitcoinUnits::availableUnits())
     {
         if(u != model->getOptionsModel()->getDisplayUnit())
             alternativeUnits.append(BitcoinUnits::formatHtmlWithUnit(u, totalAmount));
     }
-    questionString.append(tr("Total Amount %1 (= %2)")
+    questionString.append(tr("Total Amount %1<span style='font-size:10pt;font-weight:normal;'><br />(=%2)</span>")
         .arg(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount))
-        .arg(alternativeUnits.join(" " + tr("or") + " ")));
+        .arg(alternativeUnits.join(" " + tr("or") + "<br />")));
 
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send coins"),
         questionString.arg(formatted.join("<br />")),
@@ -621,7 +621,7 @@ void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn 
     switch(sendCoinsReturn.status)
     {
     case WalletModel::InvalidAddress:
-        msgParams.first = tr("The recipient address is not valid, please recheck.");
+        msgParams.first = tr("The recipient address is not valid. Please recheck.");
         break;
     case WalletModel::InvalidAmount:
         msgParams.first = tr("The amount to pay must be larger than 0.");
@@ -633,7 +633,7 @@ void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn 
         msgParams.first = tr("The total exceeds your balance when the %1 transaction fee is included.").arg(msgArg);
         break;
     case WalletModel::DuplicateAddress:
-        msgParams.first = tr("Duplicate address found, can only send to each address once per send operation.");
+        msgParams.first = tr("Duplicate address found: addresses should only be used once each.");
         break;
     case WalletModel::TransactionCreationFailed:
         msgParams.first = tr("Transaction creation failed!");
@@ -647,7 +647,7 @@ void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn 
         msgParams.first = tr("A fee higher than %1 is considered an absurdly high fee.").arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), 10000000));
         break;
     case WalletModel::PaymentRequestExpired:
-        msgParams.first = tr("Payment request expired!");
+        msgParams.first = tr("Payment request expired.");
         msgParams.second = CClientUIInterface::MSG_ERROR;
         break;
     // included to prevent a compiler warning.
