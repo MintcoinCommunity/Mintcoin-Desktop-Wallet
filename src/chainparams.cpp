@@ -109,7 +109,7 @@ public:
         pchMessageStart[1] = 0xd5;
         pchMessageStart[2] = 0xdb;
         pchMessageStart[3] = 0xfa;
-        vAlertPubKey = ParseHex("0447776d261ff286dc0a72b63365f1575bd9632e0ded31c58023dd5b00e8d7c1d890c914bfab3451a6d6924137f8e9dd7f1fa5e64172ee172183fd85c84a2b892f");
+        vAlertPubKey = ParseHex("049c84f948ad38e6661189427b94c85721b6f2bcca6c8ce57100d1a2c934bac0cebd3c2a2bf325272dff201e2a8677f16a0f4c3b08087ef61c2ab520d9c0495c5b");
         nDefaultPort = 12788;
         bnProofOfWorkLimit = bnProofOfStakeLimit = ~uint256(0) >> 20;
         nSubsidyHalvingInterval = 20160;
@@ -199,7 +199,7 @@ public:
         pchMessageStart[2] = 0xc0;
         pchMessageStart[3] = 0xef;
 
-        vAlertPubKey = ParseHex("0471dc165db490094d35cde15b1f5d755fa6ad6f2b5ed0f340e3f17f57389c3c2af113a8cbcc885bde73305a553b5640c83021128008ddf882e856336269080496");
+        vAlertPubKey = ParseHex("04596f41dcb9eff256514c2cb8ff22e0e1d6775d7cddb6287f4965c7d7d584d49a2b7bed06bb85fc0abd0738fa021cc5a980afd133efcb32b24a61598ebffa4eba");
         nDefaultPort = 22788;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
@@ -212,8 +212,6 @@ public:
         nModifierInterval = 60; // test modifier interval is 2 minutes
         nCoinbaseMaturity = 10; // test maturity is 10 blocks
         nStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes
-        // TestNet alerts private key
-        // "308201130201010420b665cff1884e53da26376fd1b433812c9a5a8a4d5221533b15b9629789bb7e42a081a53081a2020101302c06072a8648ce3d0101022100fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f300604010004010704410479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8022100fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141020101a1440342000471dc165db490094d35cde15b1f5d755fa6ad6f2b5ed0f340e3f17f57389c3c2af113a8cbcc885bde73305a553b5640c83021128008ddf882e856336269080496"
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         //genesis.nTime = 1296688602;
@@ -269,9 +267,9 @@ public:
         //genesis.nTime = 1296688602;
         //genesis.nBits = 0x207fffff;
         //genesis.nNonce = 2;
-        hashGenesisBlock = genesis.GetHash();
-        nDefaultPort = 18444;
-        assert(hashGenesisBlock == uint256("0xaf4ac34e7ef10a08fe2ba692eb9a9c08cf7e89fcf352f9ea6f0fd73ba3e5d03c"));
+        nDefaultPort = 32788;
+        hashGenesisBlock = /*genesis.GetHash();
+        assert(hashGenesisBlock ==*/ uint256("0xaf4ac34e7ef10a08fe2ba692eb9a9c08cf7e89fcf352f9ea6f0fd73ba3e5d03c")/*)*/;
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
 
