@@ -4,6 +4,7 @@
 
 #include "rpcserver.h"
 
+#include "clientversion.h"
 #include "main.h"
 #include "net.h"
 #include "netbase.h"
@@ -436,7 +437,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
 extern CCriticalSection cs_mapAlerts;
 extern map<uint256, CAlert> mapAlerts;
 
-// ppcoin: send alert.  
+// ppcoin: send alert.
 // There is a known deadlock situation with ThreadMessageHandler
 // ThreadMessageHandler: holds cs_vSend and acquiring cs_main in SendMessages()
 // ThreadRPCServer: holds cs_main and acquiring cs_vSend in alert.RelayTo()/PushMessage()/BeginMessage()

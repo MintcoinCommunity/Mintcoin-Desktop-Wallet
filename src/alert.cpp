@@ -6,6 +6,7 @@
 #include "alert.h"
 
 #include "chainparams.h"
+#include "clientversion.h"
 #include "key.h"
 #include "net.h"
 #include "timedata.h"
@@ -127,6 +128,9 @@ bool CAlert::RelayTo(CNode* pnode) const
 {
     if (!IsInEffect())
         return false;
+    // don't relay to nodes which haven't sent their version message
+    if (pnode->nVersion == 0)
+        return false;
     // returns true if wasn't already contained in the set
     if (pnode->setKnown.insert(GetHash()).second)
     {
@@ -145,7 +149,7 @@ bool CAlert::CheckSignature() const
 {
     CPubKey key(Params().AlertKey());
     if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
-        return error("CAlert::CheckSignature() : verify signature failed");
+        return error("CAlert::CheckSignature(): verify signature failed");
 
     // Now unserialize the data
     CDataStream sMsg(vchMsg, SER_NETWORK, PROTOCOL_VERSION);

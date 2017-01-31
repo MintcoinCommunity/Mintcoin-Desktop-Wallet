@@ -7,6 +7,7 @@
 
 #include "hash.h"
 #include "scrypt_mine.h"
+#include "clientversion.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 #include "crypto/common.h"

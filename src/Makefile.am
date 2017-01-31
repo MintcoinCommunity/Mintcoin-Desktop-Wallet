@@ -142,7 +142,7 @@ obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
 	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
 	  $(abs_top_srcdir)
-libbitcoin_util_a-version.$(OBJEXT): obj/build.h
+libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
 # server: shared between bitcoind and bitcoin-qt
 libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS)
@@ -238,6 +238,7 @@ libbitcoin_util_a_SOURCES = \
   compat/glibc_sanity.cpp \
   compat/glibcxx_sanity.cpp \
   chainparamsbase.cpp \
+  clientversion.cpp \
   random.cpp \
   rpcprotocol.cpp \
   support/cleanse.cpp \
@@ -247,7 +248,6 @@ libbitcoin_util_a_SOURCES = \
   utilstrencodings.cpp \
   utilmoneystr.cpp \
   utiltime.cpp \
-  version.cpp \
   $(BITCOIN_CORE_H) scrypt_mine.cpp kernel.cpp scrypt-x86.S scrypt-x86_64.S pbkdf2.cpp
 
 if GLIBC_BACK_COMPAT
@@ -336,7 +336,7 @@ clean-local:
 
 .rc.o:
 	@test -f $(WINDRES)
-	$(AM_V_GEN) $(WINDRES) -i $< -o $@
+	$(AM_V_GEN) $(WINDRES) -DWINDRES_PREPROC -i $< -o $@
 
 .mm.o:
 	$(AM_V_CXX) $(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \

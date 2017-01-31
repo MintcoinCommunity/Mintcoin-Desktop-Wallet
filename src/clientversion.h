@@ -30,4 +30,25 @@
 
 // Copyright string used in Windows .rc files
 #define COPYRIGHT_STR "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Bitcoin Core Developers \n2014-" STRINGIZE(COPYRIGHT_YEAR) " The MintCoin & PPCoin developers"
+
+#if !defined(WINDRES_PREPROC)
+
+#include <string>
+#include <vector>
+
+static const int CLIENT_VERSION =
+                           1000000 * CLIENT_VERSION_MAJOR
+                         +   10000 * CLIENT_VERSION_MINOR
+                         +     100 * CLIENT_VERSION_REVISION
+                         +       1 * CLIENT_VERSION_BUILD;
+
+extern const std::string CLIENT_NAME;
+extern const std::string CLIENT_BUILD;
+extern const std::string CLIENT_DATE;
+
+std::string FormatFullVersion();
+std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
+
+#endif // WINDRES_PREPROC
+
 #endif // CLIENTVERSION_H
