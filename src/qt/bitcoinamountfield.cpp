@@ -60,7 +60,7 @@ public:
     void setValue(const CAmount& value)
     {
         lineEdit()->setText(BitcoinUnits::format(currentUnit, value, false, BitcoinUnits::separatorAlways));
-        emit valueChanged();
+        Q_EMIT valueChanged();
     }
 
     void stepBy(int steps)
@@ -178,7 +178,7 @@ protected:
         return QAbstractSpinBox::event(event);
     }
 
-signals:
+Q_SIGNALS:
     void valueChanged();
 };
 

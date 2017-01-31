@@ -88,7 +88,7 @@ private:
     bool bPasswordOnSend;
     QString sRecurringSendEntries;
 
-signals:
+Q_SIGNALS:
     void displayUnitChanged(int unit);
     void coinControlFeaturesChanged(bool);
 };

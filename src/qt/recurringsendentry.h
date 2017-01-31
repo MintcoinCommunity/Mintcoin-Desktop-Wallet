@@ -23,10 +23,10 @@ public:
     void setModel(WalletModel *model);
     void updateRemaining();
 
-signals:
+Q_SIGNALS:
     void removeRecurringEntry(RecurringSendEntry *entry);
 
-private slots:
+private Q_SLOTS:
     void updateSendTimer();
     void deleteEntry();
 

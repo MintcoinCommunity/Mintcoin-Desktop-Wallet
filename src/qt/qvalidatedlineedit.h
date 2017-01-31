@@ -23,11 +23,11 @@ private:
     bool valid;
     const QValidator *checkValidator;
 
-public slots:
+public Q_SLOTS:
     void setValid(bool valid);
     void setEnabled(bool enabled);
 
-private slots:
+private Q_SLOTS:
     void markValid();
     void checkValidity();
 };

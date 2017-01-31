@@ -24,7 +24,7 @@ public:
   void setOptionsModel(OptionsModel *optionsModel);
   void setModel(WalletModel *model);
 
-public slots:
+public Q_SLOTS:
   void addRecurringEntry(QString from, int repeatDays, unsigned long remainingTime = 0);
   void addRecurringRecipient(SendCoinsRecipient recipient);
   void removeRecurringEntry(RecurringSendEntry* entry);

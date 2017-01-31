@@ -139,7 +139,7 @@ void RecurringSendEntry::setModel(WalletModel *model)
 
 void RecurringSendEntry::deleteEntry()
 {
-  emit removeRecurringEntry(this);
+  Q_EMIT removeRecurringEntry(this);
 }
 
 void RecurringSendEntry::addPayTo(SendCoinsRecipient newRecipient)
