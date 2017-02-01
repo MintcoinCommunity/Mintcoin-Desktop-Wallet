@@ -4,6 +4,9 @@
 
 #include "checkpoints.h"
 
+#include "chainparams.h"
+#include "key.h"
+#include "pubkey.h"
 #include "timedata.h"
 #include "txdb.h"
 #include "main.h"

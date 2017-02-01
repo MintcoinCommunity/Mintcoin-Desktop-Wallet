@@ -4,6 +4,11 @@ SUBDIRS = src
 
 GZIP_ENV="-9n"
 
+if BUILD_BITCOIN_LIBS
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libbitcoinconsensus.pc
+endif
+
 MINTCOIND_BIN=$(top_builddir)/src/mintcoind$(EXEEXT)
 MINTCOIN_QT_BIN=$(top_builddir)/src/qt/MintCoin-qt$(EXEEXT)
 MINTCOIN_CLI_BIN=$(top_builddir)/src/mintcoin-cli$(EXEEXT)
@@ -11,6 +16,7 @@ MINTCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(E
 
 OSX_APP=MintCoin-Qt.app
 OSX_DMG=MintCoin-Qt.dmg
+OSX_BACKGROUND_IMAGE=background.tiff
 OSX_DEPLOY_SCRIPT=$(top_srcdir)/contrib/macdeploy/macdeployqtplus
 OSX_FANCY_PLIST=$(top_srcdir)/contrib/macdeploy/fancy.plist
 OSX_INSTALLER_ICONS=$(top_srcdir)/src/qt/res/icons/MintCoin.icns
@@ -24,9 +30,11 @@ WINDOWS_PACKAGING = $(top_srcdir)/share/pixmaps/bitcoin.ico \
   $(top_srcdir)/share/pixmaps/nsis-wizard.bmp \
   $(top_srcdir)/doc/README_windows.txt
 
-OSX_PACKAGING = $(OSX_DEPLOY_SCRIPT) $(OSX_FANCY_PLIST) $(OSX_INSTALLER_ICONS) \
-  $(top_srcdir)/contrib/macdeploy/background.png \
-  $(top_srcdir)/contrib/macdeploy/DS_Store
+OSX_PACKAGING = $(OSX_DEPLOY_SCRIPT) $(OSX_FANCY_PLIST) $(OSX_INSTALLER_ICONS) $(OSX_BASE_LPROJ_DIR) \
+  $(top_srcdir)/contrib/macdeploy/$(OSX_BACKGROUND_IMAGE) \
+  $(top_srcdir)/contrib/macdeploy/DS_Store \
+  $(top_srcdir)/contrib/macdeploy/detached-sig-apply.sh \
+  $(top_srcdir)/contrib/macdeploy/detached-sig-create.sh
 
 COVERAGE_INFO = baseline_filtered_combined.info baseline.info block_test.info \
   leveldb_baseline.info test_bitcoin_filtered.info total_coverage.info \
@@ -35,6 +43,7 @@ COVERAGE_INFO = baseline_filtered_combined.info baseline.info block_test.info \
 
 dist-hook:
 	-$(MAKE) -C $(top_distdir)/src/leveldb clean
+	-$(MAKE) -C $(top_distdir)/src/secp256k1 distclean
 	-$(GIT) archive --format=tar HEAD -- src/clientversion.cpp | $(AMTAR) -C $(top_distdir) -xf -
 
 distcheck-hook:
@@ -45,7 +54,7 @@ distcheck-hook:
 distcleancheck:
 	@:
 
-$(MINTCOIN_WIN_INSTALLER): $(MINTCOIND_BIN) $(MINTCOIN_QT_BIN) $(MINTCOIN_CLI_BIN)
+$(MINTCOIN_WIN_INSTALLER): all-recursive
 	$(MKDIR_P) $(top_builddir)/release
 	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(MINTCOIND_BIN) $(top_builddir)/release
 	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(MINTCOIN_QT_BIN) $(top_builddir)/release
@@ -67,11 +76,11 @@ $(OSX_APP)/Contents/Resources/empty.lproj:
 
 $(OSX_APP)/Contents/Info.plist: $(OSX_PLIST)
 	$(MKDIR_P) $(@D)
-	$(INSTALL) $< $@
+	$(INSTALL_DATA) $< $@
 
 $(OSX_APP)/Contents/Resources/MintCoin.icns: $(OSX_INSTALLER_ICONS)
 	$(MKDIR_P) $(@D)
-	$(INSTALL) $< $@
+	$(INSTALL_DATA) $< $@
 
 $(OSX_APP)/Contents/MacOS/MintCoin-Qt: $(MINTCOIN_QT_BIN)
 	$(MKDIR_P) $(@D)
@@ -85,14 +94,30 @@ if BUILD_DARWIN
 $(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING)
 	$(OSX_DEPLOY_SCRIPT) $(OSX_APP) -add-qt-tr $(OSX_QT_TRANSLATIONS) -dmg -fancy $(OSX_FANCY_PLIST) -verbose 2
 
+deploydir: $(OSX_DMG)
 else
-$(OSX_DMG): $(OSX_APP_BUILT) $(OSX_PACKAGING)
-	INSTALLNAMETOOL=$(INSTALLNAMETOOL)  OTOOL=$(OTOOL) STRIP=$(STRIP) $(OSX_DEPLOY_SCRIPT) $(OSX_APP) -add-qt-tr $(OSX_QT_TRANSLATIONS) -verbose 2
-	$(MKDIR_P) dist/.background
-	$(INSTALL) contrib/macdeploy/background.png dist/.background
-	$(INSTALL) contrib/macdeploy/DS_Store dist/.DS_Store
-	cd dist; $(LN_S) /Applications Applications
-	$(GENISOIMAGE) -no-cache-inodes -l -probe -V "Bitcoin-Qt" -no-pad -r -apple -o $@ dist
+APP_DIST_DIR=$(top_builddir)/dist
+APP_DIST_EXTRAS=$(APP_DIST_DIR)/.background/$(OSX_BACKGROUND_IMAGE) $(APP_DIST_DIR)/.DS_Store $(APP_DIST_DIR)/Applications
+
+$(APP_DIST_DIR)/Applications:
+	@rm -f $@
+	@cd $(@D); $(LN_S) /Applications $(@F)
+
+$(APP_DIST_EXTRAS): $(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/MintCoin-Qt
+
+$(OSX_DMG): $(APP_DIST_EXTRAS)
+	$(GENISOIMAGE) -no-cache-inodes -D -l -probe -V "MintCoin-Qt" -no-pad -r -dir-mode 0755 -apple -o $@ dist
+
+$(APP_DIST_DIR)/.background/$(OSX_BACKGROUND_IMAGE): contrib/macdeploy/$(OSX_BACKGROUND_IMAGE)
+	$(MKDIR_P) $(@D)
+	$(INSTALL) $< $@
+$(APP_DIST_DIR)/.DS_Store: contrib/macdeploy/DS_Store
+	$(INSTALL) $< $@
+
+$(APP_DIST_DIR)/$(OSX_APP)/Contents/MacOS/Bitcoin-Qt: $(OSX_APP_BUILT) $(OSX_PACKAGING)
+	INSTALLNAMETOOL=$(INSTALLNAMETOOL)  OTOOL=$(OTOOL) STRIP=$(STRIP) $(OSX_DEPLOY_SCRIPT) $(OSX_APP) -translations-dir=$(QT_TRANSLATION_DIR) -add-qt-tr $(OSX_QT_TRANSLATIONS) -verbose 2
+
+deploydir: $(APP_DIST_EXTRAS)
 endif
 
 if TARGET_DARWIN
@@ -102,6 +127,15 @@ endif
 if TARGET_WINDOWS
 deploy: $(MINTCOIN_WIN_INSTALLER)
 endif
+
+$(MINTCOIN_QT_BIN): FORCE
+	$(MAKE) -C src qt/$(@F)
+
+$(MINTCOIND_BIN): FORCE
+	$(MAKE) -C src $(@F)
+
+$(MINTCOIN_CLI_BIN): FORCE
+	$(MAKE) -C src $(@F)
 
 if USE_LCOV
 
@@ -130,7 +164,8 @@ test_bitcoin_filtered.info: test_bitcoin.info
 	$(LCOV) -r $< "/usr/include/*" -o $@
 
 block_test.info: test_bitcoin_filtered.info
-	-@TIMEOUT=15 qa/pull-tester/run-bitcoind-for-test.sh $(JAVA) -Xmx2G -jar $(JAVA_COMPARISON_TOOL) 1 18444
+	$(MKDIR_P) qa/tmp
+	-@TIMEOUT=15 qa/pull-tester/run-bitcoind-for-test.sh $(JAVA) -jar $(JAVA_COMPARISON_TOOL) qa/tmp/compTool 0
 	$(LCOV) -c -d $(abs_builddir)/src --t BitcoinJBlockTest -o $@
 	$(LCOV) -z -d $(abs_builddir)/src
 	$(LCOV) -z -d $(abs_builddir)/src/leveldb
@@ -158,10 +193,13 @@ endif
 
 if USE_COMPARISON_TOOL
 check-local:
-	@qa/pull-tester/run-bitcoind-for-test.sh $(JAVA) -Xmx2G -jar $(JAVA_COMPARISON_TOOL) 1 18444
+	$(MKDIR_P) qa/tmp
+	@qa/pull-tester/run-bitcoind-for-test.sh $(JAVA) -jar $(JAVA_COMPARISON_TOOL) qa/tmp/compTool $(COMPARISON_TOOL_REORG_TESTS) 2>&1
 endif
 
-EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/pull-tester.sh $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING)
+dist_noinst_SCRIPTS = autogen.sh
+
+EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/rpc-tests.sh qa/pull-tester/run-bitcoin-cli qa/rpc-tests $(DIST_DOCS) $(WINDOWS_PACKAGING) $(OSX_PACKAGING)
 
 CLEANFILES = $(OSX_DMG) $(MINTCOIN_WIN_INSTALLER)
 
