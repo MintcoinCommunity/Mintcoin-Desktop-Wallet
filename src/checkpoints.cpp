@@ -210,16 +210,16 @@ namespace Checkpoints {
         return false;
     }
 
-    // Automatically select a suitable sync-checkpoint 
+    // Automatically select a suitable sync-checkpoint
     uint256 AutoSelectSyncCheckpoint()
     {
         // Proof-of-work blocks are immediately checkpointed
-        // to defend against 51% attack which rejects other miners block 
+        // to defend against 51% attack which rejects other miners block
 
         // Select the last proof-of-work block
         const CBlockIndex *pindex = GetLastBlockIndex(chainActive.Tip(), false);
         // Search forward for a block within max span and maturity window
-        while (chainActive.Next(pindex) && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN <= chainActive.Tip()->GetBlockTime() 
+        while (chainActive.Next(pindex) && (pindex->GetBlockTime() + CHECKPOINT_MAX_SPAN <= chainActive.Tip()->GetBlockTime()
             || pindex->nHeight + std::min(6u, Params().CoinbaseMaturity() - 20) <= chainActive.Tip()->nHeight))
             pindex = chainActive.Next(pindex);
         return pindex->GetBlockHash();
@@ -273,7 +273,7 @@ namespace Checkpoints {
         {
             // checkpoint block accepted but not yet in main chain
             LogPrintf("ResetSyncCheckpoint: ActivateBestChain to hardened checkpoint %s\n", hash.ToString().c_str());
-            
+
             if (!ActivateBestChain(state) && chainActive.Contains(mapBlockIndex[hash]))
             {
                 return error("ResetSyncCheckpoint: SetBestChain failed for hardened checkpoint %s", hash.ToString().c_str());
@@ -414,7 +414,7 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint(CNode* pfrom)
         Checkpoints::hashPendingCheckpoint = hashCheckpoint;
         Checkpoints::checkpointMessagePending = *this;
         LogPrintf("ProcessSyncCheckpoint: pending for sync-checkpoint %s\n", hashCheckpoint.ToString().c_str());
-        
+
         return false;
     }
 
@@ -459,6 +459,6 @@ bool Checkpoints::CheckMasterPubKey(bool reindex)
         if ((!Params().TestnetToBeDeprecatedFieldRPC()) && !Checkpoints::ResetSyncCheckpoint(state))
             return error("LoadBlockIndexDB() : failed to reset sync-checkpoint");
     }
-    
+
     return true;
 }

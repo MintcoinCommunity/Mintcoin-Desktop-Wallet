@@ -477,8 +477,8 @@ Value sendalert(const Array& params, bool fHelp)
     key.SetPrivKey(CPrivKey(vchPrivKey.begin(), vchPrivKey.end()), true); // if key is not correct openssl may crash
     if (!key.Sign(Hash(alert.vchMsg.begin(), alert.vchMsg.end()), alert.vchSig))
         throw runtime_error(
-            "Unable to sign alert, check private key?\n");  
-    if(!alert.ProcessAlert()) 
+            "Unable to sign alert, check private key?\n");
+    if(!alert.ProcessAlert())
         throw runtime_error(
             "Failed to process alert.\n");
     // Relay alert
