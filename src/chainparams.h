@@ -120,11 +120,11 @@ protected:
     // Mintcoin:
     unsigned int nStakeMinAge;
     unsigned int nStakeMaxAge;
-    
+
     unsigned int nModifierInterval;
     unsigned int nCoinbaseMaturity;
     unsigned int nStakeTargetSpacing;
-    
+
 };
 
 /**
@@ -145,4 +145,4 @@ void SelectParams(CBaseChainParams::Network network);
  */
 bool SelectParamsFromCommandLine();
 
-#endif // BITCOIN_CHAIN_PARAMS_H 
+#endif // BITCOIN_CHAIN_PARAMS_H
