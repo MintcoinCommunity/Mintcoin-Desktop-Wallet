@@ -146,10 +146,10 @@ public:
         BLOCK_STAKE_MODIFIER = (1 << 2), // regenerated stake modifier
     };
 
+    // proof-of-stake specific fields
+    uint256 GetBlockTrust() const;
     uint64_t nStakeModifier; // hash modifier for proof-of-stake
     unsigned int nStakeModifierChecksum; // checksum of index; in-memeory only
-
-    // proof-of-stake specific fields
     COutPoint prevoutStake;
     unsigned int nStakeTime;
     uint256 hashProofOfStake;
@@ -254,8 +254,6 @@ public:
     {
         return (int64_t)nTime;
     }
-
-    uint256 GetBlockTrust() const;
 
     bool CheckIndex() const
     {
