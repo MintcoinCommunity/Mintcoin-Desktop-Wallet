@@ -4,7 +4,7 @@ $(package)_download_path=http://download.qt-project.org/archive/qt/4.6/
 $(package)_file_name=qt-everywhere-opensource-src-$($(package)_version).tar.gz
 $(package)_sha256_hash=9ad4d46c721b53a429ed5a2eecfd3c239a9ab566562f183f99d3125f1a234250
 $(package)_dependencies=openssl freetype dbus libX11 xproto libXext libICE libSM
-$(package)_patches=stlfix.patch
+$(package)_patches=stlfix.patch 
 
 define $(package)_set_vars
 $(package)_config_opts  = -prefix $(host_prefix) -headerdir $(host_prefix)/include/qt4 -bindir $(build_prefix)/bin
@@ -37,7 +37,7 @@ define $(package)_preprocess_cmds
    sed -i.old "s|QMAKE_LFLAGS_SHLIB\t+= -shared|QMAKE_LFLAGS_SHLIB\t+= -shared -Wl,--exclude-libs,ALL|" mkspecs/common/g++.conf && \
    sed -i.old "/SSLv2_client_method/d" src/network/ssl/qsslsocket_openssl.cpp src/network/ssl/qsslsocket_openssl_symbols.cpp && \
    sed -i.old "/SSLv2_server_method/d" src/network/ssl/qsslsocket_openssl.cpp src/network/ssl/qsslsocket_openssl_symbols.cpp && \
-   patch -p1 < $($(package)_patch_dir)/stlfix.patch
+   patch -p1 < $($(package)_patch_dir)/stlfix.patch 
 endef
 
 define $(package)_config_cmds

@@ -8,11 +8,11 @@
 +#if !defined(Q_OS_WINCE) && (!defined(USE___UUIDOF) || (defined(USE___UUIDOF) && USE___UUIDOF == 1))
  #  include <comdef.h>
  #endif
-
+ 
 @@ -762,7 +762,7 @@
                            HWND_MESSAGE, NULL, (HINSTANCE)GetModuleHandle(0), NULL);
  }
-
+ 
 -#ifndef Q_OS_WINCE
 +#if !defined(Q_OS_WINCE) && (!defined(USE___UUIDOF) || (defined(USE___UUIDOF) && USE___UUIDOF == 1))
  // Re-engineered from the inline function _com_error::ErrorMessage().
@@ -24,7 +24,7 @@
  }
 -#endif // !Q_OS_WINCE
 +#endif // !defined(Q_OS_WINCE) && (!defined(USE___UUIDOF) || (defined(USE___UUIDOF) && USE___UUIDOF == 1))
-
+ 
  /*!
      \brief Common COM error strings.
 @@ -846,12 +846,12 @@
