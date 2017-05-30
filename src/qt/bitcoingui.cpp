@@ -7,7 +7,6 @@
 #include "bitcoingui.h"
 #include "transactiontablemodel.h"
 #include "addressbookpage.h"
-#include "merchantpage.h"
 #include "recurringsendpage.h"
 #include "sendcoinsdialog.h"
 #include "signverifymessagedialog.h"
@@ -121,8 +120,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     sendCoinsPage = new SendCoinsDialog(this);
 
-    merchantPage = new MerchantPage(this);
-
     recurringSendPage = new RecurringSendPage(this);
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
@@ -134,7 +131,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
     centralWidget->addWidget(recurringSendPage);
-    centralWidget->addWidget(merchantPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -287,13 +283,6 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(addressBookAction);
 
-    merchantAction = new QAction(QIcon(":/icons/address-book"), tr("&Shop/Donate"), this);
-    merchantAction->setStatusTip(tr("Merchants"));
-    merchantAction->setToolTip(merchantAction->statusTip());
-    merchantAction->setCheckable(true);
-    merchantAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
-    tabGroup->addAction(merchantAction);
-
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -306,8 +295,6 @@ void BitcoinGUI::createActions()
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
     connect(recurringSendAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(recurringSendAction, SIGNAL(triggered()), this, SLOT(gotoRecurringSendPage()));
-    connect(merchantAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(merchantAction, SIGNAL(triggered()), this, SLOT(gotoMerchantPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -410,7 +397,6 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(recurringSendAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-    toolbar->addAction(merchantAction);
 
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -459,16 +445,6 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         addressBookPage->setOptionsModel(clientModel->getOptionsModel());
         receiveCoinsPage->setOptionsModel(clientModel->getOptionsModel());
         recurringSendPage->setOptionsModel(clientModel->getOptionsModel());
-
-        if(clientModel->getOptionsModel()->getShowShopDonate()==false)
-        {
-          merchantPage->setVisible(false);
-          merchantAction->setVisible(false);
-        }
-        else
-        {
-          merchantPage->loadPage();
-        }
     }
 }
 
@@ -826,15 +802,6 @@ void BitcoinGUI::gotoRecurringSendPage()
 {
     recurringSendAction->setChecked(true);
     centralWidget->setCurrentWidget(recurringSendPage);
-
-    exportAction->setEnabled(false);
-    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-}
-
-void BitcoinGUI::gotoMerchantPage()
-{
-    merchantAction->setChecked(true);
-    centralWidget->setCurrentWidget(merchantPage);
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);

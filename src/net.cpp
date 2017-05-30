@@ -1256,6 +1256,11 @@ static const char *strDNSSeed[][2] = {
     {"", ""},
 };
 
+static const char *strDNSTestNetSeed[][2] = {
+    {"mint-test.seed.fuzzbawls.pw", "mint-test.seed.fuzzbawls.pw"},
+    {"", ""},
+};
+
 void ThreadDNSAddressSeed(void* parg)
 {
     // Make this thread recognisable as the DNS seeding thread
@@ -1282,10 +1287,10 @@ void ThreadDNSAddressSeed2(void* parg)
     printf("ThreadDNSAddressSeed started\n");
     int found = 0;
 
+    printf("Loading addresses from DNS seeds (could take a while)\n");
+
     if (!fTestNet)
     {
-        printf("Loading addresses from DNS seeds (could take a while)\n");
-
         for (unsigned int seed_idx = 0; seed_idx < ARRAYLEN(strDNSSeed); seed_idx++) {
             if (HaveNameProxy()) {
                 AddOneShot(strDNSSeed[seed_idx][1]);
@@ -1306,6 +1311,28 @@ void ThreadDNSAddressSeed2(void* parg)
                 addrman.Add(vAdd, CNetAddr(strDNSSeed[seed_idx][0], true));
             }
         }
+    } else {
+        for (unsigned int seed_idx = 0; seed_idx < ARRAYLEN(strDNSTestNetSeed); seed_idx++) {
+            if (HaveNameProxy()) {
+                AddOneShot(strDNSTestNetSeed[seed_idx][1]);
+            } else {
+                vector<CNetAddr> vaddr;
+                vector<CAddress> vAdd;
+                if (LookupHost(strDNSTestNetSeed[seed_idx][1], vaddr))
+                {
+                    BOOST_FOREACH(CNetAddr& ip, vaddr)
+                    {
+                        int nOneDay = 24*3600;
+                        CAddress addr = CAddress(CService(ip, GetDefaultPort()));
+                        addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+                        vAdd.push_back(addr);
+                        found++;
+                    }
+                }
+                addrman.Add(vAdd, CNetAddr(strDNSTestNetSeed[seed_idx][0], true));
+            }
+        }
+
     }
 
     printf("%d addresses found from DNS seeds\n", found);
@@ -1324,6 +1351,11 @@ void ThreadDNSAddressSeed2(void* parg)
 
 unsigned int pnSeed[] =
 {
+};
+
+unsigned int pnSeedTestNet[] =
+{
+    0xaf43eb6d, 0xbce08068,
 };
 
 void DumpAddresses()
@@ -1470,21 +1502,38 @@ void ThreadOpenConnections2(void* parg)
             return;
 
         // Add seed nodes if IRC isn't working
-        if (addrman.size()==0 && (GetTime() - nStart > 60) && !fTestNet)
+        if (addrman.size()==0 && (GetTime() - nStart > 60))
         {
             std::vector<CAddress> vAdd;
-            for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
+            if (!fTestNet)
             {
-                // It'll only connect to one or two seed nodes because once it connects,
-                // it'll get a pile of addresses with newer timestamps.
-                // Seed nodes are given a random 'last seen time' of between one and two
-                // weeks ago.
-                const int64 nOneWeek = 7*24*60*60;
-                struct in_addr ip;
-                memcpy(&ip, &pnSeed[i], sizeof(ip));
-                CAddress addr(CService(ip, GetDefaultPort()));
-                addr.nTime = GetTime()-GetRand(nOneWeek)-nOneWeek;
-                vAdd.push_back(addr);
+                for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
+                {
+                    // It'll only connect to one or two seed nodes because once it connects,
+                    // it'll get a pile of addresses with newer timestamps.
+                    // Seed nodes are given a random 'last seen time' of between one and two
+                    // weeks ago.
+                    const int64 nOneWeek = 7*24*60*60;
+                    struct in_addr ip;
+                    memcpy(&ip, &pnSeed[i], sizeof(ip));
+                    CAddress addr(CService(ip, GetDefaultPort()));
+                    addr.nTime = GetTime()-GetRand(nOneWeek)-nOneWeek;
+                    vAdd.push_back(addr);
+                }
+            } else {
+                for (unsigned int i = 0; i < ARRAYLEN(pnSeedTestNet); i++)
+                {
+                    // It'll only connect to one or two seed nodes because once it connects,
+                    // it'll get a pile of addresses with newer timestamps.
+                    // Seed nodes are given a random 'last seen time' of between one and two
+                    // weeks ago.
+                    const int64 nOneWeek = 7*24*60*60;
+                    struct in_addr ip;
+                    memcpy(&ip, &pnSeedTestNet[i], sizeof(ip));
+                    CAddress addr(CService(ip, GetDefaultPort()));
+                    addr.nTime = GetTime()-GetRand(nOneWeek)-nOneWeek;
+                    vAdd.push_back(addr);
+                }
             }
             addrman.Add(vAdd, CNetAddr("127.0.0.1"));
         }
@@ -1721,7 +1770,7 @@ void ThreadMessageHandler2(void* parg)
         {
             if (pnode->fDisconnect)
                 continue;
-            
+
             // Receive messages
             {
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
