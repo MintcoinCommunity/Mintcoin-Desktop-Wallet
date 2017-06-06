@@ -861,6 +861,10 @@ public:
     unsigned int nBits;
     unsigned int nNonce;
 
+    //Save hash once we calculate so we don't have to hash multiple times
+    mutable bool bComputedHash;
+    mutable uint256 hashThisBlock;
+
     CBlockHeader()
     {
         SetNull();
@@ -885,6 +889,9 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+
+        bComputedHash = false;
+        hashThisBlock = 0;
     }
 
     bool IsNull() const
@@ -895,11 +902,20 @@ public:
     uint256 GetHash() const
     {
         uint256 thash;
-        void * scratchbuff = scrypt_buffer_alloc();
 
-        scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+        if(bComputedHash) {
+            thash = hashThisBlock;
+        } else {
 
-        scrypt_buffer_free(scratchbuff);
+            void * scratchbuff = scrypt_buffer_alloc();
+
+            scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+
+            scrypt_buffer_free(scratchbuff);
+
+            hashThisBlock = thash;
+            bComputedHash = true;
+        }
 
         return thash;
     }
