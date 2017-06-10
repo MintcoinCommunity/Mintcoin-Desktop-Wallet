@@ -1170,6 +1170,7 @@ public:
     const uint256* phashBlock;
     CBlockIndex* pprev;
     CBlockIndex* pnext;
+    CBlockIndex* pnextWithStakeModifier; //Allow for skipping to next block with stake modifier at a time for faster searching
     unsigned int nFile;
     unsigned int nBlockPos;
     uint256 nChainTrust; // ppcoin: trust score of block chain
@@ -1206,6 +1207,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         pnext = NULL;
+        pnextWithStakeModifier = NULL;
         nFile = 0;
         nBlockPos = 0;
         nHeight = 0;
@@ -1231,6 +1233,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         pnext = NULL;
+        pnextWithStakeModifier = NULL;
         nFile = nFileIn;
         nBlockPos = nBlockPosIn;
         nHeight = 0;
@@ -1387,6 +1390,18 @@ public:
     void print() const
     {
         printf("%s\n", ToString().c_str());
+    }
+
+    // Link pnextWithStakeModifier chains so we can skip around faster
+    void linkPnextWithStakeModifier()
+    {
+        if(GeneratedStakeModifier()){
+            CBlockIndex* updatePrev = this->pprev;
+            while(updatePrev && !updatePrev->pnextWithStakeModifier) {
+                updatePrev->pnextWithStakeModifier = this;
+                updatePrev = updatePrev->pprev;
+            }
+        }
     }
 };
 

@@ -339,6 +339,9 @@ bool CTxDB::LoadBlockIndex()
         pindexNew->nBits          = diskindex.nBits;
         pindexNew->nNonce         = diskindex.nNonce;
 
+        // Link pnextWithStakeModifier chains so we can skip around faster
+        pindexNew->linkPnextWithStakeModifier();
+
         // Watch for genesis block
         if (pindexGenesisBlock == NULL && diskindex.GetBlockHash() == hashGenesisBlock)
             pindexGenesisBlock = pindexNew;
