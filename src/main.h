@@ -1397,9 +1397,12 @@ public:
     {
         if(GeneratedStakeModifier()){
             CBlockIndex* updatePrev = this->pprev;
-            while(updatePrev && !updatePrev->pnextWithStakeModifier) {
+            while(updatePrev && !updatePrev->GeneratedStakeModifier()) {
                 updatePrev->pnextWithStakeModifier = this;
                 updatePrev = updatePrev->pprev;
+            }
+            if(updatePrev) {
+                updatePrev->pnextWithStakeModifier = this; //make sure chain of nexts is complete
             }
         }
     }
