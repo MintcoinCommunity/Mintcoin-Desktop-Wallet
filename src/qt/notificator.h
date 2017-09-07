@@ -1,17 +1,17 @@
-// Copyright (c) 2011-2013 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2011-2017 The Bitcoin developers
+// Copyright (c) 2014-2017 The MintCoin Developers
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_NOTIFICATOR_H
-#define BITCOIN_QT_NOTIFICATOR_H
+#ifndef NOTIFICATOR_H
+#define NOTIFICATOR_H
 
 #if defined(HAVE_CONFIG_H)
-#include "bitcoin-config.h"
+#include "config/bitcoin-config.h"
 #endif
 
 #include <QIcon>
 #include <QObject>
-
 
 QT_BEGIN_NAMESPACE
 class QSystemTrayIcon;
@@ -36,12 +36,12 @@ public:
     // Message class
     enum Class
     {
-        Information,     /**< Informational message */
-        Warning,         /**< Notify user of potential problem */
-        Critical         /**< An error occurred */
+        Information,    /**< Informational message */
+        Warning,        /**< Notify user of potential problem */
+        Critical        /**< An error occurred */
     };
 
-public slots:
+public Q_SLOTS:
     /** Show notification message.
        @param[in] cls    general message class
        @param[in] title  title shown with message

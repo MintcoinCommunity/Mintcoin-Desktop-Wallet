@@ -6,6 +6,8 @@ they can be picked up by Qt linguist.
 from subprocess import Popen, PIPE
 import glob
 
+import os
+
 OUT_CPP="src/qt/bitcoinstrings.cpp"
 EMPTY=['""']
 
@@ -48,7 +50,8 @@ def parse_po(text):
 files = glob.glob('src/*.cpp') + glob.glob('src/*.h') 
 
 # xgettext -n --keyword=_ $FILES
-child = Popen(['xgettext','--output=-','-n','--keyword=_'] + files, stdout=PIPE)
+XGETTEXT=os.getenv('XGETTEXT', 'gettext')
+child = Popen([XGETTEXT,'--output=-','-n','--keyword=_'] + files, stdout=PIPE)
 (out, err) = child.communicate()
 
 messages = parse_po(out) 

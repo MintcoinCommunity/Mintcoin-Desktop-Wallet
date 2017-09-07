@@ -3,11 +3,11 @@
 
 #include <QDialog>
 
+class WalletModel;
+
 namespace Ui {
     class AskPassphraseDialog;
 }
-
-class WalletModel;
 
 /** Multifunctional dialog to ask for passphrases. Used for encryption, unlocking, and changing the passphrase.
  */
@@ -25,7 +25,7 @@ public:
         PassToSend   /**< Ask passphrase and send transaction */
     };
 
-    explicit AskPassphraseDialog(Mode mode, QWidget *parent = 0);
+    explicit AskPassphraseDialog(Mode mode, QWidget *parent);
     ~AskPassphraseDialog();
 
     void accept();
@@ -38,8 +38,10 @@ private:
     WalletModel *model;
     bool fCapsLock;
 
-private slots:
+private Q_SLOTS:
     void textChanged();
+
+protected:
     bool event(QEvent *event);
     bool eventFilter(QObject *, QEvent *event);
 };

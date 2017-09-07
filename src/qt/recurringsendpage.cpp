@@ -31,7 +31,7 @@ RecurringSendPage::~RecurringSendPage()
           RecurringSendEntry *entry = qobject_cast<RecurringSendEntry*>(ui->entries->itemAt(i)->widget());
           recurringSendEntries += entry->ui->payFrom->text() + "\n";  //from
           recurringSendEntries += QString().number(entry->period) + "\n"; //period
-          uint64 msRemaining = entry->minutesRemaining*60*1000;
+          uint64_t msRemaining = entry->minutesRemaining*60*1000;
           recurringSendEntries += QString().number(msRemaining) + "\n";//time remaining
           recurringSendEntries += QString().number(entry->recipients.size()) + "\n";//number of recipients
           for(int j=0;j<entry->recipients.size();++j)
@@ -83,14 +83,14 @@ void RecurringSendPage::setModel(WalletModel *model)
     {
       int listIndex=0;
       qint64 timeRecorded=list.at(listIndex++).toULongLong();
-      uint64 offlineTime=QDateTime::currentDateTime().toMSecsSinceEpoch()-timeRecorded;
+      uint64_t offlineTime=QDateTime::currentDateTime().toMSecsSinceEpoch()-timeRecorded;
       int entryCount = list.at(listIndex++).toInt();
 
       for(int i = 0; i < entryCount; ++i)
       {
           QString from=list.at(listIndex++);
           int period = list.at(listIndex++).toInt();
-          uint64 msRemaining = list.at(listIndex++).toULong();
+          uint64_t msRemaining = list.at(listIndex++).toULong();
           if(msRemaining > offlineTime)  //ensure two minutes before send
           {
               msRemaining = msRemaining - offlineTime;

@@ -2,7 +2,7 @@
 # -*- mode: makefile; coding: utf-8 -*-
 
 #DEB_MAKE_CHECK_TARGET = test_bitcoin
-#build/bitcoind::
+#build/mintcoind::
 #	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),,src/test_bitcoin)
 
 DEB_INSTALL_EXAMPLES_mintcoind += debian/examples/*

@@ -1,7 +1,10 @@
 #ifndef TRANSACTIONVIEW_H
 #define TRANSACTIONVIEW_H
 
+#include "guiutil.h"
+
 #include <QWidget>
+#include <QKeyEvent>
 
 class WalletModel;
 class TransactionFilterProxy;
@@ -22,6 +25,7 @@ QT_END_NAMESPACE
 class TransactionView : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit TransactionView(QWidget *parent = 0);
 
@@ -39,6 +43,15 @@ public:
         Range
     };
 
+    enum ColumnWidths {
+        STATUS_COLUMN_WIDTH = 23,
+        WATCHONLY_COLUMN_WIDTH = 23,
+        DATE_COLUMN_WIDTH = 120,
+        TYPE_COLUMN_WIDTH = 120,
+        AMOUNT_MINIMUM_COLUMN_WIDTH = 120,
+        MINIMUM_COLUMN_WIDTH = 23
+    };
+
 private:
     WalletModel *model;
     TransactionFilterProxy *transactionProxyModel;
@@ -46,6 +59,7 @@ private:
 
     QComboBox *dateWidget;
     QComboBox *typeWidget;
+    QComboBox *watchOnlyWidget;
     QLineEdit *addressWidget;
     QLineEdit *amountWidget;
 
@@ -57,7 +71,13 @@ private:
 
     QWidget *createDateRangeWidget();
 
-private slots:
+    GUIUtil::TableViewLastColumnResizingFixer *columnResizingFixer;
+
+    virtual void resizeEvent(QResizeEvent* event);
+
+    bool eventFilter(QObject *obj, QEvent *event);
+
+private Q_SLOTS:
     void contextualMenu(const QPoint &);
     void dateRangeChanged();
     void showDetails();
@@ -65,13 +85,19 @@ private slots:
     void editLabel();
     void copyLabel();
     void copyAmount();
+    void copyTxID();
+    void updateWatchOnlyColumn(bool fHaveWatchOnly);
 
-signals:
+Q_SIGNALS:
     void doubleClicked(const QModelIndex&);
 
-public slots:
+    /**  Fired when a message should be reported to the user */
+    void message(const QString &title, const QString &message, unsigned int style);
+
+public Q_SLOTS:
     void chooseDate(int idx);
     void chooseType(int idx);
+    void chooseWatchonly(int idx);
     void changedPrefix(const QString &prefix);
     void changedAmount(const QString &amount);
     void exportClicked();

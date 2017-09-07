@@ -8,7 +8,9 @@
 class QValueComboBox : public QComboBox
 {
     Q_OBJECT
+
     Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged USER true)
+
 public:
     explicit QValueComboBox(QWidget *parent = 0);
 
@@ -18,15 +20,13 @@ public:
     /** Specify model role to use as ordinal value (defaults to Qt::UserRole) */
     void setRole(int role);
 
-signals:
+Q_SIGNALS:
     void valueChanged();
-
-public slots:
 
 private:
     int role;
 
-private slots:
+private Q_SLOTS:
     void handleSelectionChanged(int idx);
 };
 

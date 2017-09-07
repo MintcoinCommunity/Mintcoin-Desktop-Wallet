@@ -1,7 +1,8 @@
 #include "recurringsendentry.h"
 #include <QApplication>
 #include <QTimer>
-#include "wallet.h"
+#include "wallet/wallet.h"
+#include "walletmodeltransaction.h"
 #include "ui_recurringEntry.h"
 #include "uint256.h"
 #include "bitcoinunits.h"
@@ -71,40 +72,46 @@ RecurringSendEntry::RecurringSendEntry(QWidget *parent, QString from, int repeat
 
 void RecurringSendEntry::updateSendTimer()
 {
-  minutesRemaining--;
-  if(minutesRemaining <= 0)
-  {
-    sendTimer->setInterval(60*1000);
-    minutesRemaining=period * 24 * 60; // reset for next send
-    WalletModel::SendCoinsReturn sendstatus;
-    if(model)
+    minutesRemaining--;
+    if(minutesRemaining <= 0)
     {
-        if(ui->payFrom->text()=="Any Address")
+        sendTimer->setInterval(60*1000);
+        minutesRemaining=period * 24 * 60; // reset for next send
+        WalletModel::SendCoinsReturn sendstatus;
+
+        WalletModelTransaction currentTransaction(recipients);
+        WalletModel::SendCoinsReturn prepareStatus;
+
+        if(model)
         {
-          sendstatus = model->sendCoins(recipients,NULL,false);
-        }
-        else
-        {
-          CCoinControl coinControlByAddress;
-          coinControlByAddress.setUseOnlyMinCoinAge();
-          std::map<QString, std::vector<COutput> > mapCoins;
-          model->listCoins(mapCoins);
-          BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
-          {
-              QString sWalletAddress = coins.first;
-              if(ui->payFrom->text().contains(sWalletAddress,Qt::CaseSensitive))
-              {
-                  BOOST_FOREACH(const COutput& out, coins.second)
-                  {
-                    COutPoint outpt(out.tx->GetHash(), out.i);
-                    coinControlByAddress.Select(outpt);
-                  }
-              }
-          }
-          sendstatus = model->sendCoins(recipients,&coinControlByAddress,false);
+            if(ui->payFrom->text()=="Any Address")
+            {
+                prepareStatus = model->prepareTransaction(currentTransaction);
+            }
+            else
+            {
+                CCoinControl coinControlByAddress;
+                coinControlByAddress.setUseOnlyMinCoinAge();
+                std::map<QString, std::vector<COutput> > mapCoins;
+                model->listCoins(mapCoins);
+                BOOST_FOREACH(PAIRTYPE(QString, std::vector<COutput>) coins, mapCoins)
+                {
+                    QString sWalletAddress = coins.first;
+                    if(ui->payFrom->text().contains(sWalletAddress,Qt::CaseSensitive))
+                    {
+                        BOOST_FOREACH(const COutput& out, coins.second)
+                        {
+                            COutPoint outpt(out.tx->GetHash(), out.i);
+                            coinControlByAddress.Select(outpt);
+                        }
+                    }
+                }
+                prepareStatus = model->prepareTransaction(currentTransaction,&coinControlByAddress);
+            }
+            if(prepareStatus.status == WalletModel::OK)
+                model->sendCoins(currentTransaction);
         }
     }
-  }
   updateRemaining();
 }
 
@@ -132,7 +139,7 @@ void RecurringSendEntry::setModel(WalletModel *model)
 
 void RecurringSendEntry::deleteEntry()
 {
-  emit removeRecurringEntry(this);
+  Q_EMIT removeRecurringEntry(this);
 }
 
 void RecurringSendEntry::addPayTo(SendCoinsRecipient newRecipient)

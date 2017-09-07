@@ -1,19 +1,27 @@
+// Copyright (c) 2011-2017 The Bitcoin developers
+// Copyright (c) 2014-2017 The MintCoin Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef OVERVIEWPAGE_H
 #define OVERVIEWPAGE_H
 
-#include <webviewhandler.h>
+#include "amount.h"
+
 #include <QWidget>
 
-QT_BEGIN_NAMESPACE
-class QModelIndex;
-QT_END_NAMESPACE
+class ClientModel;
+class TransactionFilterProxy;
+class TxViewDelegate;
+class WalletModel;
 
 namespace Ui {
     class OverviewPage;
 }
-class WalletModel;
-class TxViewDelegate;
-class TransactionFilterProxy;
+
+QT_BEGIN_NAMESPACE
+class QModelIndex;
+QT_END_NAMESPACE
 
 /** Overview ("home") page widget */
 class OverviewPage : public QWidget
@@ -24,32 +32,38 @@ public:
     explicit OverviewPage(QWidget *parent = 0);
     ~OverviewPage();
 
-    void setModel(WalletModel *model);
+    void setClientModel(ClientModel *clientModel);
+    void setWalletModel(WalletModel *walletModel);
     void showOutOfSyncWarning(bool fShow);
 
-public slots:
-    void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance, qint64 mintedBalance);
-    void setNumTransactions(int count);
+public Q_SLOTS:
+    void setBalance(const CAmount& balance, const CAmount& stake, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& mintedBalance,
+                    const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
-signals:
+Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
 
 private:
     Ui::OverviewPage *ui;
-    WalletModel *model;
-    qint64 currentBalance;
-    qint64 currentStake;
-    qint64 currentUnconfirmedBalance;
-    qint64 currentImmatureBalance;
-    qint64 currentMintedBalance;
+    ClientModel *clientModel;
+    WalletModel *walletModel;
+    CAmount currentBalance;
+    CAmount currentStake;
+    CAmount currentUnconfirmedBalance;
+    CAmount currentImmatureBalance;
+    CAmount currentMintedBalance;
+    CAmount currentWatchOnlyBalance;
+    CAmount currentWatchUnconfBalance;
+    CAmount currentWatchImmatureBalance;
 
     TxViewDelegate *txdelegate;
     TransactionFilterProxy *filter;
-    WebViewHandler webViewHandler;
 
-private slots:
+private Q_SLOTS:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
+    void updateAlerts(const QString &warnings);
+    void updateWatchOnlyLabels(bool showWatchOnly);
 };
 
 #endif // OVERVIEWPAGE_H

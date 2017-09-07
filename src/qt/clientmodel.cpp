@@ -1,28 +1,43 @@
+// Copyright (c) 2011-2017 The Bitcoin developers
+// Copyright (c) 2014-2017 The MintCoin Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "clientmodel.h"
+
 #include "guiconstants.h"
-#include "optionsmodel.h"
-#include "addresstablemodel.h"
-#include "transactiontablemodel.h"
+#include "peertablemodel.h"
 
 #include "alert.h"
+#include "chainparams.h"
+#include "checkpoints.h"
+#include "clientversion.h"
 #include "main.h"
+#include "net.h"
 #include "ui_interface.h"
+#include "util.h"
 
-#include <QDateTime>
+#include <stdint.h>
+
+#include <QDebug>
 #include <QTimer>
 
-static const int64 nClientStartupTime = GetTime();
+static const int64_t nClientStartupTime = GetTime();
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
-    QObject(parent), optionsModel(optionsModel),
-    cachedNumBlocks(0), cachedNumBlocksOfPeers(0), pollTimer(0)
+    QObject(parent),
+    optionsModel(optionsModel),
+    peerTableModel(0),
+    cachedNumBlocks(0),
+    cachedBlockDate(QDateTime()),
+    cachedReindexing(0),
+    cachedImporting(0),
+    pollTimer(0)
 {
-    numBlocksAtStartup = -1;
-
+    peerTableModel = new PeerTableModel(this);
     pollTimer = new QTimer(this);
-    pollTimer->setInterval(MODEL_UPDATE_DELAY);
-    pollTimer->start();
     connect(pollTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
+    pollTimer->start(MODEL_UPDATE_DELAY);
 
     subscribeToCoreSignals();
 }
@@ -32,46 +47,86 @@ ClientModel::~ClientModel()
     unsubscribeFromCoreSignals();
 }
 
-int ClientModel::getNumConnections() const
+int ClientModel::getNumConnections(unsigned int flags) const
 {
-    return vNodes.size();
+    LOCK(cs_vNodes);
+    if (flags == CONNECTIONS_ALL) // Shortcut if we want total
+        return vNodes.size();
+
+    int nNum = 0;
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT))
+        nNum++;
+
+    return nNum;
 }
 
 int ClientModel::getNumBlocks() const
 {
-    return nBestHeight;
+    LOCK(cs_main);
+    return chainActive.Height();
 }
 
-int ClientModel::getNumBlocksAtStartup()
+quint64 ClientModel::getTotalBytesRecv() const
 {
-    if (numBlocksAtStartup == -1) numBlocksAtStartup = getNumBlocks();
-    return numBlocksAtStartup;
+    return CNode::GetTotalBytesRecv();
+}
+
+quint64 ClientModel::getTotalBytesSent() const
+{
+    return CNode::GetTotalBytesSent();
 }
 
 QDateTime ClientModel::getLastBlockDate() const
 {
-    return QDateTime::fromTime_t(pindexBest->GetBlockTime());
+    LOCK(cs_main);
+
+    if (chainActive.Tip())
+        return QDateTime::fromTime_t(chainActive.Tip()->GetBlockTime());
+
+    return QDateTime::fromTime_t(Params().GenesisBlock().GetBlockTime()); // Genesis block's time of current network
+}
+
+double ClientModel::getVerificationProgress() const
+{
+    LOCK(cs_main);
+    return Checkpoints::GuessVerificationProgress(chainActive.Tip());
 }
 
 void ClientModel::updateTimer()
 {
+    // Get required lock upfront. This avoids the GUI from getting stuck on
+    // periodical polls if the core is holding the locks for a longer time -
+    // for example, during a wallet rescan.
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain)
+        return;
+
     // Some quantities (such as number of blocks) change so fast that we don't want to be notified for each change.
     // Periodically check and update with a timer.
     int newNumBlocks = getNumBlocks();
-    int newNumBlocksOfPeers = getNumBlocksOfPeers();
+    QDateTime newBlockDate = getLastBlockDate();
 
-    if(cachedNumBlocks != newNumBlocks || cachedNumBlocksOfPeers != newNumBlocksOfPeers)
+    // check for changed number of blocks we have, number of blocks peers claim to have, reindexing state and importing state
+    if (cachedNumBlocks != newNumBlocks ||
+        cachedBlockDate != newBlockDate ||
+        cachedReindexing != fReindex ||
+        cachedImporting != fImporting)
     {
         cachedNumBlocks = newNumBlocks;
-        cachedNumBlocksOfPeers = newNumBlocksOfPeers;
+        cachedBlockDate = newBlockDate;
+        cachedReindexing = fReindex;
+        cachedImporting = fImporting;
 
-        emit numBlocksChanged(newNumBlocks, newNumBlocksOfPeers);
+        Q_EMIT numBlocksChanged(newNumBlocks, newBlockDate);
     }
+
+    Q_EMIT bytesChanged(getTotalBytesRecv(), getTotalBytesSent());
 }
 
 void ClientModel::updateNumConnections(int numConnections)
 {
-    emit numConnectionsChanged(numConnections);
+    Q_EMIT numConnectionsChanged(numConnections);
 }
 
 void ClientModel::updateAlert(const QString &hash, int status)
@@ -84,13 +139,11 @@ void ClientModel::updateAlert(const QString &hash, int status)
         CAlert alert = CAlert::getAlertByHash(hash_256);
         if(!alert.IsNull())
         {
-            emit error(tr("Network Alert"), QString::fromStdString(alert.strStatusBar), false);
+            Q_EMIT message(tr("Network Alert"), QString::fromStdString(alert.strStatusBar), CClientUIInterface::ICON_ERROR);
         }
     }
 
-    // Emit a numBlocksChanged when the status message changes,
-    // so that the view recomputes and updates the status bar.
-    emit numBlocksChanged(getNumBlocks(), getNumBlocksOfPeers());
+    Q_EMIT alertsChanged(getStatusBarWarnings());
 }
 
 
@@ -98,6 +151,7 @@ double ClientModel::GetDifficulty() const
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
+    CBlockIndex* pindexBest = chainActive.Tip();
 
     if (pindexBest == NULL)
         return 1.0;
@@ -120,20 +174,21 @@ double ClientModel::GetDifficulty() const
     return dDiff;
 }
 
-
-bool ClientModel::isTestNet() const
-{
-    return fTestNet;
-}
-
 bool ClientModel::inInitialBlockDownload() const
 {
     return IsInitialBlockDownload();
 }
 
-int ClientModel::getNumBlocksOfPeers() const
+enum BlockSource ClientModel::getBlockSource() const
 {
-    return GetNumBlocksOfPeers();
+    if (fReindex)
+        return BLOCK_SOURCE_REINDEX;
+    else if (fImporting)
+        return BLOCK_SOURCE_DISK;
+    else if (getNumConnections() > 0)
+        return BLOCK_SOURCE_NETWORK;
+
+    return BLOCK_SOURCE_NONE;
 }
 
 QString ClientModel::getStatusBarWarnings() const
@@ -146,6 +201,11 @@ OptionsModel *ClientModel::getOptionsModel()
     return optionsModel;
 }
 
+PeerTableModel *ClientModel::getPeerTableModel()
+{
+    return peerTableModel;
+}
+
 QString ClientModel::formatFullVersion() const
 {
     return QString::fromStdString(FormatFullVersion());
@@ -154,6 +214,11 @@ QString ClientModel::formatFullVersion() const
 QString ClientModel::formatBuildDate() const
 {
     return QString::fromStdString(CLIENT_DATE);
+}
+
+bool ClientModel::isReleaseVersion() const
+{
+    return CLIENT_VERSION_IS_RELEASE;
 }
 
 QString ClientModel::clientName() const
@@ -167,22 +232,24 @@ QString ClientModel::formatClientStartupTime() const
 }
 
 // Handlers for core signals
-static void NotifyBlocksChanged(ClientModel *clientmodel)
+static void ShowProgress(ClientModel *clientmodel, const std::string &title, int nProgress)
 {
-    // This notification is too frequent. Don't trigger a signal.
-    // Don't remove it, though, as it might be useful later.
+    // emits signal "showProgress"
+    QMetaObject::invokeMethod(clientmodel, "showProgress", Qt::QueuedConnection,
+                              Q_ARG(QString, QString::fromStdString(title)),
+                              Q_ARG(int, nProgress));
 }
 
 static void NotifyNumConnectionsChanged(ClientModel *clientmodel, int newNumConnections)
 {
-    // Too noisy: OutputDebugStringF("NotifyNumConnectionsChanged %i\n", newNumConnections);
+    // Too noisy: qDebug() << "NotifyNumConnectionsChanged : " + QString::number(newNumConnections);
     QMetaObject::invokeMethod(clientmodel, "updateNumConnections", Qt::QueuedConnection,
                               Q_ARG(int, newNumConnections));
 }
 
 static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, ChangeType status)
 {
-    OutputDebugStringF("NotifyAlertChanged %s status=%i\n", hash.GetHex().c_str(), status);
+    qDebug() << "NotifyAlertChanged : " + QString::fromStdString(hash.GetHex()) + " status=" + QString::number(status);
     QMetaObject::invokeMethod(clientmodel, "updateAlert", Qt::QueuedConnection,
                               Q_ARG(QString, QString::fromStdString(hash.GetHex())),
                               Q_ARG(int, status));
@@ -191,7 +258,7 @@ static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, Ch
 void ClientModel::subscribeToCoreSignals()
 {
     // Connect signals to client
-    uiInterface.NotifyBlocksChanged.connect(boost::bind(NotifyBlocksChanged, this));
+    uiInterface.ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
     uiInterface.NotifyNumConnectionsChanged.connect(boost::bind(NotifyNumConnectionsChanged, this, _1));
     uiInterface.NotifyAlertChanged.connect(boost::bind(NotifyAlertChanged, this, _1, _2));
 }
@@ -199,7 +266,7 @@ void ClientModel::subscribeToCoreSignals()
 void ClientModel::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from client
-    uiInterface.NotifyBlocksChanged.disconnect(boost::bind(NotifyBlocksChanged, this));
+    uiInterface.ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
     uiInterface.NotifyNumConnectionsChanged.disconnect(boost::bind(NotifyNumConnectionsChanged, this, _1));
     uiInterface.NotifyAlertChanged.disconnect(boost::bind(NotifyAlertChanged, this, _1, _2));
 }

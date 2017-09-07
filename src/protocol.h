@@ -10,19 +10,15 @@
 #ifndef __INCLUDED_PROTOCOL_H__
 #define __INCLUDED_PROTOCOL_H__
 
-#include "serialize.h"
 #include "netbase.h"
-#include <string>
+#include "serialize.h"
 #include "uint256.h"
+#include "version.h"
 
-extern bool fTestNet;
-static inline unsigned short GetDefaultPort(const bool testnet = fTestNet)
-{
-    return testnet ? 22788 : 12788;
-}
+#include <stdint.h>
+#include <string>
 
-
-extern unsigned char pchMessageStart[4];
+#define MESSAGE_START_SIZE 4
 
 /** Message header.
  * (4) message start.
@@ -32,106 +28,125 @@ extern unsigned char pchMessageStart[4];
  */
 class CMessageHeader
 {
-    public:
-        CMessageHeader();
-        CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
+public:
+    CMessageHeader();
+    CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
 
-        std::string GetCommand() const;
-        bool IsValid() const;
+    std::string GetCommand() const;
+    bool IsValid() const;
 
-        IMPLEMENT_SERIALIZE
-            (
-             READWRITE(FLATDATA(pchMessageStart));
-             READWRITE(FLATDATA(pchCommand));
-             READWRITE(nMessageSize);
-             READWRITE(nChecksum);
-            )
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
+        READWRITE(FLATDATA(pchMessageStart));
+        READWRITE(FLATDATA(pchCommand));
+        READWRITE(nMessageSize);
+        READWRITE(nChecksum);
+    }
 
     // TODO: make private (improves encapsulation)
-    public:
-        enum {
-            MESSAGE_START_SIZE=sizeof(::pchMessageStart),
-            COMMAND_SIZE=12,
-            MESSAGE_SIZE_SIZE=sizeof(int),
-            CHECKSUM_SIZE=sizeof(int),
+public:
+    enum {
+        COMMAND_SIZE = 12,
+        MESSAGE_SIZE_SIZE = sizeof(int),
+        CHECKSUM_SIZE = sizeof(int),
 
-            MESSAGE_SIZE_OFFSET=MESSAGE_START_SIZE+COMMAND_SIZE,
-            CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE
-        };
-        char pchMessageStart[MESSAGE_START_SIZE];
-        char pchCommand[COMMAND_SIZE];
-        unsigned int nMessageSize;
-        unsigned int nChecksum;
+        MESSAGE_SIZE_OFFSET = MESSAGE_START_SIZE + COMMAND_SIZE,
+        CHECKSUM_OFFSET = MESSAGE_SIZE_OFFSET + MESSAGE_SIZE_SIZE,
+        HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE + CHECKSUM_SIZE
+    };
+    char pchMessageStart[MESSAGE_START_SIZE];
+    char pchCommand[COMMAND_SIZE];
+    unsigned int nMessageSize;
+    unsigned int nChecksum;
 };
 
 /** nServices flags */
-enum
-{
+enum {
     NODE_NETWORK = (1 << 0),
+
+    // Bits 24-31 are reserved for temporary experiments. Just pick a bit that
+    // isn't getting used, or one not being used much, and notify the
+    // bitcoin-development mailing list. Remember that service bits are just
+    // unauthenticated advertisements, so your code must be robust against
+    // collisions and other cases where nodes may be advertising a service they
+    // do not actually support. Other service bits should be allocated via the
+    // BIP process.
 };
 
 /** A CService with information about it as peer */
 class CAddress : public CService
 {
-    public:
-        CAddress();
-        explicit CAddress(CService ipIn, uint64 nServicesIn=NODE_NETWORK);
+public:
+    CAddress();
+    explicit CAddress(CService ipIn, uint64_t nServicesIn = NODE_NETWORK);
 
-        void Init();
+    void Init();
 
-        IMPLEMENT_SERIALIZE
-            (
-             CAddress* pthis = const_cast<CAddress*>(this);
-             CService* pip = (CService*)pthis;
-             if (fRead)
-                 pthis->Init();
-             if (nType & SER_DISK)
-                 READWRITE(nVersion);
-             if ((nType & SER_DISK) ||
-                 (nVersion >= CADDR_TIME_VERSION && !(nType & SER_GETHASH)))
-                 READWRITE(nTime);
-             READWRITE(nServices);
-             READWRITE(*pip);
-            )
+    ADD_SERIALIZE_METHODS;
 
-        void print() const;
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
+        if (ser_action.ForRead())
+            Init();
+        if (nType & SER_DISK)
+            READWRITE(nVersion);
+        if ((nType & SER_DISK) ||
+            (nVersion >= CADDR_TIME_VERSION && !(nType & SER_GETHASH)))
+            READWRITE(nTime);
+        READWRITE(nServices);
+        READWRITE(*(CService*)this);
+    }
 
     // TODO: make private (improves encapsulation)
-    public:
-        uint64 nServices;
+public:
+    uint64_t nServices;
 
-        // disk and network only
-        unsigned int nTime;
+    // disk and network only
+    unsigned int nTime;
 
-        // memory only
-        int64 nLastTry;
+    // memory only
+    int64_t nLastTry;
 };
 
 /** inv message data */
 class CInv
 {
-    public:
-        CInv();
-        CInv(int typeIn, const uint256& hashIn);
-        CInv(const std::string& strType, const uint256& hashIn);
+public:
+    CInv();
+    CInv(int typeIn, const uint256& hashIn);
+    CInv(const std::string& strType, const uint256& hashIn);
 
-        IMPLEMENT_SERIALIZE
-        (
-            READWRITE(type);
-            READWRITE(hash);
-        )
+    ADD_SERIALIZE_METHODS;
 
-        friend bool operator<(const CInv& a, const CInv& b);
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
+        READWRITE(type);
+        READWRITE(hash);
+    }
 
-        bool IsKnownType() const;
-        const char* GetCommand() const;
-        std::string ToString() const;
-        void print() const;
+    friend bool operator<(const CInv& a, const CInv& b);
+
+    bool IsKnownType() const;
+    const char* GetCommand() const;
+    std::string ToString() const;
 
     // TODO: make private (improves encapsulation)
-    public:
-        int type;
-        uint256 hash;
+public:
+    int type;
+    uint256 hash;
+};
+
+enum {
+    MSG_TX = 1,
+    MSG_BLOCK,
+    // Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however,
+    // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata.
+    MSG_FILTERED_BLOCK,
 };
 
 #endif // __INCLUDED_PROTOCOL_H__

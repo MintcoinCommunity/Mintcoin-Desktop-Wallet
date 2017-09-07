@@ -1,3 +1,8 @@
+// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2014-2017 The MintCoin Developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "coincontroltreewidget.h"
 #include "coincontroldialog.h"
 
@@ -13,7 +18,8 @@ void CoinControlTreeWidget::keyPressEvent(QKeyEvent *event)
     {
         event->ignore();
         int COLUMN_CHECKBOX = 0;
-        this->currentItem()->setCheckState(COLUMN_CHECKBOX, ((this->currentItem()->checkState(COLUMN_CHECKBOX) == Qt::Checked) ? Qt::Unchecked : Qt::Checked));
+        if(this->currentItem())
+            this->currentItem()->setCheckState(COLUMN_CHECKBOX, ((this->currentItem()->checkState(COLUMN_CHECKBOX) == Qt::Checked) ? Qt::Unchecked : Qt::Checked));
     }
     else if (event->key() == Qt::Key_Escape) // press esc -> close dialog
     {

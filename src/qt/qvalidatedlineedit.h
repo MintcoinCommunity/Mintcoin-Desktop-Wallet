@@ -9,21 +9,27 @@
 class QValidatedLineEdit : public QLineEdit
 {
     Q_OBJECT
+
 public:
-    explicit QValidatedLineEdit(QWidget *parent = 0);
+    explicit QValidatedLineEdit(QWidget *parent);
     void clear();
+    void setCheckValidator(const QValidator *v);
 
 protected:
     void focusInEvent(QFocusEvent *evt);
+    void focusOutEvent(QFocusEvent *evt);
 
 private:
     bool valid;
+    const QValidator *checkValidator;
 
-public slots:
+public Q_SLOTS:
     void setValid(bool valid);
+    void setEnabled(bool enabled);
 
-private slots:
+private Q_SLOTS:
     void markValid();
+    void checkValidity();
 };
 
 #endif // QVALIDATEDLINEEDIT_H

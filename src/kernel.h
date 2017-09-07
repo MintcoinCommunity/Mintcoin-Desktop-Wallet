@@ -8,14 +8,13 @@
 
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
 static const unsigned int MODIFIER_INTERVAL = 6 * 60 * 60;
-extern unsigned int nModifierInterval;
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
 static const int MODIFIER_INTERVAL_RATIO = 3;
 
 // Compute the hash modifier for proof-of-stake
-bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModifier, bool& fGeneratedStakeModifier);
+bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeModifier, bool& fGeneratedStakeModifier);
 
 // Check whether stake kernel meets hash target
 // Sets hashProofOfStake on success return
@@ -23,10 +22,10 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
 
 // Check kernel hash target and coinstake signature
 // Sets hashProofOfStake on success return
-bool CheckProofOfStake(const CTransaction& tx, unsigned int nBits, uint256& hashProofOfStake);
+bool CheckProofOfStake(CValidationState &state, const CTransaction& tx, unsigned int nBits, uint256& hashProofOfStake);
 
 // Check whether the coinstake timestamp meets protocol
-bool CheckCoinStakeTimestamp(int64 nTimeBlock, int64 nTimeTx);
+bool CheckCoinStakeTimestamp(int64_t nTimeBlock, int64_t nTimeTx);
 
 // Get stake modifier checksum
 unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex);
@@ -35,6 +34,13 @@ unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex);
 bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierChecksum);
 
 // Get time weight using supplied timestamps
-int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd);
+int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd);
+
+// Total coin age spent in block, in the unit of coin-days.
+bool GetBlockCoinAge(const CBlock& block, uint64_t& nCoinAge);
+
+bool GetCoinAge(const CTransaction& tx, uint64_t& nCoinAge);
+
+unsigned int GetStakeEntropyBit(const uint256& block, unsigned int nHeight);
 
 #endif // PPCOIN_KERNEL_H

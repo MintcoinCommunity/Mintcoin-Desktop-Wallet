@@ -1,22 +1,25 @@
+// Copyright (c) 2011-2017 The Bitcoin developers
+// Copyright (c) 2014-2017 The MintCoin Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef SIGNVERIFYMESSAGEDIALOG_H
 #define SIGNVERIFYMESSAGEDIALOG_H
 
 #include <QDialog>
 
+class WalletModel;
+
 namespace Ui {
     class SignVerifyMessageDialog;
 }
-class WalletModel;
-
-QT_BEGIN_NAMESPACE
-QT_END_NAMESPACE
 
 class SignVerifyMessageDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit SignVerifyMessageDialog(QWidget *parent = 0);
+    explicit SignVerifyMessageDialog(QWidget *parent);
     ~SignVerifyMessageDialog();
 
     void setModel(WalletModel *model);
@@ -33,7 +36,7 @@ private:
     Ui::SignVerifyMessageDialog *ui;
     WalletModel *model;
 
-private slots:
+private Q_SLOTS:
     /* sign message */
     void on_addressBookButton_SM_clicked();
     void on_pasteButton_SM_clicked();
