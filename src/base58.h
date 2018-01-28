@@ -44,13 +44,11 @@ inline std::string EncodeBase58(const unsigned char* pbegin, const unsigned char
     // Expected size increase from base58 conversion is approximately 137%
     // use 138% to be safe
     str.reserve((pend - pbegin) * 138 / 100 + 1);
-    CBigNum dv;
     CBigNum rem;
     while (bn > bn0)
     {
-        if (!BN_div(&dv, &rem, &bn, &bn58, pctx))
-            throw bignum_error("EncodeBase58 : BN_div failed");
-        bn = dv;
+	rem = bn % bn58;
+	bn /= bn58;
         unsigned int c = rem.getulong();
         str += pszBase58[c];
     }
@@ -95,8 +93,7 @@ inline bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
             break;
         }
         bnChar.setulong(p1 - pszBase58);
-        if (!BN_mul(&bn, &bn, &bn58, pctx))
-            throw bignum_error("DecodeBase58 : BN_mul failed");
+	bn *= bn58;
         bn += bnChar;
     }
 
