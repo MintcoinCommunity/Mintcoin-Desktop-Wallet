@@ -731,7 +731,7 @@ bool AppInit2()
         msgBox.setInformativeText(("Would you like to import one or create a new wallet?"));
 
         QPushButton* import = msgBox.addButton(("Import Wallet"), QMessageBox::ActionRole);
-        QPushButton* newWallet = msgBox.addButton("Create new wallet", QMessageBox::RejectRole);
+        msgBox.addButton("Create new wallet", QMessageBox::RejectRole);
         msgBox.exec();
 
         if(msgBox.clickedButton()== import)
