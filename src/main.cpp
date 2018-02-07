@@ -3882,7 +3882,11 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
 
     // Create new block
+#ifdef HAVE_CXX11
     unique_ptr<CBlock> pblock(new CBlock());
+#else
+    auto_ptr<CBlock> pblock(new CBlock());
+#endif
     if (!pblock.get())
         return NULL;
 
@@ -4301,7 +4305,11 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
         CBlockIndex* pindexPrev = pindexBest;
 
+#ifdef HAVE_CXX11
         unique_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
+#else
+        auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
+#endif
         if (!pblock.get())
             return;
         IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
