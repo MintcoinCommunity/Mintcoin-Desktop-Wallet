@@ -13,6 +13,7 @@
 #include "kernel.h"
 #include "scrypt_mine.h"
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/config.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -3882,10 +3883,10 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
 
     // Create new block
-#ifdef HAVE_CXX11
-    unique_ptr<CBlock> pblock(new CBlock());
-#else
+#ifdef BOOST_NO_CXX11_SMART_PTR
     auto_ptr<CBlock> pblock(new CBlock());
+#else
+    unique_ptr<CBlock> pblock(new CBlock());
 #endif
     if (!pblock.get())
         return NULL;
@@ -4305,10 +4306,10 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
         CBlockIndex* pindexPrev = pindexBest;
 
-#ifdef HAVE_CXX11
-        unique_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
-#else
+#ifdef BOOST_NO_CXX11_SMART_PTR
         auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
+#else
+        unique_ptr<CBlock> pblock(CreateNewBlock(pwallet, fProofOfStake));
 #endif
         if (!pblock.get())
             return;
