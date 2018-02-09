@@ -1029,10 +1029,42 @@ unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBloc
 
 
 // ppcoin: find last block index up to pindex
+/*
+  This function is needed because we have both Proof-of-Work (PoW) and
+  Proof-of-Stake (PoS) blocks in the blockchain, mixed with each
+  other. When we are adding a new block we need to find the previous
+  block of the same type. This function does that.
+
+  There is a slight hack added for performance. The problem is that
+  since in MintCoin the PoW phase was only a few weeks and we have
+  been adding one PoS block every 30 seconds for 4 years, finding the
+  last PoW block means going through millions of blocks in the linked
+  list. This currently takes about 2 seconds of CPU time, which is a
+  lot of wasted time.
+
+  In order to work around this, if we are looking for PoW from the end
+  of the block chain, we will save the last PoW. The next time we do
+  the same operation, we simply return that value.
+
+  A better solution to this problem would be to stop trying to create
+  PoW blocks any more, but that requires a deeper code restructure,
+  and this hack changes the CPU usage from 2 seconds to less than 1
+  millisecond, so is Good Enough(tm) for now.
+ */
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
 {
-    while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
-        pindex = pindex->pprev;
+    static const CBlockIndex *lastProofOfWork = NULL;
+    if (!fProofOfStake && (pindex == pindexBest) && (lastProofOfWork != NULL)) {
+        pindex = lastProofOfWork;
+    } else {
+        const CBlockIndex *pindexIn = pindex;
+        while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake)) {
+            pindex = pindex->pprev;
+        }
+        if (!fProofOfStake && (pindexIn == pindexBest)) {
+            lastProofOfWork = pindex;
+        }
+    }
     return pindex;
 }
 
@@ -4321,6 +4353,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             if (pblock->IsProofOfStake())
             {
                 if (!pblock->SignBlock(*pwalletMain))
+                    printf("XXX could not sign block XXX\n");
                     continue;
                 printf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str()); 
                 SetThreadPriority(THREAD_PRIORITY_NORMAL);
