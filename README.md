@@ -1,54 +1,99 @@
-Mintcoin is a community owned and operated pure PoS coin. 
-Send your coins to your wallet and earn high yielding interest for saving your coins while securing the Mintcoin network. 
+# Mintcoin
 
+Mintcoin is a community owned and operated pure Proof-of-Stake (PoS)
+coin. 
 
-Mintcoin Specifications
+Send your coins to your wallet and earn high-yielding interest for
+saving your coins while securing the Mintcoin network. 
 
-   - Pure PoS
-    - 30 seconds block target
-    - Difficulty retargets every block
-    - PoS Min/Max Age: 20/40 days
-    - PoS variable interests:
-        - 1st year: 20%
-        - 2nd year: 15%
-        - 3rd year: 10%
-        - 4th and subsequent years: 5%
-    - 4 confirmations for transaction, thus fast 2 mins confirmation for transactions
-    - 50 confirmations for minted blocks
-    - Ports: 12788 (connection) and 12789 (RPC)
+# Mintcoin Specifications
 
-Mintcoin: Year 1 Minting Statistics
+* Pure Proof-of-Stake
+* 30 seconds block target
+* Difficulty retargets every block
+* PoS minimum age: 20 days
+* PoS maximum age: 40 days
+* PoS interest: 5% annual
+* 4 confirmations for transaction
+  * Fast 2 minutes confirmation time for transactions!
+* 50 confirmations for minted blocks
+* Ports: 12788 (connection) and 12789 (RPC)
 
-The following stats are based on the most current information as of March 9, 2015:
+# Community 
 
-~Total coins in existence currently 20.79 billion
+The Mintcoin team is on Twitter:
 
-~Total coins minted in the last year (365 days) 2.18 billion
+https://twitter.com/MintcoinTeam
 
-~Current minting block reward rate is 15% annually
+There is a web-based Mintcoin block explorer:
 
-~210,881,430 coins have been minted in the last 31 days
+https://mintcoin.zone/
 
-~This is an average of 6,802,627 new coins per day being minted currently
+The Telegram Mintcoin group:
 
-~This means that the minting participation rate is currently at 80.43%
+https://t.me/joinchat/AYSXZBGdWRH6jeIX_EJijg
 
-~This would result in an annual increase in the money supply of 12.06% currently
+A Mintcoin fan site:
 
-~Based on last year, we know the timing until the reward reduction was about 287 days, (not a full year)
+http://www.mintymintcoin.com/
 
-~Based on this, we have about 7 more months until next block reduction - rate change to 10% annually (October 9th estimate)
+# FAQ
 
-~This means we are currently now 27% complete with the 15% annual rate reward phase, which started around December 21, 2014
+Q: How long does it take before I can start minting?  
+A: You can mint 20 days after you get Mintcoin in your wallet.
 
-~After October 9th, 2015: Assuming a similar minting participation rate, this will drop the increase in the money supply to an annual rate of about 8%
+Q: What interest rate do I get?  
+A: 5% annually.
 
-~This will be a decrease of 33.33%
+Q: My wallet cannot connect to any nodes!!! What can I do?  
+A: For now, you have to add some nodes by hand (sorry). You can do
+   this by adding the nodes listed here:
+     https://snapshot.mintcoin.zone/PEERS.txt
+   To your `MintCoin.conf` file.
 
-~And in approximately 16 and a half months, (July 2016 estimate) we will see the rate change to 5% annually
+Q: My wallet is taking really long to synchronize. How can I speed this up?  
+A: For now, you can either be patient or download a snapshot (sorry).
+   You can find a snapshot here:
+     https://snapshot.mintcoin.zone/MintCoin-Snapshot-Latest.zip
+   Stop your wallet, extract that into your Mintcoin directory, and 
+   then restart your wallet. It will then start synchronizing from the
+   time the last snapshot was taken.
 
-~After July 2016: Assuming a similar minting participation rate, this will drop the increase in the money supply to annual rate of about 4%
+Q: I have other questions. Are there other answers?   
+A: The official FAQ can be found here:
+   https://docs.google.com/document/d/15tFqSIewTvJTZFdREVPgZgTbFGCc3VhCfM_hN9b7GaE
 
-~This will be a decrease of 50.00%
+# Downloading the Mintcoin Wallet
 
-~Keep in mind, minters also get an additional transaction fees bonus!
+The first way to get the wallet is to download binaries from the
+GitHub releases link:
+
+https://github.com/MintcoinCommunity/Mintcoin-Desktop-Wallet/releases
+
+If you want pre-release binaries, they may be available on this site:
+
+https://snapshot.mintcoin.zone/
+
+# Building the Mintcoin Wallet
+
+There are two separate flavors of Mintcoin wallet:
+
+* Graphical version (a.k.a. `MintCoin-Qt`)
+* Daemon version (a.k.a. `mintcoind`)
+
+They both share much of the same code and are both in the same
+repository.
+
+Directions for the graphical version are found in
+[doc/readme-qt.rst](doc/readme-qt.rst).
+
+Directions for the daemon version are found in
+[doc/build-unix.txt](doc/build-unix.txt),
+[doc/build-msw.txt](doc/build-msw.txt), or
+[doc/build-osx.txt](doc/build-osx.txt), depending on whether you are
+building for a Unix-like system, Microsoft Windows, or macOS,
+respectively.
+
+Note that documentation for building Windows or macOS versions is
+out-of-date and may not work. Please let us know if you get it to
+work!
