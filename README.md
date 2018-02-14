@@ -52,15 +52,15 @@ A: For now, you have to add some nodes by hand (sorry). You can do
    To your `MintCoin.conf` file.
 
 Q: My wallet is taking really long to synchronize. How can I speed this up?  
-A: For now, you can either be patient or download a snapshot (sorry).
-   You can find a snapshot here:
-     https://snapshot.mintcoin.zone/MintCoin-Snapshot-Latest.zip
+A: For now, you can either be patient or download a snapshot (sorry).  
+   You can find a snapshot here:  
+     https://snapshot.mintcoin.zone/MintCoin-Snapshot-Latest.zip  
    Stop your wallet, extract that into your Mintcoin directory, and 
    then restart your wallet. It will then start synchronizing from the
    time the last snapshot was taken.
 
 Q: I have other questions. Are there other answers?   
-A: The official FAQ can be found here:
+A: The official FAQ can be found here:  
    https://docs.google.com/document/d/15tFqSIewTvJTZFdREVPgZgTbFGCc3VhCfM_hN9b7GaE
 
 # Downloading the Mintcoin Wallet
