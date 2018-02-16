@@ -47,8 +47,8 @@ A: 5% annually (that is, 5% per year).
 
 Q: My wallet cannot connect to any nodes!!! What can I do?  
 A: For now, you have to add some nodes by hand (sorry). You can do
-   this by adding the nodes listed here:
-     https://snapshot.mintcoin.zone/PEERS.txt
+   this by adding the nodes listed here:  
+     https://snapshot.mintcoin.zone/PEERS.txt  
    To your `MintCoin.conf` file.
 
 Q: My wallet is taking really long to synchronize. How can I speed this up?  
@@ -104,13 +104,11 @@ By default the wallet has a file called `MintCoin.conf` which stores
 the configuration. The location of this file depends on whether you
 running in Linux, Windows, or macOS:
 
-+---------+--------------------------------------------------------+
 |   OS    | Default configuration file                             |
-+---------+--------------------------------------------------------+
+|---------|--------------------------------------------------------|
 | Linux   | `~/.MintCoin/MintCoin.conf`                            |
 | Windows | `%USERPROFILE%\AppData\Roaming\MintCoin\MintCoin.conf` |
 | macOS   | `~/Library/Application Support/MintCoin/MintCoin.conf` |
-+---------+--------------------------------------------------------+
 
 Usually this will mean something like
 `/home/someuser/.MintCoin/MintCoin.conf` for Linux,
