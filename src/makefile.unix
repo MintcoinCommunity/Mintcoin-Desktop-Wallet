@@ -4,6 +4,8 @@
 
 LINK:=$(CXX)
 
+CPU:=$(shell uname -m)
+
 DEFS=-DBOOST_SPIRIT_THREADSAFE
 
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
@@ -93,8 +95,18 @@ DEBUGFLAGS=-g
 
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
-xCXXFLAGS=-O2 -msse2 -pthread -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
+xCXXFLAGS=-O2 -pthread -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
     $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
+
+# If we have an ARM CPU, we can't use SSE2, so define as thumb.
+# Otherwise, assume SSE2 exists.
+ifeq ($(CPU),armv6l)
+	xCXXFLAGS += -DNOSSE
+else ifeq ($(CPU),armv7l)
+	xCXXFLAGS += -DNOSSE
+else
+	xCXXFLAGS += -msse2 $(CPU)
+endif
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.
