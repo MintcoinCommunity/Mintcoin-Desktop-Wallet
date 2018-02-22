@@ -29,7 +29,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#ifndef NOSSE
 #include <xmmintrin.h>
+#endif
 
 #include "scrypt_mine.h"
 #include "pbkdf2.h"
@@ -44,6 +46,15 @@ extern CBlockIndex* pindexBest;
 extern uint32_t nTransactionsUpdated;
 
 
+/*
+ * The Scrypt algorithm needs a buffer to work in. This is basically
+ * why Scrypt was chosen, as this need for space makes it difficult to
+ * build an ASIC to implement the algorithm.
+ *
+ * At some point someone decided that a 64-bit system probably should
+ * use more memory, and 32-bit systems less, and that was implemented
+ * in MintCoin. We're okay with that.
+ */
 #if defined(__x86_64__)
 
 #define SCRYPT_3WAY
@@ -54,7 +65,7 @@ extern "C" void scrypt_core(uint32_t *X, uint32_t *V);
 extern "C" void scrypt_core_2way(uint32_t *X, uint32_t *Y, uint32_t *V);
 extern "C" void scrypt_core_3way(uint32_t *X, uint32_t *Y, uint32_t *Z, uint32_t *V);
 
-#elif defined(__i386__)
+#elif defined(__i386__) || defined(__arm__)
 
 #define SCRYPT_BUFFER_SIZE (131072 + 63)
 
