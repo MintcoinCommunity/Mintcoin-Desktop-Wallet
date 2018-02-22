@@ -1061,7 +1061,7 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
         while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake)) {
             pindex = pindex->pprev;
         }
-        if (!fProofOfStake && (pindexIn == pindexBest)) {
+        if (!fProofOfStake && (pindexIn == pindexBest) && (pindex->nHeight > CUTOFF_POW_BLOCK)) {
             lastProofOfWork = pindex;
         }
     }
