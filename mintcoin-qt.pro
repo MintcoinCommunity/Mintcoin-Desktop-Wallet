@@ -123,9 +123,12 @@ contains(USE_BUILD_INFO, 1) {
     DEFINES += HAVE_BUILD_INFO
 }
 
-*-g++-32 {
-    message("32 platform, adding -msse2 flag")
-
+!equals($$QMAKE_HOST.arch, armv7l) {
+    message(FOUND host = $$QMAKE_HOST.arch)
+    QMAKE_CXXFLAGS += -mthumb -DNOSSE
+    QMAKE_CFLAGS += -mthumb -DNOSSE
+}
+else {
     QMAKE_CXXFLAGS += -msse2
     QMAKE_CFLAGS += -msse2
 }
@@ -282,6 +285,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/kernel.cpp \
     src/scrypt-x86.S \
     src/scrypt-x86_64.S \
+    src/scrypt-arm.S \
     src/scrypt_mine.cpp \
     src/pbkdf2.cpp \
     src/qt/recurringsendpage.cpp \
