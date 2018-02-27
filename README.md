@@ -59,12 +59,12 @@ A: For now, you can either be patient or download a snapshot (sorry).
    then restart your wallet. It will then start synchronizing from the
    time the last snapshot was taken.
 
-Q: When will MintCoin get added to more exchanges?
+Q: When will MintCoin get added to more exchanges?  
 A: Most exchanges ask for money to get added, typically a _lot_ of Bitcoin.
    Until someone organizes an effort to collect a lot of Bitcoin for this,
    MintCoin will probably not be added to any exchanges.
 
-Q: When will there be a MintCoin coin burn?
+Q: When will there be a MintCoin coin burn?  
 A: A coin burn is used by investors to drive up the value of a crypto
    currency. Since MintCoin is a community coin, there is no group of
    investors who will do this.
