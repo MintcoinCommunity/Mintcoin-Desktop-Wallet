@@ -4352,9 +4352,10 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             // ppcoin: if proof-of-stake block found then process block
             if (pblock->IsProofOfStake())
             {
-                if (!pblock->SignBlock(*pwalletMain))
+                if (!pblock->SignBlock(*pwalletMain)) {
                     printf("XXX could not sign block XXX\n");
                     continue;
+                }
                 printf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str()); 
                 SetThreadPriority(THREAD_PRIORITY_NORMAL);
                 CheckWork(pblock.get(), *pwalletMain, reservekey);
