@@ -28,7 +28,7 @@ then execute the following:
 
 Alternatively, install Qt Creator and open the `mintcoin-qt.pro` file.
 
-An executable named `mintcoin-qt` will be built.
+An executable named `MintCoin-Qt` will be built.
 
 
 Windows

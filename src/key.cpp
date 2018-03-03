@@ -6,8 +6,25 @@
 
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
+#include <openssl/opensslv.h>
 
 #include "key.h"
+
+/*
+OpenSSL changed the structure for ECDSA signatures to be more
+abstract between version 1.0.x and 1.1.x. This means that you
+can no longer access those fields directly. The values that we
+care about can be get/set with the ECDSA_SIG_get0() and
+ECDSA_SIG_set0() functions. These are not available on earlier
+versions than 1.1.0, so we need to provide these for systems
+with older OpenSSL.
+
+The OPENSSL_VERSION_NUMBER is defined in <openssl/opensslv.h>.
+ */
+#if OPENSSL_VERSION_NUMBER < 0x10010000
+#define ECDSA_SIG_get0(sig, sig_r, sig_s) (*sig_r = (sig)->r, *sig_s = (sig)->s)
+#define ECDSA_SIG_set0(sig, sig_r, sig_s) ((sig)->r = sig_r, (sig)->s = sig_s)
+#endif /* OPENSSL_VERSION_NUMBER < 0x10010000 */
 
 // Generate a private key from just the secret parameter
 int EC_KEY_regenerate_key(EC_KEY *eckey, BIGNUM *priv_key)

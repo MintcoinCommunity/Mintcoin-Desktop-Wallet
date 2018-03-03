@@ -231,7 +231,7 @@ uint256 GetRandHash();
 int64 GetTime();
 void SetMockTime(int64 nMockTimeIn);
 int64 GetAdjustedTime();
-long hex2long(const char* hexString);
+long hex2long(const unsigned char* hexString);
 std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
 void AddTimeData(const CNetAddr& ip, int64 nTime);
@@ -247,7 +247,7 @@ void runCommand(std::string strCommand);
 
 inline std::string i64tostr(int64 n)
 {
-    return strprintf("%"PRI64d, n);
+    return strprintf("%" PRI64d, n);
 }
 
 inline std::string itostr(int n)
