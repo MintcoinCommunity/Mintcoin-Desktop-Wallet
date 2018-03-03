@@ -21,6 +21,10 @@ saving your coins while securing the MintCoin network.
 
 # Community 
 
+The official MintCoin web site:
+
+https://mintcoinofficial.com/
+
 The MintCoin team is on Twitter:
 
 https://twitter.com/MintCoinTeam
@@ -66,8 +70,8 @@ A: Most exchanges ask for money to get added, typically a _lot_ of Bitcoin.
 
 Q: When will there be a MintCoin coin burn?  
 A: A coin burn is used by investors to drive up the value of a crypto
-   currency. Since MintCoin is a community coin, there is no group of
-   investors who will do this.
+   currency. Some members of the community think this is a good idea,
+   others do not. Right now no coin burn is in progress or planned.
 
 Q: I have other questions. Are there other answers?   
 A: The official FAQ can be found here:  
