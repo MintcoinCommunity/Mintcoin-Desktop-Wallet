@@ -14,9 +14,10 @@ We need to make sure our build environment is up to date. For Debian and Ubuntu:
 
 ::
 
-    apt-get install qt5-qmake libqt5-dev build-essential libboost-dev libboost-system-dev \
-        libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev \
-        libssl-dev libdb5.3++-dev libminiupnpc-dev libminiupnpc8
+    apt-get install qt5-qmake qt5-default qttools5-dev-tools \
+        libboost-system-dev libboost-filesystem-dev \
+        libboost-program-options-dev libboost-thread-dev \
+        build-essential libboost-dev libssl-dev libdb5.3++-dev libminiupnpc-dev
 
 then execute the following:
 
