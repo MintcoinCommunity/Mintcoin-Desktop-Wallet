@@ -11,10 +11,12 @@ addons:
 
 matrix:
   include:
-#  - os: linux
-#    dist: trusty
-#    script: cd src && make -f makefile.unix
-
+  # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
   - os: linux
-    dist: xenial
+    dist: trusty
     script: cd src && make -f makefile.unix
+
+  # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
+  #- os: linux
+  #  dist: xenial
+  #  script: cd src && make -f makefile.unix
