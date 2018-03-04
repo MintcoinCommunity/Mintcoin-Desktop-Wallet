@@ -15,7 +15,7 @@ addons:
       - libqt4-dev
 
 install:
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install boost db miniupnpc qrencode; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db miniupnpc qrencode; fi
 
 matrix:
   include:
