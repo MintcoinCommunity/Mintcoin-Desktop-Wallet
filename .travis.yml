@@ -1,0 +1,58 @@
+language: cpp
+sudo: false
+
+addons:
+  # Ubuntu packages
+  apt:
+    packages:
+      # These are required by the Linux build
+      - libdb++-dev
+      - libboost-all-dev
+      - libqrencode-dev
+      - libminiupnpc-dev
+      - libminiupnpc8
+      # These are required by the Linux Qt build
+      - qt4-qmake
+      - libqt4-dev
+
+# We don't support macOS now, but we should
+#install:
+#  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db openssl miniupnpc qrencode; fi
+
+matrix:
+  include:
+  # Build mintcoind
+  # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
+  - os: linux
+    dist: trusty
+    script: cd src && make -f makefile.unix
+
+  # Build mintcoind
+  # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
+  #- os: linux
+  #  dist: xenial
+  #  script: cd src && make -f makefile.unix
+
+  # Build mintcoind
+  # OS X 10.12 (Sierra)
+  #- os: osx
+  #  osx_image: xcode8.3
+  #  script: cd src && make -f makefile.osx
+
+  # Build MintCoin-Qt
+  # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
+  - os: linux
+    dist: trusty
+    script: qmake && make
+
+  # Build MintCoin-Qt
+  # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
+  #- os: linux
+  #  dist: xenial
+  #  script: qmake && make
+
+  # Build MintCoin-Qt
+  # OS X 10.12 (Sierra)
+  #- os: osx
+  #  osx_image: xcode8.3
+  #  script: qmake && make
