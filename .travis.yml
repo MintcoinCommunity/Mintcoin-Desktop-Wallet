@@ -3,6 +3,14 @@ sudo: false
 # If we need to install anything else we'll need sudo mode
 #  sudo: true
 
+addons:
+  apt:
+    packages:
+      - libdb4.8++-dev
+      - libboost-all-dev
+      - libqrencode-dev
+
+
 matrix:
   include:
   - os: linux
