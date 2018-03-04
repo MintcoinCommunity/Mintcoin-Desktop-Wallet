@@ -6,7 +6,7 @@ sudo: false
 addons:
   apt:
     packages:
-      - libdb4.8++-dev
+      - libdb++-dev
       - libboost-all-dev
       - libqrencode-dev
 
