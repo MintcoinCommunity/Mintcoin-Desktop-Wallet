@@ -1,0 +1,10 @@
+language: c++
+sudo: false
+# If we need to install anything else we'll need sudo mode
+#  sudo: true
+
+matrix:
+  include:
+  - os: linux
+    dist: trusty
+    script: cd src && make -f makefile.unix
