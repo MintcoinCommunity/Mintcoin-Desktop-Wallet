@@ -29,10 +29,6 @@ The MintCoin team is on Twitter:
 
 https://twitter.com/MintCoinTeam
 
-There is a web-based MintCoin block explorer:
-
-https://mintcoin.zone/
-
 The Telegram MintCoin group:
 
 https://t.me/joinchat/AYSXZBGdWRH6jeIX_EJijg
