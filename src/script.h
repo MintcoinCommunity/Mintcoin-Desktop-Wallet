@@ -454,6 +454,10 @@ public:
                 memcpy(&nSize, &pc[0], 4);
                 pc += 4;
             }
+            else
+            {
+                return false;
+            }
             if (end() - pc < 0 || (unsigned int)(end() - pc) < nSize)
                 return false;
             if (pvchRet)
