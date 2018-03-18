@@ -105,7 +105,7 @@ ifeq ($(CPU),armv6l)
 else ifeq ($(CPU),armv7l)
 	xCXXFLAGS += -DNOSSE
 else
-	xCXXFLAGS += -msse2 $(CPU)
+	xCXXFLAGS += -msse2
 endif
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
