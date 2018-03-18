@@ -123,10 +123,10 @@ contains(USE_BUILD_INFO, 1) {
     DEFINES += HAVE_BUILD_INFO
 }
 
-!equals($$QMAKE_HOST.arch, armv7l) {
+equals(QMAKE_HOST.arch, "armv7l") {
     message(FOUND host = $$QMAKE_HOST.arch)
-    QMAKE_CXXFLAGS += -mthumb -DNOSSE
-    QMAKE_CFLAGS += -mthumb -DNOSSE
+    QMAKE_CXXFLAGS += -DNOSSE
+    QMAKE_CFLAGS += -DNOSSE
 }
 else {
     QMAKE_CXXFLAGS += -msse2
