@@ -206,8 +206,6 @@ public:
 
     virtual Status GetTestDirectory(std::string* path);
 
-    //virtual void Logv(WritableFile* log, const char* format, va_list ap);
-
     virtual Status NewLogger(const std::string& fname, Logger** result);
 
     virtual uint64_t NowMicros();
