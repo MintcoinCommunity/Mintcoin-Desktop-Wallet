@@ -16,6 +16,7 @@
 #include <QScrollBar>
 
 #include <openssl/crypto.h>
+#include <pthread.h>
 #include <db_cxx.h>
 
 // TODO: add a scrollback limit, as there is currently none
