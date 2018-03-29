@@ -14,10 +14,16 @@ To Build
 --------
 
 cd src/
-make -f makefile.unix            # Headless mintcoin
+make -f makefile.unix            # Headless MintCoin
 
 See readme-qt.rst for instructions on building MintCoin QT,
 the graphical mintcoin.
+
+You can also make a static binary by setting the appropriate options
+to make:
+
+cd src
+make -f makefile.unix STATIC="all" LDFLAGS="-static"
 
 Dependencies
 ------------
