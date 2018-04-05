@@ -17,7 +17,7 @@ addons:
 
 # We don't support macOS now, but we should
 install:
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db openssl miniupnpc qrencode; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew install miniupnpc qrencode; brew upgrade openssl; port install db; fi
 
 matrix:
   include:
@@ -25,34 +25,34 @@ matrix:
   # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
-    script: cd src && make -f makefile.unix
+    script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
   #- os: linux
   #  dist: xenial
-  #  script: cd src && make -f makefile.unix
+  #  script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind
   # OS X 10.12 (Sierra)
   - os: osx
     osx_image: xcode8.3
-    script: cd src && make -f makefile.osx
+    script: cd src && make -f makefile.osx -j2
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
-    script: qmake && make
+    script: qmake && make -j2
 
   # Build MintCoin-Qt
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
   #- os: linux
   #  dist: xenial
-  #  script: qmake && make
+  #  script: qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
   #- os: osx
   #  osx_image: xcode8.3
-  #  script: qmake && make
+  #  script: qmake && make -j2
