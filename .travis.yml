@@ -16,15 +16,16 @@ addons:
       - libqt4-dev
 
 install:
+#      PATH="/opt/local/bin:$PATH" ;
   - if [ $TRAVIS_OS_NAME = osx ]; then
       brew install miniupnpc qrencode ;
       export COLUMNS=80 ;
       curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
       chmod +x ./macports-ci ;
       ./macports-ci install ;
-      PATH="/opt/local/bin:$PATH" ;
-      ./macports-ci db53 ;
-      ./macports-ci openssl ;
+      /opt/local/bin/port install db53 ;
+      /opt/local/bin/port install zlib ;
+      /opt/local/bin/port install openssl ;
     fi
 
 matrix:
