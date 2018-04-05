@@ -18,7 +18,7 @@ addons:
 install:
   # macOS builds currently require both Homebrew and Mac Ports packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
-      brew upgrade ;
+      brew upgrade ;                    # required by OS X 10.11 (El Capitan)
       brew install miniupnpc qrencode ;
       export COLUMNS=80 ;
       curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
@@ -32,10 +32,16 @@ install:
 matrix:
   include:
   # Build mintcoind
-  # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
     script: cd src && make -f makefile.unix -j2
+
+  # Build mintcoind static
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  - os: linux
+    dist: trusty
+    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -68,10 +74,16 @@ matrix:
     script: cd src && make -f makefile.osx -j2
 
   # Build MintCoin-Qt
-  # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
     script: qmake && make -j2
+
+  # Build MintCoin-Qt static (currently non-functional)
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  #- os: linux
+  #  dist: trusty
+  #  script: qmake && make -j2
 
   # Build MintCoin-Qt
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
