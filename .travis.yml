@@ -19,7 +19,7 @@ install:
 #  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db miniupnpc qrencode; brew upgrade openssl; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install miniupnpc qrencode; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci && chmod +x ./macports-ci && ./macports-ci install; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then sudo /opt/local/bin/port install db openssl; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then sudo /opt/local/bin/port install db53 openssl; fi
 
 matrix:
   include:
