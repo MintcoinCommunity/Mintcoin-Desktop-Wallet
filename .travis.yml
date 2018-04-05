@@ -16,11 +16,16 @@ addons:
       - libqt4-dev
 
 install:
-#  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db miniupnpc qrencode; brew upgrade openssl; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install miniupnpc qrencode; fi
-  - export COLUMNS=80
-  - if [ $TRAVIS_OS_NAME = osx ]; then curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci && chmod +x ./macports-ci && ./macports-ci install; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then sudo /opt/local/bin/port install db53 openssl; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then
+      brew install miniupnpc qrencode ;
+      export COLUMNS=80 ;
+      curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
+      chmod +x ./macports-ci ;
+      ./macports-ci install ;
+      PATH="/opt/local/bin:$PATH" ;
+      ./macports-ci db53 ;
+      ./macports-ci openssl ;
+    fi
 
 matrix:
   include:
