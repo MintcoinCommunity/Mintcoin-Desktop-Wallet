@@ -16,8 +16,8 @@ addons:
       - libqt4-dev
 
 # We don't support macOS now, but we should
-#install:
-#  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db openssl miniupnpc qrencode; fi
+install:
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db openssl miniupnpc qrencode; fi
 
 matrix:
   include:
@@ -35,9 +35,9 @@ matrix:
 
   # Build mintcoind
   # OS X 10.12 (Sierra)
-  #- os: osx
-  #  osx_image: xcode8.3
-  #  script: cd src && make -f makefile.osx
+  - os: osx
+    osx_image: xcode8.3
+    script: cd src && make -f makefile.osx
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusy Tahr) is our latest (and only) Ubuntu version
