@@ -18,6 +18,7 @@ addons:
 install:
   # macOS builds currently require both Homebrew and Mac Ports packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
+      brew upgrade ;
       brew install miniupnpc qrencode ;
       export COLUMNS=80 ;
       curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
@@ -43,10 +44,10 @@ matrix:
   #  script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind
-  # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2
+  # OS X 10.10 (Yosemite) sudo does not work
+  #- os: osx
+  #  osx_image: xcode6.4
+  #  script: cd src && make -f makefile.osx -j2
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
