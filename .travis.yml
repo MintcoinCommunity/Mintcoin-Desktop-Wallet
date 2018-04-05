@@ -15,9 +15,11 @@ addons:
       - qt4-qmake
       - libqt4-dev
 
-# We don't support macOS now, but we should
 install:
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install miniupnpc qrencode; brew upgrade openssl; port install db; fi
+  # Install packages for macOS using Homebrew. Note that we use Homebrew's db
+  # even though it is not backward compatible, since we are just testing our
+  # build not making one that works with existing blockchains.
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew install db miniupnpc qrencode; brew upgrade openssl; fi
 
 matrix:
   include:
