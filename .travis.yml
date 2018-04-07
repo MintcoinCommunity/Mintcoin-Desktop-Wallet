@@ -20,7 +20,6 @@ install:
       #brew upgrade ;                    # required by OS X 10.11 (El Capitan)
       #brew install miniupnpc qrencode ;
   - if [ $TRAVIS_OS_NAME = osx ]; then
-      brew upgrade ;
       export COLUMNS=80 ;
       curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
       chmod +x ./macports-ci ;
@@ -91,4 +90,4 @@ matrix:
   # OS X 10.12 (Sierra)
   - os: osx
     osx_image: xcode8.3
-    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/bin/qmake && make -j2
+    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
