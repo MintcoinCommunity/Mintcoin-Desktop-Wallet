@@ -24,11 +24,7 @@ install:
       curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
       chmod +x ./macports-ci ;
       ./macports-ci install ;
-      sudo /opt/local/bin/port install db53 ;
-      sudo /opt/local/bin/port install zlib ;
-      sudo /opt/local/bin/port install openssl ;
-      sudo /opt/local/bin/port install miniupnpc ;
-      sudo /opt/local/bin/port install boost ;
+      yes | sudo /opt/local/bin/port install db53 openssl miniupnpc boost ;
     fi
 
 matrix:
