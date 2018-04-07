@@ -17,10 +17,11 @@ addons:
 
 install:
   # macOS builds currently require both Homebrew and Mac Ports packages
-  - if [ $TRAVIS_OS_NAME = osx ]; then
-      brew upgrade ;                    # required by OS X 10.11 (El Capitan)
+      #brew upgrade ;                    # required by OS X 10.11 (El Capitan)
       #brew install miniupnpc qrencode ;
-      brew install qrencode ;
+  - if [ $TRAVIS_OS_NAME = osx ]; then
+      brew upgrade ;
+      brew install miniupnpc ;
       export COLUMNS=80 ;
       curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
       chmod +x ./macports-ci ;
@@ -73,7 +74,7 @@ matrix:
   # OS X 10.13 (High Sierra)
   - os: osx
     osx_image: xcode9.3beta
-    script: yes | sudo /opt/local/bin/port install qt5 && cd src && make -f makefile.osx -j2
+    script: cd src && make -f makefile.osx -j2
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
@@ -89,6 +90,7 @@ matrix:
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode8.3
-    script: qmake && make -j2
+  #- os: osx
+  #  osx_image: xcode8.3
+  #  script: qmake && make -j2
+  #  script: yes | sudo /opt/local/bin/port install qt5 && cd src && make -f makefile.osx -j2
