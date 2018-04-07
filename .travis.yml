@@ -28,6 +28,7 @@ install:
       sudo /opt/local/bin/port install zlib ;
       sudo /opt/local/bin/port install openssl ;
       sudo /opt/local/bin/port install miniupnpc ;
+      sudo /opt/local/bin/port install boost ;
     fi
 
 matrix:
@@ -91,3 +92,5 @@ matrix:
   - os: osx
     osx_image: xcode8.3
     script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
+
+# TODO: static macOS daemonwallet

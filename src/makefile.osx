@@ -8,17 +8,17 @@
 
 CXX=llvm-g++
 MPORTDEPSDIR=/opt/local
-BREWDEPSDIR=/usr/local/opt
+#BREWDEPSDIR=/usr/local/opt
 
+# -I"$(BREWDEPSDIR)/boost@1.60/include" 
 INCLUDEPATHS= \
- -I"$(BREWDEPSDIR)/boost@1.60/include" \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj \
  -I"$(MPORTDEPSDIR)/include" \
  -I"$(MPORTDEPSDIR)/include/db53"
 
+# -L"$(BREWDEPSDIR)/boost@1.60/lib" 
 LIBPATHS= \
- -L"$(BREWDEPSDIR)/boost@1.60/lib" \
  -L"$(MPORTDEPSDIR)/lib" \
  -L"$(MPORTDEPSDIR)/lib/db53"
 
