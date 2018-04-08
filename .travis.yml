@@ -16,23 +16,11 @@ addons:
       - libqt4-dev
 
 install:
-  # macOS builds use Mac Ports packages (we need Berkeley DB 5, which is
-  # not available on Homebrew) as well as Homebrew packages
-#      brew upgrade ;
   - if [ $TRAVIS_OS_NAME = osx ]; then
+      # Travis already has OpenSSL and Boost installed via Homebrew, but we
+      # need to add a couple more packages
       brew install miniupnpc berkeley-db@4 ;
-      ls -1 /usr/local/opt ;
-      find /usr/local -name 'libz*.a' -print ;
-      find /usr/local -name 'libz*.a' -ls ;
-      find /usr/local -name '*zlib*.a' -print ;
-      find /usr/local -name '*zlib*.a' -ls ;
     fi
-
-#      export COLUMNS=80 ;
-#      curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
-#      chmod +x ./macports-ci ;
-#      ./macports-ci install ;
-#      yes | sudo /opt/local/bin/port install db53 openssl miniupnpc ;
 
 matrix:
   include:
@@ -104,9 +92,9 @@ matrix:
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
-#  - os: osx
-#    osx_image: xcode8.3
-#    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
+  - os: osx
+    osx_image: xcode8.3
+    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build mintcoind
   # OS X 10.13 (High Sierra)
