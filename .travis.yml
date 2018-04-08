@@ -17,14 +17,17 @@ addons:
 
 install:
   # macOS builds use Mac Ports packages (we need Berkeley DB 5, which is
-  # not available on Brew)
+  # not available on Homebrew) as well as Homebrew packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
-      export COLUMNS=80 ;
-      curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
-      chmod +x ./macports-ci ;
-      ./macports-ci install ;
-      yes | sudo /opt/local/bin/port install db53 openssl miniupnpc boost ;
+      brew upgrade ;
+      brew install openssl miniupnpc boost berkeley-db@4;
     fi
+
+#      export COLUMNS=80 ;
+#      curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci ;
+#      chmod +x ./macports-ci ;
+#      ./macports-ci install ;
+#      yes | sudo /opt/local/bin/port install db53 openssl miniupnpc ;
 
 matrix:
   include:

@@ -8,17 +8,21 @@
 
 CXX=llvm-g++
 MPORTDEPSDIR=/opt/local
-#BREWDEPSDIR=/usr/local/opt
+BREWDEPSDIR=/usr/local/opt
 
 INCLUDEPATHS= \
+ -I"$(BREWDEPSDIR)/boost@1.60/include" \
  -I"$(CURDIR)" \
- -I"$(CURDIR)"/obj \
- -I"$(MPORTDEPSDIR)/include" \
- -I"$(MPORTDEPSDIR)/include/db53"
+ -I"$(CURDIR)"/obj
+
+# -I"$(MPORTDEPSDIR)/include" \
+# -I"$(MPORTDEPSDIR)/include/db53"
 
 LIBPATHS= \
- -L"$(MPORTDEPSDIR)/lib" \
- -L"$(MPORTDEPSDIR)/lib/db53"
+ -L"$(BREWDEPSDIR)/boost@1.60/lib"
+
+# -L"$(MPORTDEPSDIR)/lib" \
+# -L"$(MPORTDEPSDIR)/lib/db53"
 
 USE_UPNP:=1
 USE_IPV6:=1
@@ -27,21 +31,28 @@ LIBS= -dead_strip
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
-# $(MPORTDEPSDIR)/lib/libboost_filesystem-mt.a \
-# $(MPORTDEPSDIR)/lib/libboost_program_options-mt.a \
-# $(MPORTDEPSDIR)/lib/libboost_thread-mt.a \
-
+# $(MPORTDEPSDIR)/lib/db53/libdb_cxx-5.3.a \
+# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_system-mt.a" \
+# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_filesystem-mt.a" \
+# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_program_options-mt.a" \
+# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_thread-mt.a" \
+# $(MPORTDEPSDIR)/lib/libssl.a \
+# $(MPORTDEPSDIR)/lib/libcrypto.a \
+# $(MPORTDEPSDIR)/lib/libz.a
 
 ifdef STATIC
 # Build STATIC if you are redistributing the bitcoind binary
 TESTLIBS += \
- $(MPORTDEPSDIR)lib/libboost_unit_test_framework-mt.a
+ "$(BREWDEPSDIR)/boost@1.60/lib/libboost_unit_test_framework-mt.a"
 LIBS += \
- $(MPORTDEPSDIR)/lib/db53/libdb_cxx-5.3.a \
- $(MPORTDEPSDIR)/lib/libboost_system-mt.a \
- $(MPORTDEPSDIR)/lib/libssl.a \
- $(MPORTDEPSDIR)/lib/libcrypto.a \
- $(MPORTDEPSDIR)/lib/libz.a
+ $(BREWDEPSDIR)/lib/libdb_cxx-5.3.a \
+ "$(BREWDEPSDIR)/boost@1.60/lib/libboost_system-mt.a" \
+ "$(BREWDEPSDIR)/boost@1.60/lib/libboost_filesystem-mt.a" \
+ "$(BREWDEPSDIR)/boost@1.60/lib/libboost_program_options-mt.a" \
+ "$(BREWDEPSDIR)/boost@1.60/lib/libboost_thread-mt.a" \
+ $(BREWDEPSDIR)/lib/libssl.a \
+ $(BREWDEPSDIR)/lib/libcrypto.a \
+ $(BREWDEPSDIR)/lib/libz.a
 else
 TESTLIBS += \
  -lboost_unit_test_framework-mt
@@ -111,7 +122,7 @@ endif
 ifneq (${USE_UPNP}, -)
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 ifdef STATIC
-	LIBS += $(MPORTDEPSDIR)/lib/libminiupnpc.a
+	LIBS += $(BREWDEPSDIR)/lib/libminiupnpc.a
 else
 	LIBS += -lminiupnpc
 endif
