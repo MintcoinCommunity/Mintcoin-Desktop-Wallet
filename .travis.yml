@@ -20,7 +20,8 @@ install:
   # not available on Homebrew) as well as Homebrew packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
       brew upgrade ;
-      brew install openssl miniupnpc boost berkeley-db@4;
+      brew install openssl miniupnpc boost berkeley-db@4 ;
+      find /usr/local/opt/lib -print ;
     fi
 
 #      export COLUMNS=80 ;
