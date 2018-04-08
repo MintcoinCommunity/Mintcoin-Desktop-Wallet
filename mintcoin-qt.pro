@@ -365,15 +365,17 @@ isEmpty(BOOST_THREAD_LIB_SUFFIX) {
 }
 
 isEmpty(BDB_LIB_PATH) {
-    macx:BDB_LIB_PATH = /opt/local/lib/db53
+#    macx:BDB_LIB_PATH = /opt/local/lib/db53
+    macx:BDB_LIB_PATH = /usr/local/opt/berkeley-db@4/lib
 }
 
-isEmpty(BDB_LIB_SUFFIX) {
-    macx:BDB_LIB_SUFFIX = -5.3
-}
+#isEmpty(BDB_LIB_SUFFIX) {
+#    macx:BDB_LIB_SUFFIX = -5.3
+#}
 
 isEmpty(BDB_INCLUDE_PATH) {
-    macx:BDB_INCLUDE_PATH = /opt/local/include/db53
+#    macx:BDB_INCLUDE_PATH = /opt/local/include/db53
+    macx:BDB_INCLUDE_PATH = /usr/local/opt/berkeley-db@4/include
 }
 
 isEmpty(BOOST_LIB_PATH) {
@@ -385,11 +387,13 @@ isEmpty(BOOST_INCLUDE_PATH) {
 }
 
 isEmpty(OPENSSL_LIB_PATH) {
-    macx:OPENSSL_LIB_PATH = /opt/local/lib
+#    macx:OPENSSL_LIB_PATH = /opt/local/lib
+    macx:OPENSSL_LIB_PATH = /usr/local/opt/openssl/lib
 }
 
 isEmpty(OPENSSL_INCLUDE_PATH) {
-    macx:OPENSSL_INCLUDE_PATH = /opt/local/include
+#    macx:OPENSSL_INCLUDE_PATH = /opt/local/include
+    macx:OPENSSL_INCLUDE_PATH = /usr/local/opt/openssl/include
 }
 
 windows:DEFINES += WIN32
