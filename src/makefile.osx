@@ -51,21 +51,21 @@ TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 ifdef STATIC
 # Build STATIC if you are redistributing the bitcoind binary
 TESTLIBS += \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_unit_test_framework-mt.a"
+ $(BREWDEPSDIR)/boost/lib/libboost_unit_test_framework-mt.a
 LIBS += \
- $(BREWDEPSDIR)/lib/libdb_cxx-5.3.a \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_system-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_filesystem-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_program_options-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_thread-mt.a" \
- $(BREWDEPSDIR)/lib/libssl.a \
- $(BREWDEPSDIR)/lib/libcrypto.a \
- $(BREWDEPSDIR)/lib/libz.a
+ $(BREWDEPSDIR)/berkeley-db@4/lib/libdb_cxx.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_system-mt.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_filesystem-mt.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_program_options-mt.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_thread-mt.a \
+ $(BREWDEPSDIR)/openssl/lib/libssl.a \
+ $(BREWDEPSDIR)/openssl/lib/libcrypto.a \
+ $(BREWDEPSDIR)/lzlib/lib/libz.a
 else
 TESTLIBS += \
  -lboost_unit_test_framework-mt
 LIBS += \
- -ldb_cxx-5.3 \
+ -ldb_cxx \
  -lboost_system-mt \
  -lboost_filesystem-mt \
  -lboost_program_options-mt \
@@ -75,6 +75,8 @@ LIBS += \
  -lz
 TESTDEFS += -DBOOST_TEST_DYN_LINK
 endif
+
+# -ldb_cxx-5.3 \
 
 DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE
 
@@ -130,7 +132,7 @@ endif
 ifneq (${USE_UPNP}, -)
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 ifdef STATIC
-	LIBS += $(BREWDEPSDIR)/lib/libminiupnpc.a
+	LIBS += $(BREWDEPSDIR)/miniupnpc/lib/libminiupnpc.a
 else
 	LIBS += -lminiupnpc
 endif
