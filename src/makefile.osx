@@ -11,7 +11,8 @@ MPORTDEPSDIR=/opt/local
 BREWDEPSDIR=/usr/local/opt
 
 INCLUDEPATHS= \
- -I"$(BREWDEPSDIR)/boost@1.60/include" \
+ -I"$(BREWDEPSDIR)/boost/include" \
+ -I"$(BREWDEPSDIR)/berkeley-db@4/include" \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj
 
@@ -19,7 +20,10 @@ INCLUDEPATHS= \
 # -I"$(MPORTDEPSDIR)/include/db53"
 
 LIBPATHS= \
- -L"$(BREWDEPSDIR)/boost@1.60/lib"
+ -L"$(BREWDEPSDIR)/boost/lib" \
+ -L"$(BREWDEPSDIR)/berkeley-db@4/lib"
+
+# -L"$(BREWDEPSDIR)/boost@1.60/lib"
 
 # -L"$(MPORTDEPSDIR)/lib" \
 # -L"$(MPORTDEPSDIR)/lib/db53"
