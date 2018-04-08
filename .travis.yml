@@ -22,8 +22,10 @@ install:
   - if [ $TRAVIS_OS_NAME = osx ]; then
       brew install miniupnpc berkeley-db@4 ;
       ls -1 /usr/local/opt ;
-      find /usr/local -name libz.a -print ;
-      find /usr/local -name libz.a -ls ;
+      find /usr/local -name 'libz*.a' -print ;
+      find /usr/local -name 'libz*.a' -ls ;
+      find /usr/local -name '*zlib*.a' -print ;
+      find /usr/local -name '*zlib*.a' -ls ;
     fi
 
 #      export COLUMNS=80 ;

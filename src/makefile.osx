@@ -48,6 +48,7 @@ TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 # $(MPORTDEPSDIR)/lib/libcrypto.a \
 # $(MPORTDEPSDIR)/lib/libz.a
 
+# $(BREWDEPSDIR)/lzlib/lib/libz.a
 ifdef STATIC
 # Build STATIC if you are redistributing the bitcoind binary
 TESTLIBS += \
@@ -59,8 +60,7 @@ LIBS += \
  $(BREWDEPSDIR)/boost/lib/libboost_program_options-mt.a \
  $(BREWDEPSDIR)/boost/lib/libboost_thread-mt.a \
  $(BREWDEPSDIR)/openssl/lib/libssl.a \
- $(BREWDEPSDIR)/openssl/lib/libcrypto.a \
- $(BREWDEPSDIR)/lzlib/lib/libz.a
+ $(BREWDEPSDIR)/openssl/lib/libcrypto.a 
 else
 TESTLIBS += \
  -lboost_unit_test_framework-mt
