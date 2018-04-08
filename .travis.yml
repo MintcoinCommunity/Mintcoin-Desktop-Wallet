@@ -16,9 +16,9 @@ addons:
       - libqt4-dev
 
 install:
+  # Travis already has OpenSSL and Boost installed via Homebrew, but we
+  # need to add a couple more packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
-      # Travis already has OpenSSL and Boost installed via Homebrew, but we
-      # need to add a couple more packages
       brew install miniupnpc berkeley-db@4 ;
     fi
 
