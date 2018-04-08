@@ -64,6 +64,12 @@ matrix:
     osx_image: xcode8.3
     script: cd src && make -f makefile.osx -j2
 
+  # Build mintcoind static
+  # OS X 10.12 (Sierra)
+  - os: osx
+    osx_image: xcode8.3
+    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+
   # Build mintcoind
   # OS X 10.13 (High Sierra)
   - os: osx

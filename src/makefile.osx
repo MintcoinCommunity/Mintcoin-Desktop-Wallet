@@ -8,16 +8,13 @@
 
 CXX=llvm-g++
 MPORTDEPSDIR=/opt/local
-#BREWDEPSDIR=/usr/local/opt
 
-# -I"$(BREWDEPSDIR)/boost@1.60/include" 
 INCLUDEPATHS= \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj \
  -I"$(MPORTDEPSDIR)/include" \
  -I"$(MPORTDEPSDIR)/include/db53"
 
-# -L"$(BREWDEPSDIR)/boost@1.60/lib" 
 LIBPATHS= \
  -L"$(MPORTDEPSDIR)/lib" \
  -L"$(MPORTDEPSDIR)/lib/db53"
@@ -32,13 +29,13 @@ TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 ifdef STATIC
 # Build STATIC if you are redistributing the bitcoind binary
 TESTLIBS += \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_unit_test_framework-mt.a"
+ $(MPORTDEPSDIR)lib/libboost_unit_test_framework-mt.a
 LIBS += \
  $(MPORTDEPSDIR)/lib/db53/libdb_cxx-5.3.a \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_system-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_filesystem-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_program_options-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_thread-mt.a" \
+ $(MPORTDEPSDIR)/lib/libboost_system-mt.a \
+ $(MPORTDEPSDIR)/lib/libboost_filesystem-mt.a \
+ $(MPORTDEPSDIR)/lib/libboost_program_options-mt.a \
+ $(MPORTDEPSDIR)/lib/libboost_thread-mt.a \
  $(MPORTDEPSDIR)/lib/libssl.a \
  $(MPORTDEPSDIR)/lib/libcrypto.a \
  $(MPORTDEPSDIR)/lib/libz.a
