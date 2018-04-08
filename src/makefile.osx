@@ -7,7 +7,6 @@
 # Originally by Laszlo Hanyecz (solar@heliacal.net)
 
 CXX=llvm-g++
-MPORTDEPSDIR=/opt/local
 BREWDEPSDIR=/usr/local/opt
 
 INCLUDEPATHS= \
@@ -18,19 +17,11 @@ INCLUDEPATHS= \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj
 
-# -I"$(MPORTDEPSDIR)/include" \
-# -I"$(MPORTDEPSDIR)/include/db53"
-
 LIBPATHS= \
  -L"$(BREWDEPSDIR)/boost/lib" \
  -L"$(BREWDEPSDIR)/berkeley-db@4/lib" \
  -L"$(BREWDEPSDIR)/miniupnpc/lib" \
  -L"$(BREWDEPSDIR)/openssl/lib"
-
-# -L"$(BREWDEPSDIR)/boost@1.60/lib"
-
-# -L"$(MPORTDEPSDIR)/lib" \
-# -L"$(MPORTDEPSDIR)/lib/db53"
 
 USE_UPNP:=1
 USE_IPV6:=1
@@ -39,16 +30,6 @@ LIBS= -dead_strip
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
-# $(MPORTDEPSDIR)/lib/db53/libdb_cxx-5.3.a \
-# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_system-mt.a" \
-# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_filesystem-mt.a" \
-# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_program_options-mt.a" \
-# "$(BREWDEPSDIR)/boost@1.60/lib/libboost_thread-mt.a" \
-# $(MPORTDEPSDIR)/lib/libssl.a \
-# $(MPORTDEPSDIR)/lib/libcrypto.a \
-# $(MPORTDEPSDIR)/lib/libz.a
-
-# $(BREWDEPSDIR)/lzlib/lib/libz.a
 ifdef STATIC
 # Build STATIC if you are redistributing the bitcoind binary
 TESTLIBS += \

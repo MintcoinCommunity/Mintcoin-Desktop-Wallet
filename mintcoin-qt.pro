@@ -60,6 +60,8 @@ contains(USE_UPNP, -) {
     INCLUDEPATH += $$MINIUPNPC_INCLUDE_PATH
     LIBS += $$join(MINIUPNPC_LIB_PATH,,-L,) -lminiupnpc
     win32:LIBS += -liphlpapi
+    macx:INCLUDEPATH += /usr/local/opt/miniupnpc/include
+    macx:LIBS += /usr/local/opt/miniupnpc/lib
 }
 
 
