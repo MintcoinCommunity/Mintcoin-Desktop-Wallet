@@ -18,8 +18,8 @@ addons:
 install:
   # macOS builds use Mac Ports packages (we need Berkeley DB 5, which is
   # not available on Homebrew) as well as Homebrew packages
+#      brew upgrade ;
   - if [ $TRAVIS_OS_NAME = osx ]; then
-      brew upgrade ;
       brew install miniupnpc berkeley-db@4 ;
       ls -1 /usr/local/opt ;
     fi

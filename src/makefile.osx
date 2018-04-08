@@ -13,6 +13,8 @@ BREWDEPSDIR=/usr/local/opt
 INCLUDEPATHS= \
  -I"$(BREWDEPSDIR)/boost/include" \
  -I"$(BREWDEPSDIR)/berkeley-db@4/include" \
+ -I"$(BREWDEPSDIR)/miniupnpc/include" \
+ -I"$(BREWDEPSDIR)/openssl/include" \
  -I"$(CURDIR)" \
  -I"$(CURDIR)"/obj
 
@@ -21,7 +23,9 @@ INCLUDEPATHS= \
 
 LIBPATHS= \
  -L"$(BREWDEPSDIR)/boost/lib" \
- -L"$(BREWDEPSDIR)/berkeley-db@4/lib"
+ -L"$(BREWDEPSDIR)/berkeley-db@4/lib" \
+ -L"$(BREWDEPSDIR)/miniupnpc/lib" \
+ -L"$(BREWDEPSDIR)/openssl/lib"
 
 # -L"$(BREWDEPSDIR)/boost@1.60/lib"
 
