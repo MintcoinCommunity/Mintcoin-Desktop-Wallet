@@ -31,7 +31,7 @@ LIBS= -dead_strip
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
 ifdef STATIC
-# Build STATIC if you are redistributing the bitcoind binary
+# Build STATIC if you are redistributing the mintcoind binary
 TESTLIBS += \
  $(BREWDEPSDIR)/boost/lib/libboost_unit_test_framework-mt.a
 LIBS += \
