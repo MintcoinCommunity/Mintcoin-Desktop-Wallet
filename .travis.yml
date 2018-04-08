@@ -24,21 +24,22 @@ install:
       chmod +x ./macports-ci ;
       ./macports-ci install ;
       yes | sudo /opt/local/bin/port install db53 openssl miniupnpc boost ;
+      find /opt/local -print ;
     fi
 
 matrix:
   include:
   # Build mintcoind
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    script: cd src && make -f makefile.unix -j2
+#  - os: linux
+#    dist: trusty
+#    script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+#  - os: linux
+#    dist: trusty
+#    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -54,9 +55,9 @@ matrix:
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode7.3
-    script: cd src && make -f makefile.osx -j2
+#  - os: osx
+#    osx_image: xcode7.3
+#    script: cd src && make -f makefile.osx -j2
 
   # Build mintcoind
   # OS X 10.12 (Sierra)
@@ -72,15 +73,15 @@ matrix:
 
   # Build mintcoind
   # OS X 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode9.3beta
-    script: cd src && make -f makefile.osx -j2
+#  - os: osx
+#    osx_image: xcode9.3beta
+#    script: cd src && make -f makefile.osx -j2
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    script: qmake && make -j2
+#  - os: linux
+#    dist: trusty
+#    script: qmake && make -j2
 
   # Build MintCoin-Qt
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -90,20 +91,19 @@ matrix:
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode7.3
-    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
+#  - os: osx
+#    osx_image: xcode7.3
+#    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode8.3
-    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
+#  - os: osx
+#    osx_image: xcode8.3
+#    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
 
   # Build mintcoind
   # OS X 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode9.3beta
-    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
+#  - os: osx
+#    osx_image: xcode9.3beta
+#    script: yes | sudo /opt/local/bin/port install qrencode qt5 miniupnpc && /opt/local/libexec/qt5/bin/qmake && make -j2
 
-# TODO: static macOS daemonwallet
