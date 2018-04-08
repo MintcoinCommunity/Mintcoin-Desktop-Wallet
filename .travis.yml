@@ -20,7 +20,7 @@ install:
   # need to add a couple more packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
       MAJOR_MAC_VERSION=`sw_vers -productVersion | awk -F '.' '{print $1 "." $2}'` ;
-      if [ $MAJOR_MAC_VERSION == "10.11" ] then; brew upgrade; fi ;
+      if [ "$MAJOR_MAC_VERSION" == "10.11" ] then; brew upgrade; fi ;
       brew install miniupnpc berkeley-db@4 ;
     fi
 
