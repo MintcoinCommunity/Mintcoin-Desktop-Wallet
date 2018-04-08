@@ -376,13 +376,13 @@ isEmpty(BDB_INCLUDE_PATH) {
     macx:BDB_INCLUDE_PATH = /opt/local/include/db53
 }
 
-#isEmpty(BOOST_LIB_PATH) {
-#    macx:BOOST_LIB_PATH = /usr/local/opt/boost@1.60/lib
-#}
+isEmpty(BOOST_LIB_PATH) {
+    macx:BOOST_LIB_PATH = /usr/local/opt/boost/lib
+}
 
-#isEmpty(BOOST_INCLUDE_PATH) {
-#    macx:BOOST_INCLUDE_PATH = /usr/local/opt/boost@1.60/include
-#}
+isEmpty(BOOST_INCLUDE_PATH) {
+    macx:BOOST_INCLUDE_PATH = /usr/local/opt/boost/include
+}
 
 isEmpty(OPENSSL_LIB_PATH) {
     macx:OPENSSL_LIB_PATH = /opt/local/lib
