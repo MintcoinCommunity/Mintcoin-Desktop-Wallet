@@ -24,7 +24,6 @@ install:
       chmod +x ./macports-ci ;
       ./macports-ci install ;
       yes | sudo /opt/local/bin/port install db53 openssl miniupnpc boost ;
-      find /opt/local -print ;
     fi
 
 matrix:
