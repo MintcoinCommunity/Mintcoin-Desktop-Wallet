@@ -21,7 +21,7 @@ install:
   - if [ $TRAVIS_OS_NAME = osx ]; then
       brew upgrade ;
       brew install openssl miniupnpc boost berkeley-db@4 ;
-      find /usr/local/opt/lib -print ;
+      find /usr/local/opt/include -print ;
     fi
 
 #      export COLUMNS=80 ;
