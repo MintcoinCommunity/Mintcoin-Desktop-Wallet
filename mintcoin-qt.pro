@@ -373,16 +373,10 @@ isEmpty(BOOST_THREAD_LIB_SUFFIX) {
 }
 
 isEmpty(BDB_LIB_PATH) {
-#    macx:BDB_LIB_PATH = /opt/local/lib/db53
     macx:BDB_LIB_PATH = /usr/local/opt/berkeley-db@4/lib
 }
 
-#isEmpty(BDB_LIB_SUFFIX) {
-#    macx:BDB_LIB_SUFFIX = -5.3
-#}
-
 isEmpty(BDB_INCLUDE_PATH) {
-#    macx:BDB_INCLUDE_PATH = /opt/local/include/db53
     macx:BDB_INCLUDE_PATH = /usr/local/opt/berkeley-db@4/include
 }
 
@@ -395,12 +389,10 @@ isEmpty(BOOST_INCLUDE_PATH) {
 }
 
 isEmpty(OPENSSL_LIB_PATH) {
-#    macx:OPENSSL_LIB_PATH = /opt/local/lib
     macx:OPENSSL_LIB_PATH = /usr/local/opt/openssl/lib
 }
 
 isEmpty(OPENSSL_INCLUDE_PATH) {
-#    macx:OPENSSL_INCLUDE_PATH = /opt/local/include
     macx:OPENSSL_INCLUDE_PATH = /usr/local/opt/openssl/include
 }
 
@@ -439,7 +431,7 @@ macx:QMAKE_CXXFLAGS_THREAD += -pthread
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
+LIBS += -lssl -lcrypto -ldb_cxx
 
 # -lgdi32 has to happen after -lcrypto (see  #681)
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32 -lpthread
