@@ -105,9 +105,14 @@ matrix:
 
   # Build MintCoin-Qt
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+  #  
+  #   Error: You are using macOS 10.10.
+  #   We (and Apple) do not provide support for this old version.
+  #   You may encounter build failures or other breakages.
+  #
+  #- os: osx
+  #  osx_image: xcode6.4
+  #  script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.11 (El Capitan)
@@ -126,4 +131,3 @@ matrix:
   - os: osx
     osx_image: xcode9.3beta
     script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
-
