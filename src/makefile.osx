@@ -7,20 +7,21 @@
 # Originally by Laszlo Hanyecz (solar@heliacal.net)
 
 CXX=llvm-g++
-MPORTDEPSDIR=/opt/local
 BREWDEPSDIR=/usr/local/opt
 
 INCLUDEPATHS= \
- -I"$(BREWDEPSDIR)/boost@1.60/include" \
+ -I"$(BREWDEPSDIR)/boost/include" \
+ -I"$(BREWDEPSDIR)/berkeley-db@4/include" \
+ -I"$(BREWDEPSDIR)/miniupnpc/include" \
+ -I"$(BREWDEPSDIR)/openssl/include" \
  -I"$(CURDIR)" \
- -I"$(CURDIR)"/obj \
- -I"$(MPORTDEPSDIR)/include" \
- -I"$(MPORTDEPSDIR)/include/db53"
+ -I"$(CURDIR)"/obj
 
 LIBPATHS= \
- -L"$(BREWDEPSDIR)/boost@1.60/lib" \
- -L"$(MPORTDEPSDIR)/lib" \
- -L"$(MPORTDEPSDIR)/lib/db53"
+ -L"$(BREWDEPSDIR)/boost/lib" \
+ -L"$(BREWDEPSDIR)/berkeley-db@4/lib" \
+ -L"$(BREWDEPSDIR)/miniupnpc/lib" \
+ -L"$(BREWDEPSDIR)/openssl/lib"
 
 USE_UPNP:=1
 USE_IPV6:=1
@@ -30,23 +31,22 @@ LIBS= -dead_strip
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
 ifdef STATIC
-# Build STATIC if you are redistributing the bitcoind binary
+# Build STATIC if you are redistributing the mintcoind binary
 TESTLIBS += \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_unit_test_framework-mt.a"
+ $(BREWDEPSDIR)/boost/lib/libboost_unit_test_framework-mt.a
 LIBS += \
- $(MPORTDEPSDIR)/lib/db53/libdb_cxx-5.3.a \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_system-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_filesystem-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_program_options-mt.a" \
- "$(BREWDEPSDIR)/boost@1.60/lib/libboost_thread-mt.a" \
- $(MPORTDEPSDIR)/lib/libssl.a \
- $(MPORTDEPSDIR)/lib/libcrypto.a \
- $(MPORTDEPSDIR)/lib/libz.a
+ $(BREWDEPSDIR)/berkeley-db@4/lib/libdb_cxx.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_system-mt.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_filesystem-mt.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_program_options-mt.a \
+ $(BREWDEPSDIR)/boost/lib/libboost_thread-mt.a \
+ $(BREWDEPSDIR)/openssl/lib/libssl.a \
+ $(BREWDEPSDIR)/openssl/lib/libcrypto.a 
 else
 TESTLIBS += \
  -lboost_unit_test_framework-mt
 LIBS += \
- -ldb_cxx-5.3 \
+ -ldb_cxx \
  -lboost_system-mt \
  -lboost_filesystem-mt \
  -lboost_program_options-mt \
@@ -111,7 +111,7 @@ endif
 ifneq (${USE_UPNP}, -)
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 ifdef STATIC
-	LIBS += $(MPORTDEPSDIR)/lib/libminiupnpc.a
+	LIBS += $(BREWDEPSDIR)/miniupnpc/lib/libminiupnpc.a
 else
 	LIBS += -lminiupnpc
 endif
