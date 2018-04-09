@@ -458,9 +458,22 @@ bool AppInit2()
     if (!lock.try_lock())
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s.  MintCoin is probably already running."), strDataDir.c_str()));
 
-#if !defined(WIN32) && !defined(QT_GUI)
+    if (GetBoolArg("-shrinkdebugfile", !fDebug))
+        ShrinkDebugFile();
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    printf("MintCoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
+    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    printf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
+    if (!fLogTimestamps)
+        printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
+    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
+    printf("Used data directory %s\n", strDataDir.c_str());
+    std::ostringstream strErrors;
+
     if (fDaemon)
     {
+        fprintf(stdout, "MintCoin server starting\n");
+#if !defined(WIN32) && !defined(QT_GUI)
         // Daemonize
         pid_t pid = fork();
         if (pid < 0)
@@ -476,24 +489,12 @@ bool AppInit2()
 
         pid_t sid = setsid();
         if (sid < 0)
+        {
             fprintf(stderr, "Error: setsid() returned %d errno %d\n", sid, errno);
-    }
+        }
 #endif
+    }
 
-    if (GetBoolArg("-shrinkdebugfile", !fDebug))
-        ShrinkDebugFile();
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("MintCoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    printf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
-    if (!fLogTimestamps)
-        printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    printf("Used data directory %s\n", strDataDir.c_str());
-    std::ostringstream strErrors;
-
-    if (fDaemon)
-        fprintf(stdout, "MintCoin server starting\n");
 
     int64 nStart;
 
