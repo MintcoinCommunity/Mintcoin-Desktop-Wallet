@@ -168,9 +168,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     QTimer *timerMintingWeights = new QTimer(labelMintingIcon);
     timerMintingWeights->start(30 * 1000);
     connect(timerMintingWeights, SIGNAL(timeout()), this, SLOT(updateMintingWeights()));
+
     // Set initial values for user and network weights
-    nWeight=0;
+    nWeight = 0;
     nNetworkWeight = 0;
+
+    // Set initial value for seconds until next mint
+    nSecondsUntilNextMint = 0;
 
     // Progress bar and label for blocks download
     progressBarLabel = new QLabel();
@@ -1080,6 +1084,35 @@ void BitcoinGUI::toggleHidden()
     showNormalIfMinimized(true);
 }
 
+/*
+   Set the text to the approximate time. This is used in tool-tips.
+   We use the Qt tr() function so this is translated to the local language.
+
+   Note that the value returned is not really very good, since if the
+   time is (for example) 1 day and 23 hours we say "1 day". However the
+   tr() method used does not seem to have an easy way to do non-integer
+   values, so we will leave this for now.
+ */
+void BitcoinGUI::approximateTime(QString &text, uint64 nSeconds)
+{
+    if (nSeconds < 60)
+    {
+        text = tr("%n second(s)", "", nSeconds);
+    }
+    else if (nSeconds < 60*60)
+    {
+        text = tr("%n minute(s)", "", nSeconds/60);
+    }
+    else if (nSeconds < 24*60*60)
+    {
+        text = tr("%n hour(s)", "", nSeconds/(60*60));
+    }
+    else
+    {
+        text = tr("%n day(s)", "", nSeconds/(60*60*24));
+    }
+}
+
 void BitcoinGUI::updateMintingIcon()
 {
     if (pwalletMain && pwalletMain->IsLocked())
@@ -1099,7 +1132,9 @@ void BitcoinGUI::updateMintingIcon()
     }
     else if (!nWeight)
     {
-        labelMintingIcon->setToolTip(tr("Not minting because you don't have mature coins."));
+        QString text;
+        approximateTime(text, nSecondsUntilNextMint);
+        labelMintingIcon->setToolTip(tr("Not minting because you don't have mature coins.<br>Next coin matures in about %1.").arg(text));
         labelMintingIcon->setEnabled(false);
     }
     else if (nLastCoinStakeSearchInterval)
@@ -1107,23 +1142,7 @@ void BitcoinGUI::updateMintingIcon()
         uint64 nEstimateTime = nStakeTargetSpacing * nNetworkWeight / nWeight;
 
         QString text;
-        if (nEstimateTime < 60)
-        {
-            text = tr("%n second(s)", "", nEstimateTime);
-        }
-        else if (nEstimateTime < 60*60)
-        {
-            text = tr("%n minute(s)", "", nEstimateTime/60);
-        }
-        else if (nEstimateTime < 24*60*60)
-        {
-            text = tr("%n hour(s)", "", nEstimateTime/(60*60));
-        }
-        else
-        {
-            text = tr("%n day(s)", "", nEstimateTime/(60*60*24));
-        }
-
+        approximateTime(text, nEstimateTime);
         labelMintingIcon->setEnabled(true);
         labelMintingIcon->setToolTip(tr("Minting.<br>Your weight is %1.<br>Network weight is %2.<br>Expected time to earn reward is %3.").arg(nWeight).arg(nNetworkWeight).arg(text));
     }
@@ -1141,8 +1160,9 @@ void BitcoinGUI::updateMintingWeights()
     {
         nWeight = 0;
 
-        if (pwalletMain)
-            pwalletMain->GetStakeWeight(*pwalletMain, nMinMax, nMinMax, nWeight);
+        if (pwalletMain) {
+            pwalletMain->GetStakeWeight(*pwalletMain, nMinMax, nMinMax, nWeight, nSecondsUntilNextMint);
+        }
 
         nNetworkWeight = GetPoSKernelPS();
     }
