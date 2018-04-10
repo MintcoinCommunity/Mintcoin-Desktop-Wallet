@@ -111,6 +111,7 @@ private:
     uint64 nMinMax;
     uint64 nWeight;
     uint64 nNetworkWeight;
+    uint nSecondsUntilNextMint;
 
     /** Create the main UI actions. */
     void createActions();
@@ -198,6 +199,7 @@ private slots:
     void toggleHidden();
 
     /** Update info about minting */
+    void approximateTime(QString &text, uint64 nSeconds);
     void updateMintingIcon();
     /** Update minting weight info */
     void updateMintingWeights();
