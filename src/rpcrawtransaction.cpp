@@ -201,6 +201,9 @@ Value listunspent(const Array& params, bool fHelp)
         time_t tTxTime = time_t(out.tx->nTime);
         strftime(cTimeBuf, sizeof(cTimeBuf), "%Y-%m-%dT%H:%M:%SZ", gmtime(&tTxTime));
         entry.push_back(Pair("txtime", cTimeBuf));
+        time_t tTxTimeReceived = time_t(out.tx->nTimeReceived);
+        strftime(cTimeBuf, sizeof(cTimeBuf), "%Y-%m-%dT%H:%M:%SZ", gmtime(&tTxTimeReceived));
+        entry.push_back(Pair("txtimereceived", cTimeBuf));
         results.push_back(entry);
     }
 
