@@ -197,12 +197,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     statusBar()->addPermanentWidget(frameBlocks);
 
     syncIconMovie = new QMovie(":/movies/update_spinner", "mng", this);
-    qApp->setStyleSheet("background-color: #effbef;");
     //load stylesheet if present
     QFile File("style/stylesheet.qss");
-    File.open(QFile::ReadOnly);
-    QString StyleSheet = QLatin1String(File.readAll());
-    qApp->setStyleSheet(StyleSheet);
+    if (File.open(QFile::ReadOnly)) {
+        QString StyleSheet = QLatin1String(File.readAll());
+        qApp->setStyleSheet(StyleSheet);
+    }
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
