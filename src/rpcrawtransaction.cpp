@@ -197,6 +197,13 @@ Value listunspent(const Array& params, bool fHelp)
         entry.push_back(Pair("scriptPubKey", HexStr(pk.begin(), pk.end())));
         entry.push_back(Pair("amount",ValueFromAmount(nValue)));
         entry.push_back(Pair("confirmations",out.nDepth));
+        char cTimeBuf[sizeof("YYYY-mm-ddTHH:MM:SSZ")];
+        time_t tTxTime = time_t(out.tx->nTime);
+        strftime(cTimeBuf, sizeof(cTimeBuf), "%Y-%m-%dT%H:%M:%SZ", gmtime(&tTxTime));
+        entry.push_back(Pair("txtime", string(cTimeBuf)));
+        time_t tTxTimeReceived = time_t(out.tx->nTimeReceived);
+        strftime(cTimeBuf, sizeof(cTimeBuf), "%Y-%m-%dT%H:%M:%SZ", gmtime(&tTxTimeReceived));
+        entry.push_back(Pair("txtimereceived", string(cTimeBuf)));
         results.push_back(entry);
     }
 
