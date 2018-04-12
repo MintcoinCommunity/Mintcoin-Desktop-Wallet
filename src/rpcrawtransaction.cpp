@@ -200,10 +200,10 @@ Value listunspent(const Array& params, bool fHelp)
         char cTimeBuf[sizeof("YYYY-mm-ddTHH:MM:SSZ")];
         time_t tTxTime = time_t(out.tx->nTime);
         strftime(cTimeBuf, sizeof(cTimeBuf), "%Y-%m-%dT%H:%M:%SZ", gmtime(&tTxTime));
-        entry.push_back(Pair("txtime", cTimeBuf));
+        entry.push_back(Pair("txtime", string(cTimeBuf)));
         time_t tTxTimeReceived = time_t(out.tx->nTimeReceived);
         strftime(cTimeBuf, sizeof(cTimeBuf), "%Y-%m-%dT%H:%M:%SZ", gmtime(&tTxTimeReceived));
-        entry.push_back(Pair("txtimereceived", cTimeBuf));
+        entry.push_back(Pair("txtimereceived", string(cTimeBuf)));
         results.push_back(entry);
     }
 
