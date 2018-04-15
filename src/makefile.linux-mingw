@@ -2,7 +2,7 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-DEPSDIR:=/mnt/mxe/usr/$(TARGET_PLATFORM)-w64-mingw32.static
+DEPSDIR ?= /mnt/mxe/usr/$(TARGET_PLATFORM)-w64-mingw32.static
 HOST:=$(TARGET_PLATFORM)-w64-mingw32
 INCDIR:=$(DEPSDIR)/include
 LIBDIR:=$(DEPSDIR)/lib

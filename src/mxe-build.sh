@@ -16,3 +16,7 @@ sudo apt-get --yes install mxe-${MXE_TARGET}-openssl
 sudo apt-get --yes install mxe-${MXE_TARGET}-db
 sudo apt-get --yes install mxe-${MXE_TARGET}-boost
 sudo apt-get --yes install mxe-${MXE_TARGET}-miniupnpc
+
+MXEDIR=/usr/lib/mxe
+export PATH=$PATH:$MXEDIR/usr/bin
+make -f makefile.linux-mingw DEPSDIR=$MXEDIR/usr/$MXE_TARGET

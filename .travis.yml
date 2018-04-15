@@ -37,7 +37,7 @@ matrix:
           - libqrencode-dev
           - libminiupnpc-dev
           - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2
+    script: cd src && CFLAGS=-std=c++11 && make -f makefile.unix -j2
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
