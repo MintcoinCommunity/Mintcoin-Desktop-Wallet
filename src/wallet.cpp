@@ -1453,7 +1453,7 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint
 
     // Figure out age of oldest coin (this is a bit tricky because if time
     // changes then the time of the oldest coin may be in the future)
-    uint nAgeOfOldestCoin;
+    unsigned int nAgeOfOldestCoin;
     int64 now = GetTime();
     if (now >= nTimeOfOldestCoin) {
         nAgeOfOldestCoin = now - nTimeOfOldestCoin;
