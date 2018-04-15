@@ -44,7 +44,14 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-    script: cd src && bash mxe-build.sh
+    script: cd src && bash mxe-build.sh windows32
+
+  # Build mintcoind
+  # Cross-compile Windows 64-bit daemon
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: cd src && bash mxe-build.sh windows64
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
