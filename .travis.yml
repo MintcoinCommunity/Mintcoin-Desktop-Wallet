@@ -34,7 +34,7 @@ matrix:
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
   - os: linux
-    script: src/mxe-build.sh
+    script: bash src/mxe-build.sh
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
