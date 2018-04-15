@@ -44,14 +44,14 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-    script: cd src && bash mxe-build.sh windows32
+    script: cd src && bash mxe-build.sh windows32 && make -f makefile.linux-mingw -j 2 DEPSDIR=/usr/lib/mxe/usr/i686-w64-mingw32.static TARGET_PLATFORM=i686
 
   # Build mintcoind
   # Cross-compile Windows 64-bit daemon
   - os: linux
     dist: trusty
     sudo: required
-    script: cd src && bash mxe-build.sh windows64
+    script: cd src && bash mxe-build.sh windows64 && make -f makefile.linux-mingw -j 2 DEPSDIR=/usr/lib/mxe/usr/x86-64-w64-mingw32.static TARGET_PLATFORM=x86_64
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
