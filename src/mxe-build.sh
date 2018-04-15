@@ -4,7 +4,7 @@ if [ $1 == "windows32" ]; then
     MXE_TARGET="i686-w64-mingw32.static"
     CPU_TARGET="i686"
 else
-    MXE_TARGET="x86_64-w64-mingw32.static"
+    MXE_TARGET="x86-64-w64-mingw32.static"
     CPU_TARGET="x86_64"
 fi
 
