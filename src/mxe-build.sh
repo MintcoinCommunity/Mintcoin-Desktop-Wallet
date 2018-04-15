@@ -19,4 +19,5 @@ sudo apt-get --yes install mxe-${MXE_TARGET}-miniupnpc
 
 MXEDIR=/usr/lib/mxe
 export PATH=$PATH:$MXEDIR/usr/bin
-make -f makefile.linux-mingw DEPSDIR=$MXEDIR/usr/$MXE_TARGET
+make -f makefile.linux-mingw \
+    DEPSDIR=$MXEDIR/usr/$MXE_TARGET TARGET_PLATFORM=i686
