@@ -47,9 +47,8 @@ if [ $QT_BUILD == "no" ]; then
     make -f makefile.linux-mingw -j $NCPU \
         DEPSDIR=$MXEDIR/usr/$MXE_TARGET TARGET_PLATFORM=$CPU_TARGET
 else
-    $MXEDIR/usr/bin/$CPU_TARGET-w64-mingw32.static-qmake-qt5
-    sudo apt-get --yes install mxe-${MXE_TARGET}-qt
+    sudo apt-get --yes install mxe-${MXE_TARGET}-qt5
     sudo apt-get --yes install mxe-${MXE_TARGET}-qttools
-    qmake
+    $MXEDIR/usr/bin/$CPU_TARGET-w64-mingw32.static-qmake-qt5
     make -j $NCPU
 fi
