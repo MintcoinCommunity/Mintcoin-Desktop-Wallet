@@ -7,8 +7,12 @@
 #include <string>
 #include <vector>
 
-#include "compat.h"
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #include "serialize.h"
+#include "compat.h"
 
 extern int nConnectTimeout;
 
