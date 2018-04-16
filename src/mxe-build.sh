@@ -2,11 +2,25 @@
 
 if [ $1 == "windows32" ]; then
     MXE_TARGET="i686-w64-mingw32.static"
-#    CPU_TARGET="i686"
-else
+    CPU_TARGET="i686"
+    QT_BUILD="no"
+elif [ $1 == "windows64" ]; then
     MXE_TARGET="x86-64-w64-mingw32.static"
-#    CPU_TARGET="x86_64"
+    CPU_TARGET="x86_64"
+    QT_BUILD="no"
+elif [ $1 == "windows32-qt" ]; then
+    MXE_TARGET="i686-w64-mingw32.static"
+    CPU_TARGET="i686"
+    QT_BUILD="yes"
+elif [ $2 == "windows64-qt" ]; then
+    MXE_TARGET="x86-64-w64-mingw32.static"
+    CPU_TARGET="x86_64"
+    QT_BUILD="yes"
 fi
+
+MXEDIR=/usr/lib/mxe
+
+NCPU=`cat /proc/cpuinfo | grep -c ^processor`
 
 sudo apt-get update
 
@@ -23,9 +37,15 @@ sudo apt-get --yes install mxe-${MXE_TARGET}-db
 sudo apt-get --yes install mxe-${MXE_TARGET}-boost
 sudo apt-get --yes install mxe-${MXE_TARGET}-miniupnpc
 
-#NCPU=`cat /proc/cpuinfo | grep -c ^processor`
-#
-#MXEDIR=/usr/lib/mxe
-#export PATH=$PATH:$MXEDIR/usr/bin
-#make -f makefile.linux-mingw -j $NCPU \
-#    DEPSDIR=$MXEDIR/usr/$MXE_TARGET TARGET_PLATFORM=$CPU_TARGET
+if [ $QT_BUILD == "no" ]; then
+    cd src
+    export PATH=$PATH:$MXEDIR/usr/bin
+    make -f makefile.linux-mingw -j $NCPU \
+        DEPSDIR=$MXEDIR/usr/$MXE_TARGET TARGET_PLATFORM=$CPU_TARGET
+else
+    $MXEDIR/usr/bin/$CPU_TARGET-w64-mingw32.static-qmake-qt5
+    sudo apt-get --yes install mxe-${MXE_TARGET}-qt
+    sudo apt-get --yes install mxe-${MXE_TARGET}-qttools
+    qmake
+    make -j $NCPU
+fi
