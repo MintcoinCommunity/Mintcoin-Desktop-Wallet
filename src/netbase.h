@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #include "serialize.h"
 #include "compat.h"
 
