@@ -1,20 +1,6 @@
 language: cpp
 sudo: false
 
-#addons:
-#  # Ubuntu packages
-#  apt:
-#    packages:
-#      # These are required by the Linux build
-#      - libdb++-dev
-#      - libboost-all-dev
-#      - libqrencode-dev
-#      - libminiupnpc-dev
-#      - libminiupnpc8
-#      # These are required by the Linux Qt build
-#      - qt4-qmake
-#      - libqt4-dev
-
 install:
   # Travis already has OpenSSL and Boost installed via Homebrew, but we
   # need to add a couple more packages
@@ -37,35 +23,36 @@ matrix:
           - libqrencode-dev
           - libminiupnpc-dev
           - libminiupnpc8
+          - megatools
     script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
-  - os: linux
-    dist: trusty
-    sudo: required
-    script: bash src/mxe-build.sh windows32
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows32
 
   # Build mintcoind
   # Cross-compile Windows 64-bit daemon
-  - os: linux
-    dist: trusty
-    sudo: required
-    script: bash src/mxe-build.sh windows64
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows64
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    addons:
-      apt:
-        packages:
-          - libdb++-dev
-          - libboost-all-dev
-          - libqrencode-dev
-          - libminiupnpc-dev
-          - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+#  - os: linux
+#    dist: trusty
+#    addons:
+#      apt:
+#        packages:
+#          - libdb++-dev
+#          - libboost-all-dev
+#          - libqrencode-dev
+#          - libminiupnpc-dev
+#          - libminiupnpc8
+#    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -83,51 +70,51 @@ matrix:
 
   # Build mintcoind
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2
+#  - os: osx
+#    osx_image: xcode6.4
+#    script: cd src && make -f makefile.osx -j2
 
   # Build mintcoind static
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+#  - os: osx
+#    osx_image: xcode6.4
+#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode7.3
-    script: cd src && make -f makefile.osx -j2
+#  - os: osx
+#    osx_image: xcode7.3
+#    script: cd src && make -f makefile.osx -j2
 
   # Build mintcoind static
   # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode7.3
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+#  - os: osx
+#    osx_image: xcode7.3
+#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
   # OS X 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode8.3
-    script: cd src && make -f makefile.osx -j2
+#  - os: osx
+#    osx_image: xcode8.3
+#    script: cd src && make -f makefile.osx -j2
 
   # Build mintcoind static
   # OS X 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode8.3
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+#  - os: osx
+#    osx_image: xcode8.3
+#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
   # OS X 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode9.3beta
-    script: cd src && make -f makefile.osx -j2
+#  - os: osx
+#    osx_image: xcode9.3beta
+#    script: cd src && make -f makefile.osx -j2
 
   # Build mintcoind static
   # OS X 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode9.3beta
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+#  - os: osx
+#    osx_image: xcode9.3beta
+#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
@@ -143,6 +130,7 @@ matrix:
           - libminiupnpc8
           - qt4-qmake
           - libqt4-dev
+          - megatools
     script: qmake && make -j2
 
   # Build MintCoin-Qt
@@ -163,17 +151,17 @@ matrix:
 
   # Build MintCoin-Qt
   # Cross-compile Windows 32-bit GUI
-  - os: linux
-    dist: trusty
-    sudo: required
-    script: bash src/mxe-build.sh windows32-qt
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows32-qt
 
   # Build MintCoin-Qt
   # Cross-compile Windows 64-bit GUI
-  - os: linux
-    dist: trusty
-    sudo: required
-    script: bash src/mxe-build.sh windows64-qt
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows64-qt
 
 
   # Build MintCoin-Qt
@@ -189,18 +177,18 @@ matrix:
 
   # Build MintCoin-Qt
   # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode7.3
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+#  - os: osx
+#    osx_image: xcode7.3
+#    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode8.3
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+#  - os: osx
+#    osx_image: xcode8.3
+#    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode9.3beta
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+#  - os: osx
+#    osx_image: xcode9.3beta
+#    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
