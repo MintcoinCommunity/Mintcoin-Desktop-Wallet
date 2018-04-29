@@ -12,8 +12,8 @@ set -e
 
 # Install MEGAcmd
 if [ $TRAVIS_OS_NAME = linux ]; then
-    if [ `lsb_release -is` -eq 'Ubuntu' ]; then
-        if [ `lsb_release -cs` -eq 'trusty' ]; then
+    if [ `lsb_release -is` = 'Ubuntu' ]; then
+        if [ `lsb_release -cs` = 'trusty' ]; then
              PKG="megacmd-xUbuntu_14.04_amd64.deb"
              PKG_URL="https://mega.nz/linux/MEGAsync/xUbuntu_14.04/amd64/$PKG"
         fi

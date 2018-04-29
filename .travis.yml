@@ -28,7 +28,7 @@ matrix:
           - libqrencode-dev
           - libminiupnpc-dev
           - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2 && bash mega-push.sh mintcoind mintcoind.trusty
+    script: cd src && make -f makefile.unix -j2 && bash mega-push.sh mintcoind mintcoind.linux-ubuntu-trusty
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
