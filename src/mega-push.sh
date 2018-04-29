@@ -7,8 +7,12 @@
 # Syntax:
 #   bash mega-push.sh [exe_name] [name_on_mega]
 
+# Display each command (for debugging)
+set -x
+
 # Exit on error
 set -e
+
 
 # Install MEGAcmd
 if [ $TRAVIS_OS_NAME = linux ]; then
