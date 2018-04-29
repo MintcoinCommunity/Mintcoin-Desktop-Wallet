@@ -29,5 +29,6 @@ if [ $TRAVIS_OS_NAME = linux ]; then
 fi
 
 mega-login $MEGA_EMAIL $MEGA_PASSWORD
-mega-rm -f $1
+# removal may fail if not present
+mega-rm $2 || true
 mega-put $1 $2
