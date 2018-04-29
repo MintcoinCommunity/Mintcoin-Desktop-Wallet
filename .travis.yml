@@ -1,5 +1,4 @@
 language: cpp
-sudo: false
 
 install:
   # Travis already has OpenSSL and Boost installed via Homebrew, but we
@@ -32,22 +31,23 @@ matrix:
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    script: bash src/mxe-build.sh windows32
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: bash src/mxe-build.sh windows32 && bash src/mega-push.sh mintcoind.exe mintcoind.exe.win32
 
   # Build mintcoind
   # Cross-compile Windows 64-bit daemon
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    script: bash src/mxe-build.sh windows64
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: bash src/mxe-build.sh windows64 && bash src/mega-push mintcoind.exe mintcoind.exe.win64
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
+    sudo: required
     addons:
       apt:
         packages:
@@ -60,17 +60,17 @@ matrix:
 
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
-  - os: linux
-    dist: xenial
-    addons:
-      apt:
-        packages:
-          - libdb++-dev
-          - libboost-all-dev
-          - libqrencode-dev
-          - libminiupnpc-dev
-          - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2
+  #- os: linux
+  #  dist: xenial
+  #  addons:
+  #    apt:
+  #      packages:
+  #        - libdb++-dev
+  #        - libboost-all-dev
+  #        - libqrencode-dev
+  #        - libminiupnpc-dev
+  #        - libminiupnpc8
+  #  script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind
   # OS X 10.10 (Yosemite)
@@ -124,6 +124,7 @@ matrix:
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
+    sudo: required
     addons:
       apt:
         packages:
