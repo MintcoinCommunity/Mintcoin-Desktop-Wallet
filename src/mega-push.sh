@@ -26,6 +26,8 @@ if [ $TRAVIS_OS_NAME = linux ]; then
         sudo dpkg -i $PKG || true
         sudo apt-get -y -f install
     fi
+elif [ $TRAVIS_OS_NAME = osx ]; then
+    wget https://mega.nz/MEGAcmdSetup.dmg
 fi
 
 mega-login $MEGA_EMAIL $MEGA_PASSWORD

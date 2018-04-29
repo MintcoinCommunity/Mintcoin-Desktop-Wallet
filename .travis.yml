@@ -62,6 +62,7 @@ matrix:
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
   #- os: linux
   #  dist: xenial
+  #  sudo: required
   #  addons:
   #    apt:
   #      packages:
@@ -70,7 +71,7 @@ matrix:
   #        - libqrencode-dev
   #        - libminiupnpc-dev
   #        - libminiupnpc8
-  #  script: cd src && make -f makefile.unix -j2
+  #  script: cd src && make -f makefile.unix -j2 && bash mega-push.sh mintcoind mintcoind.linux-ubuntu-trusty
 
   # Build mintcoind
   # OS X 10.10 (Yosemite)
@@ -98,9 +99,9 @@ matrix:
 
   # Build mintcoind
   # OS X 10.12 (Sierra)
-#  - os: osx
-#    osx_image: xcode8.3
-#    script: cd src && make -f makefile.osx -j2
+  - os: osx
+    osx_image: xcode8.3
+    script: cd src && make -f makefile.osx -j2 && bash mega-push.sh mintcoind mintcoind.osx-sierra
 
   # Build mintcoind static
   # OS X 10.12 (Sierra)
