@@ -10,17 +10,17 @@ install:
     fi
 
 # These encode our MEGA user and password, as MEGA_EMAIL and MEGA_PASSWORD.
-env:
-  - secure: "FN2Df+Hp9WZzYUEx8YOWNEdLmzZOerpwT4bJJJ/30WMi+wOQxuO2W3RbwiWTNJBcyYPVZRrimqvtFrYo0K570AADP/hwlYMiliprepEIhNdqLmVSr5J4yTRUFzIqRAoJNN6UlkhECAwR9bfo6NQPoiv2b5dYWlYNdQMw415Vw9q0bTifg6CSTBH5ZmHbHOPGv6XqR5Wwc1+nf8VaeKLThdD54QM0ZvG4rIiEhkf0vMMRiICbYp3VIYlQxWbdhw1kI7KvpIvpYxjvffmlBJzSWFHOYe0Dx9ZDVKq1tL+ESp/SQT91GfGRU9r86oq4K3DRGunHlXrZHiUQizc1/QGU28AkWBcHGZalstrQMA5fDlDYXWAhaWZOrKkW7wbMonJEYMr5SRNx6/nbzCYYudKQ/pCYx3nFCD7NUcv2xzE6TvbiXKXcVP9ZrPRt5JuepVzuYeINEARB1dAwXifdSWRUMc/8/I4etoeb7tx1npH2cgMC7qgPjIxvEMlJKC6TLxSG0pCxr5vuOvlz5Jt0FHucc6BErUCgAZql1HrV1X0c/NayZbWNxNlRGGcilHn6HI8L2UMjvEdsGGgdw903y5jY8CYHv5x6sd0TCjFhATYktbvWTJVmU6xSUPezNr8hd/2XKDEo/sX2WlKXrz3bv+mLl2T2V4khC3oxup3iznK9PmM="
-  - secure: "cThSQJ43aBjBdaIFhSs4b1RPnwHMBWSbDEsst8dVWGHNZyVip9csv8gXwuqAGtDsd53fptQ8VhnpjXJ5YXrv0WNvlnXs3Y9uTEuEOgiJJuPdNjIXaifk5TJB7jBFNbFnf5wBPrrDnKkGLJrkKH0XebHIidRQxgERRQpsE/GTKlQpmLW0GCFZsGG7R8kG4TeZYnmcOo3ApddbEFjjphIYPscPHtGyqA/eAC6lu9F9pkSOv1W/JAGUfPzuiifr3X64ueAYb1f0NSm4o6l+Q4tlOHBr2Zd6zOGVuDJBC+1b8cP0n2Fdu3PcroaztXuGs++cpYWwzSJEYaM3pxYy9O52xG89Wh0AfVdurckcsPcHFR/dWDYX4gXPCr28qrMMz4PXnO3JwvJouvDWVb1uVixfMYpNJAV9gES4mov0TqqzrgvNc58w33hG/sWwbaqz9lByGrdoTdNkQosximtTWlLEVcQFjqhZrncknGtoou4mKhvryxwiZnh5s+OhsWK/WEZsG3HXAhHNkmh48mFYJWZaug7LgExaXQn6VALeqvi9B8iu5oJ0cU7X1TtKsT0+rZxEEzpAJ5JgDRDNIelDGWDA+KxmhnocBlfKUNcnPQ3VpXgpBIBIiSKTemm9jlo/lBawdc6dTd+1R0GUePKa+aawsyhXX0hCvW2OZvJCehpiP1g="
-
 matrix:
+  env:
+    - secure: "FN2Df+Hp9WZzYUEx8YOWNEdLmzZOerpwT4bJJJ/30WMi+wOQxuO2W3RbwiWTNJBcyYPVZRrimqvtFrYo0K570AADP/hwlYMiliprepEIhNdqLmVSr5J4yTRUFzIqRAoJNN6UlkhECAwR9bfo6NQPoiv2b5dYWlYNdQMw415Vw9q0bTifg6CSTBH5ZmHbHOPGv6XqR5Wwc1+nf8VaeKLThdD54QM0ZvG4rIiEhkf0vMMRiICbYp3VIYlQxWbdhw1kI7KvpIvpYxjvffmlBJzSWFHOYe0Dx9ZDVKq1tL+ESp/SQT91GfGRU9r86oq4K3DRGunHlXrZHiUQizc1/QGU28AkWBcHGZalstrQMA5fDlDYXWAhaWZOrKkW7wbMonJEYMr5SRNx6/nbzCYYudKQ/pCYx3nFCD7NUcv2xzE6TvbiXKXcVP9ZrPRt5JuepVzuYeINEARB1dAwXifdSWRUMc/8/I4etoeb7tx1npH2cgMC7qgPjIxvEMlJKC6TLxSG0pCxr5vuOvlz5Jt0FHucc6BErUCgAZql1HrV1X0c/NayZbWNxNlRGGcilHn6HI8L2UMjvEdsGGgdw903y5jY8CYHv5x6sd0TCjFhATYktbvWTJVmU6xSUPezNr8hd/2XKDEo/sX2WlKXrz3bv+mLl2T2V4khC3oxup3iznK9PmM="
+    - secure: "cThSQJ43aBjBdaIFhSs4b1RPnwHMBWSbDEsst8dVWGHNZyVip9csv8gXwuqAGtDsd53fptQ8VhnpjXJ5YXrv0WNvlnXs3Y9uTEuEOgiJJuPdNjIXaifk5TJB7jBFNbFnf5wBPrrDnKkGLJrkKH0XebHIidRQxgERRQpsE/GTKlQpmLW0GCFZsGG7R8kG4TeZYnmcOo3ApddbEFjjphIYPscPHtGyqA/eAC6lu9F9pkSOv1W/JAGUfPzuiifr3X64ueAYb1f0NSm4o6l+Q4tlOHBr2Zd6zOGVuDJBC+1b8cP0n2Fdu3PcroaztXuGs++cpYWwzSJEYaM3pxYy9O52xG89Wh0AfVdurckcsPcHFR/dWDYX4gXPCr28qrMMz4PXnO3JwvJouvDWVb1uVixfMYpNJAV9gES4mov0TqqzrgvNc58w33hG/sWwbaqz9lByGrdoTdNkQosximtTWlLEVcQFjqhZrncknGtoou4mKhvryxwiZnh5s+OhsWK/WEZsG3HXAhHNkmh48mFYJWZaug7LgExaXQn6VALeqvi9B8iu5oJ0cU7X1TtKsT0+rZxEEzpAJ5JgDRDNIelDGWDA+KxmhnocBlfKUNcnPQ3VpXgpBIBIiSKTemm9jlo/lBawdc6dTd+1R0GUePKa+aawsyhXX0hCvW2OZvJCehpiP1g="
+
   include:
   # Build mintcoind
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
-#    sudo: required
+    sudo: required
     addons:
       apt:
         packages:
@@ -29,7 +29,9 @@ matrix:
           - libqrencode-dev
           - libminiupnpc-dev
           - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2 && wget https://mega.nz/linux/MEGAsync/xUbuntu_14.04/amd64/megacmd-xUbuntu_14.04_amd64.deb && (sudo dpkg -i megacmd-xUbuntu_14.04_amd64.deb || sudo apt-get -y -f install) && mega-login $MEGA_EMAIL $MEGA_PASSWORD && mega-put mintcoind mintcoind.ubuntu_trusty.dynamic
+    script: echo $MEGA_EMAIL
+    script: echo two scripts can be done
+#    script: cd src && make -f makefile.unix -j2 && wget https://mega.nz/linux/MEGAsync/xUbuntu_14.04/amd64/megacmd-xUbuntu_14.04_amd64.deb && (sudo dpkg -i megacmd-xUbuntu_14.04_amd64.deb || sudo apt-get -y -f install) && mega-login $MEGA_EMAIL $MEGA_PASSWORD && mega-put mintcoind mintcoind.ubuntu_trusty.dynamic
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
