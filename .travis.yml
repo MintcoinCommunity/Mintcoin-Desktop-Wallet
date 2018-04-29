@@ -41,7 +41,7 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-    script: bash src/mxe-build.sh windows64 && bash src/mega-push src/mintcoind.exe mintcoind.exe.win64
+    script: bash src/mxe-build.sh windows64 && bash src/mega-push.sh src/mintcoind.exe mintcoind.exe.win64
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version

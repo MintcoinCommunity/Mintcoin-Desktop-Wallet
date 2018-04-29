@@ -29,4 +29,5 @@ if [ $TRAVIS_OS_NAME = linux ]; then
 fi
 
 mega-login $MEGA_EMAIL $MEGA_PASSWORD
-mega-put $*
+mega-rm $1
+mega-put $1 $2
