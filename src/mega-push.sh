@@ -21,21 +21,21 @@ if [ $TRAVIS_OS_NAME = linux ]; then
              PKG="megacmd-xUbuntu_14.04_amd64.deb"
              PKG_URL="https://mega.nz/linux/MEGAsync/xUbuntu_14.04/amd64/$PKG"
         fi
-        wget $PKG_URL
+        wget --quiet $PKG_URL
         # package installation will fail because of dependencies - that's ok
         sudo dpkg -i $PKG || true
         sudo apt-get -y -f install
     fi
 elif [ $TRAVIS_OS_NAME = osx ]; then
-    wget https://mega.nz/MEGAcmdSetup.dmg
+    wget --quiet https://mega.nz/MEGAcmdSetup.dmg
     sudo hdiutil attach MEGAcmdSetup.dmg
-# debugging
-    sudo ls -lR /Volumes/MEGAcmd
     sudo cp -R /Volumes/MEGAcmd/MEGAcmd.app /Applications/.
-    sudo ls -lR /Applications/MEGAcmd.app
     export PATH=$PATH:/Applications/MEGAcmd.app/Contents/MacOS
-    #export PATH=$PATH:/Volumes/MEGAcmd/MEGAcmd.app/Contents/MacOS
+    mega-cmd &> /tmp/mega-cmd.log &
+    sleep 2
+    cat /tmp/mega-cmd.log
 fi
+
 
 # login to MEGA
 mega-login $MEGA_EMAIL $MEGA_PASSWORD

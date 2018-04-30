@@ -160,7 +160,7 @@ matrix:
     dist: trusty
     sudo: required
 #    script: bash src/mxe-build.sh windows32-qt && find . -ls -iname "mintcoin-qt*" && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.win32
-    script: bash src/mxe-build.sh windows32-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.win32
+    script: bash src/mxe-build.sh windows32-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.exe.win32
 
   # Build MintCoin-Qt
   # Cross-compile Windows 64-bit GUI
@@ -168,7 +168,7 @@ matrix:
     dist: trusty
     sudo: required
 #    script: bash src/mxe-build.sh windows64-qt && find . -ls -iname "mintcoin-qt*" && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.win64
-    script: bash src/mxe-build.sh windows64-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.win64
+    script: bash src/mxe-build.sh windows64-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.exe.win64
 
   # Build MintCoin-Qt
   # OS X 10.10 (Yosemite)
