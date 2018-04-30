@@ -44,7 +44,7 @@ mega-login $MEGA_EMAIL $MEGA_PASSWORD
 mega-mkdir $TRAVIS_BRANCH || true
 
 # removal may fail if not present
-mega-rm $2 || true
+mega-rm $TRAVIS_BRANCH/$2 || true
 
 # put our binary
 mega-put $1 $TRAVIS_BRANCH/$2
