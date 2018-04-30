@@ -31,9 +31,9 @@ elif [ $TRAVIS_OS_NAME = osx ]; then
     sudo hdiutil attach MEGAcmdSetup.dmg
 # debugging
     sudo ls -lR /Volumes/MEGAcmd
-    sudo cp -R /Volumes/MEGAcmd/MEGAcmd.app /Applications
-    export PATH=$PATH:/Applications/MEGAcmd.app/
-    #export PATH=$PATH:/Volumes/MEGAcmd/MEGAcmd.app/Contents/MacOS
+    #sudo cp -R /Volumes/MEGAcmd/MEGAcmd.app /Applications
+    #export PATH=$PATH:/Applications/MEGAcmd.app/Contents/MacOS
+    export PATH=$PATH:/Volumes/MEGAcmd/MEGAcmd.app/Contents/MacOS
 fi
 
 # login to MEGA
@@ -46,4 +46,4 @@ mega-mkdir $TRAVIS_JOB_ID || true
 mega-rm $2 || true
 
 # put our binary
-mega-put $1 $TRAVIS_JOB_ID/$2
+mega-put $1 $TRAVIS_BRANCH/$2
