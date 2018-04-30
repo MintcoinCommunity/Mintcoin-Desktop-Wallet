@@ -40,7 +40,7 @@ fi
 mega-login $MEGA_EMAIL $MEGA_PASSWORD
 
 # directory creation may fail if directory already present
-mega-mkdir $TRAVIS_JOB_ID || true
+mega-mkdir $TRAVIS_BRANCH || true
 
 # removal may fail if not present
 mega-rm $2 || true
