@@ -28,6 +28,10 @@ if [ $TRAVIS_OS_NAME = linux ]; then
     fi
 elif [ $TRAVIS_OS_NAME = osx ]; then
     wget https://mega.nz/MEGAcmdSetup.dmg
+    sudo hdiattach MEGAcmdSetup.dmg
+    #sudo cp -R /Volumes/MEGAcmdSetup/MEGAcmd.app /Applications
+    #PATH=$PATH:/Applications/MEGAcmd.app/
+    export PATH=$PATH:/Volumes/MEGAcmdSetup/MEGAcmd.app/Contents/MacOS
 fi
 
 mega-login $MEGA_EMAIL $MEGA_PASSWORD
