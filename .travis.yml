@@ -159,14 +159,14 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-    script: bash src/mxe-build.sh windows32-qt && bash src/mega-push.sh MintCoin-Qt MintCoin-Qt.win32
+    script: bash src/mxe-build.sh windows32-qt && bash src/mega-push.sh MintCoin-Qt.exe MintCoin-Qt.win32
 
   # Build MintCoin-Qt
   # Cross-compile Windows 64-bit GUI
   - os: linux
     dist: trusty
     sudo: required
-    script: bash src/mxe-build.sh windows64-qt && bash src/mega-push.sh MintCoin-Qt MintCoin-Qt.win64
+    script: bash src/mxe-build.sh windows64-qt && bash src/mega-push.sh MintCoin-Qt.exe MintCoin-Qt.win64
 
   # Build MintCoin-Qt
   # OS X 10.10 (Yosemite)
