@@ -30,8 +30,10 @@ elif [ $TRAVIS_OS_NAME = osx ]; then
     wget --quiet https://mega.nz/MEGAcmdSetup.dmg
     sudo hdiutil attach MEGAcmdSetup.dmg
     sudo cp -R /Volumes/MEGAcmd/MEGAcmd.app /Applications/.
+    ls -R /Applications/MEGAcmd.app
     export PATH=$PATH:/Applications/MEGAcmd.app/Contents/MacOS
-    mega-cmd &> /tmp/mega-cmd.log &
+#    MEGAcmdServer &> /tmp/mega-cmd.log &
+    MEGAcmd &> /tmp/mega-cmd.log &
     sleep 2
     cat /tmp/mega-cmd.log
 fi
