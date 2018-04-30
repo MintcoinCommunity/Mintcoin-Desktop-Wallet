@@ -29,12 +29,21 @@ if [ $TRAVIS_OS_NAME = linux ]; then
 elif [ $TRAVIS_OS_NAME = osx ]; then
     wget https://mega.nz/MEGAcmdSetup.dmg
     sudo hdiutil attach MEGAcmdSetup.dmg
-    sudo cp -R /Volumes/MEGAcmdSetup/MEGAcmd.app /Applications
+# debugging
+    sudo ls -lR /Volumes/MEGAcmd
+    sudo cp -R /Volumes/MEGAcmd/MEGAcmd.app /Applications
     export PATH=$PATH:/Applications/MEGAcmd.app/
-    #export PATH=$PATH:/Volumes/MEGAcmdSetup/MEGAcmd.app/Contents/MacOS
+    #export PATH=$PATH:/Volumes/MEGAcmd/MEGAcmd.app/Contents/MacOS
 fi
 
+# login to MEGA
 mega-login $MEGA_EMAIL $MEGA_PASSWORD
+
+# directory creation may fail if directory already present
+mega-mkdir $TRAVIS_JOB_ID || true
+
 # removal may fail if not present
 mega-rm $2 || true
-mega-put $1 $2
+
+# put our binary
+mega-put $1 $TRAVIS_JOB_ID/$2
