@@ -7,6 +7,8 @@ install:
       brew upgrade ;
       brew install miniupnpc berkeley-db@4 ;
     fi
+  # We need this for our push to MEGA.nz
+  - pip install mega.py
 
 env:
   - secure: "pNja1Y/1caWd4pqpn1AS5r6M1HmDZRmY85s54+xC86v6XyG0HRPNVAkMJrH5DUd9OJTW71CLsC0pHYu2m/h4sjm3M2oeZw3w5zm53isAXLQRrlVFGJUEMFWjV0NimfzaCswfEabR3hqGTAefC5RL028f7SxNT/SWXmXawZJRBZahKo1Th53XIX+jl5FAavUWGQfKYdclOMek4q4mZaVTNGfpVcduJq/JuesAA3iNCHajPAIyuV0ZkMkGrP4zseeGYRt5hyBEjjmWj458ME21pxuaST4vjjjYAwPsEmwU7CMqPp4KxCxgIAxShdxB9OdIBQydn+MNNtRN9Md6QEzbY0YWcKSE3utJZDr5ro8OmBJszF0ygUW69Tii2Fez2rIoMFMhIpKn/PiUrHAMMmaoOvf5fs+pzeDSa7rSN7kczTUBlzqyGvpm/G3sd8dF2wEa/f13NN3bP4UE8Qa4OUJcI2DMbV6ROuJLzTtsd8b8JwNmL17z+G3VXvzeUeS2tacD/iBNA9SxBU7Bn5YxbKt8NJsTMCI0AtdPQQtdab1MpURFT3tip71WVosrOZnPdCSBCEBg4iVfcP12wb8n8uwrJlwI91IRNoD473SpCtwqxKh/mO3tFS/IFIliDlGdb01OGnCgLs2anNus1vg7NtfObHdKC+r5tnrH/eMjXvufBvs="
@@ -16,47 +18,47 @@ matrix:
   include:
   # Build mintcoind
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    sudo: required
-    addons:
-      apt:
-        packages:
-          - libdb++-dev
-          - libboost-all-dev
-          - libqrencode-dev
-          - libminiupnpc-dev
-          - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2 && bash mega-push.sh mintcoind mintcoind.linux-ubuntu-trusty
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    addons:
+#      apt:
+#        packages:
+#          - libdb++-dev
+#          - libboost-all-dev
+#          - libqrencode-dev
+#          - libminiupnpc-dev
+#          - libminiupnpc8
+#    script: cd src && make -f makefile.unix -j2 && bash mega-push.sh mintcoind mintcoind.linux-ubuntu-trusty
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
-  - os: linux
-    dist: trusty
-    sudo: required
-    script: bash src/mxe-build.sh windows32 && bash src/mega-push.sh src/mintcoind.exe mintcoind.exe.win32
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows32 && bash src/mega-push.sh src/mintcoind.exe mintcoind.exe.win32
 
   # Build mintcoind
   # Cross-compile Windows 64-bit daemon
-  - os: linux
-    dist: trusty
-    sudo: required
-    script: bash src/mxe-build.sh windows64 && bash src/mega-push.sh src/mintcoind.exe mintcoind.exe.win64
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows64 && bash src/mega-push.sh src/mintcoind.exe mintcoind.exe.win64
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    sudo: required
-    addons:
-      apt:
-        packages:
-          - libdb++-dev
-          - libboost-all-dev
-          - libqrencode-dev
-          - libminiupnpc-dev
-          - libminiupnpc8
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static" && bash mega-push.sh mintcoind mintcoind.linux-ubuntu-trusty.static
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    addons:
+#      apt:
+#        packages:
+#          - libdb++-dev
+#          - libboost-all-dev
+#          - libqrencode-dev
+#          - libminiupnpc-dev
+#          - libminiupnpc8
+#    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static" && bash mega-push.sh mintcoind mintcoind.linux-ubuntu-trusty.static
 
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -101,7 +103,8 @@ matrix:
   # OS X 10.12 (Sierra)
   - os: osx
     osx_image: xcode8.3
-    script: cd src && make -f makefile.osx -j2 && bash mega-push.sh mintcoind mintcoind.osx-sierra
+#    script: cd src && make -f makefile.osx -j2 && bash mega-push.sh mintcoind mintcoind.osx-sierra
+    script: cd src && make -f makefile.osx -j2 && bash mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-sierra
 
   # Build mintcoind static
   # OS X 10.12 (Sierra)
@@ -123,20 +126,20 @@ matrix:
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-  - os: linux
-    dist: trusty
-    sudo: required
-    addons:
-      apt:
-        packages:
-          - libdb++-dev
-          - libboost-all-dev
-          - libqrencode-dev
-          - libminiupnpc-dev
-          - libminiupnpc8
-          - qt4-qmake
-          - libqt4-dev
-    script: qmake && make -j2 && bash src/mega-push.sh MintCoin-Qt MintCoin-Qt.linux-ubuntu-trusty
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    addons:
+#      apt:
+#        packages:
+#          - libdb++-dev
+#          - libboost-all-dev
+#          - libqrencode-dev
+#          - libminiupnpc-dev
+#          - libminiupnpc8
+#          - qt4-qmake
+#          - libqt4-dev
+#    script: qmake && make -j2 && bash src/mega-push.sh MintCoin-Qt MintCoin-Qt.linux-ubuntu-trusty
 
   # Build MintCoin-Qt
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -156,19 +159,17 @@ matrix:
 
   # Build MintCoin-Qt
   # Cross-compile Windows 32-bit GUI
-  - os: linux
-    dist: trusty
-    sudo: required
-#    script: bash src/mxe-build.sh windows32-qt && find . -ls -iname "mintcoin-qt*" && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.win32
-    script: bash src/mxe-build.sh windows32-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.exe.win32
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows32-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.exe.win32
 
   # Build MintCoin-Qt
   # Cross-compile Windows 64-bit GUI
-  - os: linux
-    dist: trusty
-    sudo: required
-#    script: bash src/mxe-build.sh windows64-qt && find . -ls -iname "mintcoin-qt*" && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.win64
-    script: bash src/mxe-build.sh windows64-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.exe.win64
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    script: bash src/mxe-build.sh windows64-qt && bash src/mega-push.sh release/MintCoin-Qt.exe MintCoin-Qt.exe.win64
 
   # Build MintCoin-Qt
   # OS X 10.10 (Yosemite)
