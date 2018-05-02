@@ -8,7 +8,7 @@ install:
       brew install miniupnpc berkeley-db@4 ;
     fi
   # We need this for our push to MEGA.nz
-  - pip install mega.py
+  - pip install --user mega.py
 
 env:
   - secure: "pNja1Y/1caWd4pqpn1AS5r6M1HmDZRmY85s54+xC86v6XyG0HRPNVAkMJrH5DUd9OJTW71CLsC0pHYu2m/h4sjm3M2oeZw3w5zm53isAXLQRrlVFGJUEMFWjV0NimfzaCswfEabR3hqGTAefC5RL028f7SxNT/SWXmXawZJRBZahKo1Th53XIX+jl5FAavUWGQfKYdclOMek4q4mZaVTNGfpVcduJq/JuesAA3iNCHajPAIyuV0ZkMkGrP4zseeGYRt5hyBEjjmWj458ME21pxuaST4vjjjYAwPsEmwU7CMqPp4KxCxgIAxShdxB9OdIBQydn+MNNtRN9Md6QEzbY0YWcKSE3utJZDr5ro8OmBJszF0ygUW69Tii2Fez2rIoMFMhIpKn/PiUrHAMMmaoOvf5fs+pzeDSa7rSN7kczTUBlzqyGvpm/G3sd8dF2wEa/f13NN3bP4UE8Qa4OUJcI2DMbV6ROuJLzTtsd8b8JwNmL17z+G3VXvzeUeS2tacD/iBNA9SxBU7Bn5YxbKt8NJsTMCI0AtdPQQtdab1MpURFT3tip71WVosrOZnPdCSBCEBg4iVfcP12wb8n8uwrJlwI91IRNoD473SpCtwqxKh/mO3tFS/IFIliDlGdb01OGnCgLs2anNus1vg7NtfObHdKC+r5tnrH/eMjXvufBvs="
@@ -105,7 +105,7 @@ matrix:
     osx_image: xcode8.3
 #    script: cd src && make -f makefile.osx -j2 && bash mega-push.sh mintcoind mintcoind.osx-sierra
 #    script: cd src && make -f makefile.osx -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-sierra
-    script: cd src && pip install mega.py && python mega-copy.py mega-copy.py $TRAVIS_BRANCH/mintcoind.osx-sierra
+    script: cd src && python mega-copy.py mega-copy.py $TRAVIS_BRANCH/mintcoind.osx-sierra
 
   # Build mintcoind static
   # OS X 10.12 (Sierra)
