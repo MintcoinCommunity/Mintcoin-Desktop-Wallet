@@ -104,7 +104,7 @@ matrix:
   - os: osx
     osx_image: xcode8.3
 #    script: cd src && make -f makefile.osx -j2 && bash mega-push.sh mintcoind mintcoind.osx-sierra
-    script: cd src && make -f makefile.osx -j2 && bash mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-sierra
+    script: cd src && make -f makefile.osx -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-sierra
 
   # Build mintcoind static
   # OS X 10.12 (Sierra)
