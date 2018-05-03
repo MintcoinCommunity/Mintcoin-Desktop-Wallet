@@ -77,15 +77,13 @@ matrix:
 
   # Build mintcoind
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-yosemite
+  #
+  # "pip: command not found" on Travis, so we will just not build this
 
   # Build mintcoind static
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static" && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-yosemite.static
+  #
+  # "pip: command not found" on Travis, so we will just not build this
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
@@ -181,16 +179,16 @@ matrix:
   # OS X 10.11 (El Capitan)
   - os: osx
     osx_image: xcode7.3
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.osx-elcapitan
+    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.osx-elcapitan
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
   - os: osx
     osx_image: xcode8.3
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-sierra
+    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-sierra
 
   # Build MintCoin-Qt
   # OS X 10.13 (High Sierra)
   - os: osx
     osx_image: xcode9.3beta
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-highsierra
+    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-highsierra
