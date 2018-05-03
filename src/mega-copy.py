@@ -44,7 +44,12 @@ for node in m.get_files().values():
 # make a path-like name for each node
 # NOTE: this won't work if you have a name with a '/' in it
 nodes_by_name = {}
-for handle, node in nodes_by_handle.items():
+for node in nodes_by_handle.values():
+    # Some nodes have a string for the 'a' value (possibly these are
+    # deleted nodes). We only understand nodes with a dictionary
+    # there.
+    if type(node['a']) is not dict:
+        continue
     rev_path = [node['a']['n'],]
     path_node = node
     while path_node['p']:
