@@ -27,7 +27,7 @@ https://mintcoinofficial.com/
 
 The MintCoin team is on Twitter:
 
-https://twitter.com/MintCoinTeam
+https://twitter.com/MintCoin_
 
 The Telegram MintCoin group:
 
