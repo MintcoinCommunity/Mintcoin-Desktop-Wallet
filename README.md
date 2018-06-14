@@ -48,13 +48,13 @@ A: 5% annually (that is, 5% per year).
 Q: My wallet cannot connect to any nodes!!! What can I do?  
 A: For now, you have to add some nodes by hand (sorry). You can do
    this by adding the nodes listed here:  
-     https://snapshot.mintcoin.zone/PEERS.txt  
+     https://snapshot.mintcoin.zone/peers.txt  
    To your `MintCoin.conf` file.
 
 Q: My wallet is taking really long to synchronize. How can I speed this up?  
 A: For now, you can either be patient or download a snapshot (sorry).  
    You can find a snapshot here:  
-     https://snapshot.mintcoin.zone/MintCoin-Snapshot-Latest.zip  
+     https://snapshot.mintcoin.zone/blockchain.zip   
    Stop your wallet, extract that into your MintCoin directory, and
    then restart your wallet. It will then start synchronizing from the
    time the last snapshot was taken.
