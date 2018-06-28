@@ -14,8 +14,8 @@ MEGA_TRASH_BIN = 4
 # check our login/password
 mega_email = os.getenv('MEGA_EMAIL')
 if mega_email is None:
-    print("Please set the MEGA_EMAIL environment variable")
-    sys.exit(1)
+    print("Skipping copy to MEGA.nz: MEGA_EMAIL environment variable not set")
+    sys.exit(0)
 mega_password = os.getenv('MEGA_PASSWORD')
 if mega_password is None:
     print("Please set the MEGA_PASSWORD environment variable")
