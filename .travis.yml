@@ -45,6 +45,18 @@ matrix:
     sudo: required
     script: bash src/mxe-build.sh windows64 && python src/mega-copy.py src/mintcoind.exe $TRAVIS_BRANCH/mintcoind.exe.win64
 
+  # Build mintcoind
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Make a 32-bit version using Debian multiarch
+  - os: linux
+    dist: trusty
+    sudo: required
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install build-essential:i386 libssl-dev:i386 libdb++-dev:i386 libboost-all-dev:i386 libminiupnpc-dev:i386 libminiupnpc8:i386
+    script: cd src && make -f makefile.unix -j2 CXXFLAGS=-m32 LDFLAGS=-m32 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux32-ubuntu-trusty
+
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
