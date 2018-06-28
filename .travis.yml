@@ -54,7 +54,7 @@ matrix:
     before_script:
         - sudo dpkg --add-architecture i386
         - sudo apt-get update
-        - sudo apt-get install build-essential:i386 libssl-dev:i386 libdb++-dev:i386 libboost-all-dev:i386 libminiupnpc-dev:i386 libminiupnpc8:i386
+        - sudo apt-get install build-dep:i386 build-essential:i386 libssl-dev:i386 libdb++-dev:i386 libboost-all-dev:i386 libminiupnpc-dev:i386 libminiupnpc8:i386 || sudo apt-get install -f
     script: cd src && make -f makefile.unix -j2 CXXFLAGS=-m32 LDFLAGS=-m32 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux32-ubuntu-trusty
 
   # Build mintcoind static
