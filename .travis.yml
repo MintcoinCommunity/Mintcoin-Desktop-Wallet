@@ -51,6 +51,7 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
+    # https://serverfault.com/a/383958
     before_script:
         - sudo dpkg --add-architecture i386
         - sudo apt-get update
@@ -59,7 +60,6 @@ matrix:
         - sudo apt-get install -y libssl-dev:i386
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
-        # https://serverfault.com/a/383958
         - apt-get download openmpi-common:all
         - ar x openmpi-common_*_all.deb
         - tar xf control.tar.gz
