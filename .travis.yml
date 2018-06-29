@@ -56,12 +56,16 @@ matrix:
         - sudo apt-get update
         - sudo apt-get download libopenmpi-dev:i386 
         - sudo dpkg -i libopenmpi-dev_*_i386.deb || true
+        - sudo apt-get --fix-broken install
         - sudo apt-get download openmpi-bin:i386
         - sudo dpkg -i openmpi-bin_*_i386.deb || true
+        - sudo apt-get --fix-broken install
         - sudo apt-get download mpi-default-dev:i386
         - sudo dpkg -i mpi-default-dev_*_i386.deb || true
+        - sudo apt-get --fix-broken install
         - sudo apt-get download mpi-default-bin:i386
         - sudo dpkg -i mpi-default-bin_*_i386.deb || true
+        - sudo apt-get --fix-broken install
         - sudo apt-get download libboost-mpi1.54-dev:i386
         - sudo dpkg -i libboost-mpi1.54-dev_*_i386.deb || true
         - sudo apt-get --fix-broken install
