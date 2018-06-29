@@ -63,7 +63,8 @@ matrix:
         - apt-get download openmpi-common:all
         - ar x openmpi-common_*_all.deb
         - tar xf control.tar.gz
-        - sed -i "s/^Architecture: all/Architecture: i386/" control
+        - |
+          sed -i "s/^Architecture: all/Architecture: i386/" control
         - tar czf control.tar.gz md5sums control
         - ar rcs openmpi-common_*_all.deb debian-binary control.tar.gz data.tar.gz
         - sudo dpkg -i openmpi-common_*_all.deb
