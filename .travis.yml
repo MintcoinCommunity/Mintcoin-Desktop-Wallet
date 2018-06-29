@@ -61,11 +61,13 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - apt-get download openmpi-common:all
+        - ar t openmpi-common_*_all.deb
         - ar x openmpi-common_*_all.deb
         - tar xf control.tar.gz
         - |
           sed -i "s/^Architecture: all/Architecture: i386/" control
         - tar czf control.tar.gz md5sums control
+        - ls -l
         - ar rcs openmpi-common_*_all.deb debian-binary control.tar.gz data.tar.gz
         - sudo dpkg -i openmpi-common_*_all.deb
         - sudo apt-get install libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi-python1.54.0:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi1.54-dev:i386 python:i386
