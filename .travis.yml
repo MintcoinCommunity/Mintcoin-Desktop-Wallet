@@ -287,8 +287,7 @@ matrix:
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi-python1.54.0:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi1.54-dev:i386 python:i386
         - sudo apt-get install -y libqrencode-dev:i386
         - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
-        - ls -l /usr/lib/x86_64-linux-gnu/qt4/bin/qmake*
-        - ls -l /usr/lib/i686-linux-gnu/qt4/bin/qmake*
+        - ls -l /usr/lib/i686-linux-gnu/qt4/bin/qmake* || true
     script: hash && qmake && make -j2 
     after_script: 
         - sudo apt-get install -y python:amd64
