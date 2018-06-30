@@ -98,6 +98,57 @@ matrix:
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Make a 32-bit version using Debian multiarch
+  - os: linux
+    dist: trusty
+    sudo: required
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance, for
+    # two reasons.
+    #
+    # First, apt-get does not seem to understand dependencies for
+    # the multiarch stuff, so we have to explicitly install all of
+    # the dependencies.
+    #
+    # Second, one of the packages is built for the "all" architecture.
+    # In principle this should work, but for some reason the system
+    # insists that to use it for the MPI libraries it needs to be for
+    # the "i386" architecture. So we download and repackage the .deb
+    # file modified to support this. For details see this Serverfault
+    # message:
+    #
+    # https://serverfault.com/a/383958
+    #
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install -y gcc:i386 cpp:i386 gcc-4.8:i386 binutils:i386
+        - sudo apt-get install -y g++:i386
+        - sudo apt-get install -y libssl-dev:i386
+        - sudo apt-get install -y libdb++-dev:i386
+        - sudo apt-get install -y libminiupnpc-dev:i386
+        - apt-get download openmpi-common:all
+        - ar x openmpi-common_*_all.deb
+        - tar xf control.tar.gz
+        - |
+          sed -i "s/^Architecture: all/Architecture: i386/" control
+        - tar czf control.tar.gz md5sums control
+        - ar rcs openmpi-common_*_all.deb debian-binary control.tar.gz data.tar.xz
+        - sudo dpkg -i openmpi-common_*_all.deb
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi-python1.54.0:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi1.54-dev:i386 python:i386
+    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static" && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux-ubuntu-trusty.static
+    after_script:
+        - sudo apt-get install -y python:amd64
+        - sudo apt-get install python-requests
+        - python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux-ubuntu-trusty.static
+
+  # Build mintcoind static
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
 #  - os: linux
 #    dist: trusty
 #    sudo: required
