@@ -288,7 +288,7 @@ matrix:
         - sudo apt-get install -y libqrencode-dev:i386
         - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
         - find /usr/lib -name qmake -ls
-    script: hash -r && qmake && make -j2 
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && make -j2 
     after_script: 
         - sudo apt-get install -y python:amd64
         - sudo apt-get install python-requests
