@@ -18,32 +18,35 @@ matrix:
   include:
   # Build mintcoind
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    addons:
-#      apt:
-#        packages:
-#          - libdb++-dev
-#          - libboost-all-dev
-#          - libqrencode-dev
-#          - libminiupnpc-dev
-#          - libminiupnpc8
-#    script: cd src && make -f makefile.unix -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux-ubuntu-trusty
+  - os: linux
+    dist: trusty
+    sudo: required
+    addons:
+      apt:
+        packages:
+          - libdb++-dev
+          - libboost-all-dev
+          - libqrencode-dev
+          - libminiupnpc-dev
+          - libminiupnpc8
+    script: cd src && make -f makefile.unix -j2
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux64-ubuntu-trusty
 
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    script: bash src/mxe-build.sh windows32 && python src/mega-copy.py src/mintcoind.exe $TRAVIS_BRANCH/mintcoind.exe.win32
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: bash src/mxe-build.sh windows32
+    after_script: python src/mega-copy.py src/mintcoind.exe $TRAVIS_BRANCH/mintcoind.exe.win32
 
   # Build mintcoind
   # Cross-compile Windows 64-bit daemon
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    script: bash src/mxe-build.sh windows64 && python src/mega-copy.py src/mintcoind.exe $TRAVIS_BRANCH/mintcoind.exe.win64
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: bash src/mxe-build.sh windows64
+    after_script: python src/mega-copy.py src/mintcoind.exe $TRAVIS_BRANCH/mintcoind.exe.win64
 
   # Build mintcoind
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
@@ -98,18 +101,19 @@ matrix:
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    addons:
-#      apt:
-#        packages:
-#          - libdb++-dev
-#          - libboost-all-dev
-#          - libqrencode-dev
-#          - libminiupnpc-dev
-#          - libminiupnpc8
-#    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static" && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux-ubuntu-trusty.static
+  - os: linux
+    dist: trusty
+    sudo: required
+    addons:
+      apt:
+        packages:
+          - libdb++-dev
+          - libboost-all-dev
+          - libqrencode-dev
+          - libminiupnpc-dev
+          - libminiupnpc8
+    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux64-ubuntu-trusty.static
 
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
@@ -189,56 +193,63 @@ matrix:
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
-#  - os: osx
-#    osx_image: xcode7.3
-#    script: cd src && make -f makefile.osx -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-elcapitan
+  - os: osx
+    osx_image: xcode7.3
+    script: cd src && make -f makefile.osx -j2
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-elcapitan
 
   # Build mintcoind static
   # OS X 10.11 (El Capitan)
-#  - os: osx
-#    osx_image: xcode7.3
-#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static" && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-elcapitan.static
+  - os: osx
+    osx_image: xcode7.3
+    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.osx-elcapitan.static
 
   # Build mintcoind
   # OS X 10.12 (Sierra)
-#  - os: osx
-#    osx_image: xcode8.3
-#    script: cd src && make -f makefile.osx -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-sierra
+  - os: osx
+    osx_image: xcode8.3
+    script: cd src && make -f makefile.osx -j2
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-sierra
 
   # Build mintcoind static
   # OS X 10.12 (Sierra)
-#  - os: osx
-#    osx_image: xcode8.3
-#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static" && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-sierra.static
+  - os: osx
+    osx_image: xcode8.3
+    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-sierra.static
 
   # Build mintcoind
   # OS X 10.13 (High Sierra)
-#  - os: osx
-#    osx_image: xcode9.3beta
-#    script: cd src && make -f makefile.osx -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-highsierra
+  - os: osx
+    osx_image: xcode9.3beta
+    script: cd src && make -f makefile.osx -j2
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-highsierra
 
   # Build mintcoind static
   # OS X 10.13 (High Sierra)
-#  - os: osx
-#    osx_image: xcode9.3beta
-#    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static" && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-highsierra.static
+  - os: osx
+    osx_image: xcode9.3beta
+    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    after_script: python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.macos-highsierra.static
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    addons:
-#      apt:
-#        packages:
-#          - libdb++-dev
-#          - libboost-all-dev
-#          - libqrencode-dev
-#          - libminiupnpc-dev
-#          - libminiupnpc8
-#          - qt4-qmake
-#          - libqt4-dev
-#    script: qmake && make -j2 && python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.linux-ubuntu-trusty
+  - os: linux
+    dist: trusty
+    sudo: required
+    addons:
+      apt:
+        packages:
+          - libdb++-dev
+          - libboost-all-dev
+          - libqrencode-dev
+          - libminiupnpc-dev
+          - libminiupnpc8
+          - qt4-qmake
+          - libqt4-dev
+    script: qmake && make -j2
+    after_script: python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.linux64-ubuntu-trusty
 
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
@@ -314,17 +325,19 @@ matrix:
 
   # Build MintCoin-Qt
   # Cross-compile Windows 32-bit GUI
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    script: bash src/mxe-build.sh windows32-qt && python src/mega-copy.py release/MintCoin-Qt.exe $TRAVIS_BRANCH/MintCoin-Qt.exe.win32
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: bash src/mxe-build.sh windows32-qt
+    after_script: python src/mega-copy.py release/MintCoin-Qt.exe $TRAVIS_BRANCH/MintCoin-Qt.exe.win32
 
   # Build MintCoin-Qt
   # Cross-compile Windows 64-bit GUI
-#  - os: linux
-#    dist: trusty
-#    sudo: required
-#    script: bash src/mxe-build.sh windows64-qt && python src/mega-copy.py release/MintCoin-Qt.exe $TRAVIS_BRANCH/MintCoin-Qt.exe.win64
+  - os: linux
+    dist: trusty
+    sudo: required
+    script: bash src/mxe-build.sh windows64-qt
+    after_script: python src/mega-copy.py release/MintCoin-Qt.exe $TRAVIS_BRANCH/MintCoin-Qt.exe.win64
 
   # Build MintCoin-Qt
   # OS X 10.10 (Yosemite)
@@ -335,18 +348,21 @@ matrix:
 
   # Build MintCoin-Qt
   # OS X 10.11 (El Capitan)
-#  - os: osx
-#    osx_image: xcode7.3
-#    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.osx-elcapitan
+  - os: osx
+    osx_image: xcode7.3
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
+    after_script: python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.osx-elcapitan
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
-#  - os: osx
-#    osx_image: xcode8.3
-#    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-sierra
+  - os: osx
+    osx_image: xcode8.3
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
+    after_script: python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-sierra
 
   # Build MintCoin-Qt
   # OS X 10.13 (High Sierra)
-#  - os: osx
-#    osx_image: xcode9.3beta
-#    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2 && python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-highsierra
+  - os: osx
+    osx_image: xcode9.3beta
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
+    after_script: python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.macos-highsierra
