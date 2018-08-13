@@ -14,10 +14,12 @@ elif [ $1 == "windows32-qt" ]; then
     MXE_TARGET="i686-w64-mingw32.static"
     CPU_TARGET="i686"
     QT_BUILD="yes"
+    OUR_QMAKE_EXTRA='QMAKE_LFLAGS+="-Wl,--large-address-aware"'
 elif [ $1 == "windows64-qt" ]; then
     MXE_TARGET="x86-64-w64-mingw32.static"
     CPU_TARGET="x86_64"
     QT_BUILD="yes"
+    OUR_QMAKE_EXTRA=''
 else
     echo "Syntax: $0 [ windows32 | windows64 | windows32-qt | windows64-qt ]">&2
     exit 1
@@ -55,6 +57,6 @@ if [ $QT_BUILD == "no" ]; then
 else
     sudo apt-get --yes install mxe-${MXE_TARGET}-qt5
     sudo apt-get --yes install mxe-${MXE_TARGET}-qttools
-    $CPU_TARGET-w64-mingw32.static-qmake-qt5
+    $CPU_TARGET-w64-mingw32.static-qmake-qt5 $OUR_QMAKE_EXTRA
     make -j $NCPU
 fi
