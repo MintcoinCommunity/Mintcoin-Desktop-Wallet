@@ -1,19 +1,4 @@
 language: cpp
-sudo: false
-
-#addons:
-#  # Ubuntu packages
-#  apt:
-#    packages:
-#      # These are required by the Linux build
-#      - libdb++-dev
-#      - libboost-all-dev
-#      - libqrencode-dev
-#      - libminiupnpc-dev
-#      - libminiupnpc8
-#      # These are required by the Linux Qt build
-#      - qt4-qmake
-#      - libqt4-dev
 
 install:
   # Travis already has OpenSSL and Boost installed via Homebrew, but we
@@ -29,6 +14,7 @@ matrix:
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
+    sudo: required
     addons:
       apt:
         packages:
@@ -53,10 +39,58 @@ matrix:
     sudo: required
     script: bash src/mxe-build.sh windows64
 
+  # Build mintcoind
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Make a 32-bit version using Debian multiarch
+  - os: linux
+    dist: trusty
+    sudo: required
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance, for
+    # two reasons.
+    #
+    # First, apt-get does not seem to understand dependencies for
+    # the multiarch stuff, so we have to explicitly install all of
+    # the dependencies.
+    #
+    # Second, one of the packages is built for the "all" architecture.
+    # In principle this should work, but for some reason the system
+    # insists that to use it for the MPI libraries it needs to be for
+    # the "i386" architecture. So we download and repackage the .deb
+    # file modified to support this. For details see this Serverfault
+    # message:
+    #
+    # https://serverfault.com/a/383958
+    #
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install -y gcc:i386 cpp:i386 gcc-4.8:i386 binutils:i386
+        - sudo apt-get install -y g++:i386
+        - sudo apt-get install -y libssl-dev:i386
+        - sudo apt-get install -y libdb++-dev:i386
+        - sudo apt-get install -y libminiupnpc-dev:i386
+        - apt-get download openmpi-common:all
+        - ar x openmpi-common_*_all.deb
+        - tar xf control.tar.gz
+        - |
+          sed -i "s/^Architecture: all/Architecture: i386/" control
+        - tar czf control.tar.gz md5sums control
+        - ar rcs openmpi-common_*_all.deb debian-binary control.tar.gz data.tar.xz
+        - sudo dpkg -i openmpi-common_*_all.deb
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi-python1.54.0:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi1.54-dev:i386 python:i386
+    script: cd src && make -f makefile.unix -j2
+
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
+    sudo: required
     addons:
       apt:
         packages:
@@ -67,10 +101,58 @@ matrix:
           - libminiupnpc8
     script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
+  # Build mintcoind static
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Make a 32-bit version using Debian multiarch
+  - os: linux
+    dist: trusty
+    sudo: required
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance, for
+    # two reasons.
+    #
+    # First, apt-get does not seem to understand dependencies for
+    # the multiarch stuff, so we have to explicitly install all of
+    # the dependencies.
+    #
+    # Second, one of the packages is built for the "all" architecture.
+    # In principle this should work, but for some reason the system
+    # insists that to use it for the MPI libraries it needs to be for
+    # the "i386" architecture. So we download and repackage the .deb
+    # file modified to support this. For details see this Serverfault
+    # message:
+    #
+    # https://serverfault.com/a/383958
+    #
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install -y gcc:i386 cpp:i386 gcc-4.8:i386 binutils:i386
+        - sudo apt-get install -y g++:i386
+        - sudo apt-get install -y libssl-dev:i386
+        - sudo apt-get install -y libdb++-dev:i386
+        - sudo apt-get install -y libminiupnpc-dev:i386
+        - apt-get download openmpi-common:all
+        - ar x openmpi-common_*_all.deb
+        - tar xf control.tar.gz
+        - |
+          sed -i "s/^Architecture: all/Architecture: i386/" control
+        - tar czf control.tar.gz md5sums control
+        - ar rcs openmpi-common_*_all.deb debian-binary control.tar.gz data.tar.xz
+        - sudo dpkg -i openmpi-common_*_all.deb
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi-python1.54.0:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi1.54-dev:i386 python:i386
+    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+
   # Build mintcoind
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
   #- os: linux
   #  dist: xenial
+  #  sudo: required
   #  addons:
   #    apt:
   #      packages:
@@ -79,19 +161,17 @@ matrix:
   #        - libqrencode-dev
   #        - libminiupnpc-dev
   #        - libminiupnpc8
-  #  script: cd src && make -f makefile.unix -j2
+  #  script: cd src && make -f makefile.unix -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux-ubuntu-xenial
 
   # Build mintcoind
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2
+  #
+  # "pip: command not found" on Travis, so we will just not build this
 
   # Build mintcoind static
   # OS X 10.10 (Yosemite)
-  - os: osx
-    osx_image: xcode6.4
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+  #
+  # "pip: command not found" on Travis, so we will just not build this
 
   # Build mintcoind
   # OS X 10.11 (El Capitan)
@@ -133,6 +213,7 @@ matrix:
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
     dist: trusty
+    sudo: required
     addons:
       apt:
         packages:
@@ -144,6 +225,58 @@ matrix:
           - qt4-qmake
           - libqt4-dev
     script: qmake && make -j2
+
+  # Build MintCoin-Qt
+  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Make a 32-bit version using Debian multiarch
+  - os: linux
+    dist: trusty
+    sudo: required
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance, for
+    # two reasons.
+    #
+    # First, apt-get does not seem to understand dependencies for
+    # the multiarch stuff, so we have to explicitly install all of
+    # the dependencies.
+    #
+    # Second, one of the packages is built for the "all" architecture.
+    # In principle this should work, but for some reason the system
+    # insists that to use it for the MPI libraries it needs to be for
+    # the "i386" architecture. So we download and repackage the .deb
+    # file modified to support this. For details see this Serverfault
+    # message:
+    #
+    # https://serverfault.com/a/383958
+    #
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install -y gcc:i386 cpp:i386 gcc-4.8:i386 binutils:i386
+        - sudo apt-get install -y g++:i386
+        - sudo apt-get install -y libssl-dev:i386
+        - sudo apt-get install -y libdb++-dev:i386
+        - sudo apt-get install -y libminiupnpc-dev:i386
+        - apt-get download openmpi-common:all
+        - ar x openmpi-common_*_all.deb
+        - tar xf control.tar.gz
+        - |
+          sed -i "s/^Architecture: all/Architecture: i386/" control
+        - tar czf control.tar.gz md5sums control
+        - ar rcs openmpi-common_*_all.deb debian-binary control.tar.gz data.tar.xz
+        - sudo dpkg -i openmpi-common_*_all.deb
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi-python1.54.0:i386 libboost-mpi-python1.54-dev:i386 libboost-mpi1.54-dev:i386 python:i386
+        - sudo apt-get install -y libqrencode-dev:i386
+        - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
+        - sudo apt-get install -y qtchooser:i386
+        - sudo apt-get install -y qt4-linguist-tools:i386
+        - sudo apt-get install -y libqt4-dev-bin:i386
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
@@ -159,7 +292,7 @@ matrix:
   #        - libminiupnpc8
   #        - qt4-qmake
   #        - libqt4-dev
-  #  script: qmake && make -j2
+  #  script: qmake && make -j2 && python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.linux-ubuntu-xenial
 
   # Build MintCoin-Qt
   # Cross-compile Windows 32-bit GUI
@@ -182,25 +315,21 @@ matrix:
   #   Error: You are using macOS 10.10.
   #   We (and Apple) do not provide support for this old version.
   #   You may encounter build failures or other breakages.
-  #
-  #- os: osx
-  #  osx_image: xcode6.4
-  #  script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.11 (El Capitan)
   - os: osx
     osx_image: xcode7.3
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
   - os: osx
     osx_image: xcode8.3
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # OS X 10.13 (High Sierra)
   - os: osx
     osx_image: xcode9.3beta
-    script: brew install qrencode qt && ls /usr/local/opt/qt && /usr/local/opt/qt/bin/qmake && make -j2
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
