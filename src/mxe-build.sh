@@ -14,6 +14,7 @@ elif [ $1 == "windows32-qt" ]; then
     MXE_TARGET="i686-w64-mingw32.static"
     CPU_TARGET="i686"
     QT_BUILD="yes"
+    export LFLAGS="-Wl,--large-address-aware"
 elif [ $1 == "windows64-qt" ]; then
     MXE_TARGET="x86-64-w64-mingw32.static"
     CPU_TARGET="x86_64"
