@@ -167,7 +167,9 @@ sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-qttools
 
 Add the path to MXE:
 
-`$ export PATH=$PATH:`/usr/lib/mxe/mxe/usr/bin`
+```
+$ export PATH=$PATH:/usr/lib/mxe/usr/bin
+```
 
 To make a 32-bit Windows executable, go to the MintCoin repository
 and use the following:
