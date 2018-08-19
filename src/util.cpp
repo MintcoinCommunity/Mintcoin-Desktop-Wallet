@@ -56,7 +56,7 @@ namespace boost {
 #endif
 
 #ifndef WIN32
-#include <execinfo.h>
+// #include <execinfo.h>
 #endif
 
 
@@ -1038,8 +1038,8 @@ void LogStackTrace() {
 #ifndef WIN32
         void* pszBuffer[32];
         size_t size;
-        size = backtrace(pszBuffer, 32);
-        backtrace_symbols_fd(pszBuffer, size, fileno(fileout));
+//      size = backtrace(pszBuffer, 32);
+//      backtrace_symbols_fd(pszBuffer, size, fileno(fileout));
 #endif
     }
 }
