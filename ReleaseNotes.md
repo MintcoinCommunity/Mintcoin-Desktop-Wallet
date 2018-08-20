@@ -27,7 +27,7 @@ as fixing the most painful user issues.
 * Display when the next coin will be available for minting as a tooltip  
   https://github.com/MintcoinCommunity/Mintcoin-Desktop-Wallet/pull/57
 
-  [example tooltip](https://user-images.githubusercontent.com/1943584/38581536-b02d6eea-3cfc-11e8-8232-44e45921d4e7.png)
+  ![example tooltip](https://user-images.githubusercontent.com/1943584/38581536-b02d6eea-3cfc-11e8-8232-44e45921d4e7.png)
 
 * Support for ARM CPU  
   https://github.com/MintcoinCommunity/Mintcoin-Desktop-Wallet/pull/44
@@ -44,7 +44,7 @@ as fixing the most painful user issues.
   We have a ton of fixes for Linux (both Debian-based and Fedora
   distributions), Windows, and macOS builds.
 
-* Lots of other bug fixes 
+* Lots of other bug fixes   
   There have been quite a few other small fixes and documentation
   changes.
 

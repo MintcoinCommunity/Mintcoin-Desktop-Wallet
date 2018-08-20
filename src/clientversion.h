@@ -12,7 +12,7 @@
 #define CLIENT_VERSION_BUILD       0
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX "-beta1"
+#define CLIENT_VERSION_SUFFIX ""
 
 // Set to true for release, false for prerelease or test build
 #define CLIENT_VERSION_IS_RELEASE  false
