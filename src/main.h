@@ -861,6 +861,10 @@ public:
     unsigned int nBits;
     unsigned int nNonce;
 
+    //Save hash once we calculate so we don't have to hash multiple times
+    mutable bool bComputedHash;
+    mutable uint256 hashThisBlock;
+
     CBlockHeader()
     {
         SetNull();
@@ -885,6 +889,9 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+
+        bComputedHash = false;
+        hashThisBlock = 0;
     }
 
     bool IsNull() const
@@ -895,11 +902,20 @@ public:
     uint256 GetHash() const
     {
         uint256 thash;
-        void * scratchbuff = scrypt_buffer_alloc();
 
-        scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+        if(bComputedHash) {
+            thash = hashThisBlock;
+        } else {
 
-        scrypt_buffer_free(scratchbuff);
+            void * scratchbuff = scrypt_buffer_alloc();
+
+            scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+
+            scrypt_buffer_free(scratchbuff);
+
+            hashThisBlock = thash;
+            bComputedHash = true;
+        }
 
         return thash;
     }
@@ -929,6 +945,9 @@ public:
     mutable int nDoS;
     bool DoS(int nDoSIn, bool fIn) const { nDoS += nDoSIn; return fIn; }
 
+    // CheckBlock only compute once
+    mutable bool bComputedCheckBlock, bCheckBlockReturn;
+
     CBlock()
     {
         SetNull();
@@ -954,6 +973,8 @@ public:
         vchBlockSig.clear();
         vMerkleTree.clear();
         nDoS = 0;
+        bComputedCheckBlock = false;
+        bCheckBlockReturn = false;
     }
 
     // ppcoin: entropy bit for stake modifier if chosen by modifier
@@ -1149,6 +1170,7 @@ public:
     const uint256* phashBlock;
     CBlockIndex* pprev;
     CBlockIndex* pnext;
+    CBlockIndex* pnextWithStakeModifier; //Allow for skipping to next block with stake modifier at a time for faster searching
     unsigned int nFile;
     unsigned int nBlockPos;
     uint256 nChainTrust; // ppcoin: trust score of block chain
@@ -1185,6 +1207,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         pnext = NULL;
+        pnextWithStakeModifier = NULL;
         nFile = 0;
         nBlockPos = 0;
         nHeight = 0;
@@ -1210,6 +1233,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         pnext = NULL;
+        pnextWithStakeModifier = NULL;
         nFile = nFileIn;
         nBlockPos = nBlockPosIn;
         nHeight = 0;
@@ -1366,6 +1390,21 @@ public:
     void print() const
     {
         printf("%s\n", ToString().c_str());
+    }
+
+    // Link pnextWithStakeModifier chains so we can skip around faster
+    void linkPnextWithStakeModifier()
+    {
+        if(GeneratedStakeModifier()){
+            CBlockIndex* updatePrev = this->pprev;
+            while(updatePrev && !updatePrev->GeneratedStakeModifier()) {
+                updatePrev->pnextWithStakeModifier = this;
+                updatePrev = updatePrev->pprev;
+            }
+            if(updatePrev) {
+                updatePrev->pnextWithStakeModifier = this; //make sure chain of nexts is complete
+            }
+        }
     }
 };
 
