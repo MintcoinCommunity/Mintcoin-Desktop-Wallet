@@ -1,10 +1,11 @@
-* update translations (ping tcatm on IRC for now)
+The following are useful for the MintCoin release:
 
 * update (commit) version in sources
   bitcoin-qt.pro
-  src/version.h
+  src/clientversion.h
   share/setup.nsi
   doc/README*
+  DESC in share/genbuild.sh (the most important)
 
 * tag version in git
 
@@ -13,6 +14,15 @@
 * write release notes.  git shortlog helps a lot:
 
    git shortlog --no-merges v0.5.0..
+
+* build MintCoin-Qt
+  qmake "USE_BUILD_INFO=1"
+
+
+The following are instructions which originated from Bitcoin many
+years ago, and probably have no utility for us now:
+
+* update translations (ping tcatm on IRC for now)
 
 * perform gitian builds
 

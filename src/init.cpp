@@ -146,10 +146,10 @@ bool AppInit(int argc, char* argv[])
             // First part of help message is specific to bitcoind / RPC client
             std::string strUsage = _("MintCoin version") + " " + FormatFullVersion() + "\n\n" +
                 _("Usage:") + "\n" +
-                  "  MintCoind [options]                     " + "\n" +
-                  "  MintCoind [options] <command> [params]  " + _("Send command to -server or MintCoind") + "\n" +
-                  "  MintCoind [options] help                " + _("List commands") + "\n" +
-                  "  MintCoind [options] help <command>      " + _("Get help for a command") + "\n";
+                  "  mintcoind [options]                     " + "\n" +
+                  "  mintcoind [options] <command> [params]  " + _("Send command to -server or MintCoind") + "\n" +
+                  "  mintcoind [options] help                " + _("List commands") + "\n" +
+                  "  mintcoind [options] help <command>      " + _("Get help for a command") + "\n";
 
             strUsage += "\n" + HelpMessage();
 

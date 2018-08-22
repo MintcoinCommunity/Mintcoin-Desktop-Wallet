@@ -1,47 +1,19 @@
-Copyright (c) 2009-2012 Bitcoin Developers
-Distributed under the MIT/X11 software license, see the accompanying file
-license.txt or http://www.opensource.org/licenses/mit-license.php.  This
-product includes software developed by the OpenSSL Project for use in the
-OpenSSL Toolkit (http://www.openssl.org/).  This product includes cryptographic
-software written by Eric Young (eay@cryptsoft.com) and UPnP software written by
-Thomas Bernard.
-
-
-Mac OS X bitcoind build instructions
-Laszlo Hanyecz <solar@heliacal.net>
-Douglas Huff <dhuff@jrbobdobbs.org>
-
-
 See readme-qt.rst for instructions on building Bitcoin QT, the
 graphical user interface.
 
-Tested on 10.7 and 10.9 intel.  PPC is not supported because it's big-endian.
+This details the command-line build.
 
-All of the commands should be executed in Terminal.app.. it's in
-/Applications/Utilities
+You probably need to install XCode.
 
-You need to install XCode with all the options checked so that the compiler and
-everything is available in /usr not just /Developer I think it comes on the DVD
-but you can get the current version from http://developer.apple.com
+The easiest path is to use HomeBrew:
 
+https://brew.sh/
 
-1.  Clone the github tree to get the source code:
+Then:
 
-git clone https://github.com/MintcoinCommunity/Mintcoin-Desktop-Wallet.git mintcoin
+brew install boost openssl miniupnpc berkeley-db@4
 
-2.  Download and install MacPorts from http://www.macports.org/
-
-2a. (for 10.7 Lion)
-    Edit /opt/local/etc/macports/macports.conf and uncomment "build_arch i386"
-
-3.  Install dependencies from MacPorts
-
-sudo port install boost db53 openssl miniupnpc
-
-Optionally install qrencode (and set USE_QRCODE=1):
-sudo port install qrencode
-
-4.  Now you should be able to build bitcoind:
+Now you should be able to build mintcoind:
 
 cd mintcoin/src
 make -f makefile.osx

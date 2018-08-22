@@ -7,26 +7,48 @@ Build instructions
 Debian
 -------
 
-First, make sure that the required packages for Qt5 development of your
-distribution are installed.
+These build instructions should work for Debian and derivative
+systems, such as Ubuntu and Linux Mint.
 
-We need to make sure our build environment is up to date. For Debian and Ubuntu:
+We have some required packages. You can install these with `apt`:
 
 ::
 
-    apt-get install qt5-qmake qt5-default qttools5-dev-tools \
+    apt install qt5-qmake qt5-default qttools5-dev-tools \
         libboost-system-dev libboost-filesystem-dev \
         libboost-program-options-dev libboost-thread-dev \
-        build-essential libboost-dev libssl-dev libdb5.3++-dev libminiupnpc-dev
+        build-essential libboost-dev \
+        libssl-dev libdb5.3++-dev libminiupnpc-dev
 
-then execute the following:
+Next build the wallet:
 
 ::
 
     qmake
     make
 
-Alternatively, install Qt Creator and open the `mintcoin-qt.pro` file.
+An executable named `MintCoin-Qt` will be built.
+
+
+Fedora
+------
+
+These build instructions should work for Fedora and derivative
+systems, such as Red Hat Enterprise Linux and Oracle Linux.
+
+We have some required packages. You can install these with `dnf`:
+
+::
+
+    dnf install gcc-c++ boost-devel openssl-devel libdb-cxx-devel \
+        miniupnpc-devel qmake-qt5
+
+Next build the wallet:
+
+::
+
+    qmake-qt5
+    make
 
 An executable named `MintCoin-Qt` will be built.
 
@@ -120,28 +142,3 @@ flag to qmake to control this:
 | USE_QRCODE=1 | QRCode support enabled                                                   |
 +--------------+--------------------------------------------------------------------------+
 
-
-Berkely DB version warning
-==========================
-
-A warning for people using the *static binary* version of Bitcoin on a Linux/UNIX-ish system (tl;dr: **Berkely DB databases are not forward compatible**).
-
-The static binary version of MintCoin is linked against libdb5.3 (see also `this Debian issue`_).
-
-.. _`this Debian issue`: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=621425
-
-Ubuntu 11.10 warning
-====================
-
-Ubuntu 11.10 has a package called 'qt-at-spi' installed by default.  At the time of writing, having that package
-installed causes bitcoin-qt to crash intermittently.  The issue has been reported as `launchpad bug 857790`_, but
-isn't yet fixed.
-
-Until the bug is fixed, you can remove the qt-at-spi package to work around the problem, though this will presumably
-disable screen reader functionality for Qt apps:
-
-::
-
-    sudo apt-get remove qt-at-spi
-
-.. _`launchpad bug 857790`: https://bugs.launchpad.net/ubuntu/+source/qt-at-spi/+bug/857790

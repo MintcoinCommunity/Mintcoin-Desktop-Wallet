@@ -1,10 +1,9 @@
+Copyright (c) 2013-2018 MintCoin Developers
 
-Copyright (c) 2013-2016 MintCoin Developers
 
+MintCoin 2.1.0-beta1
 
-MintCoin 2.0.2
-
-Copyright (c) 2013-2016 MintCoin Developers
+Copyright (c) 2013-2018 MintCoin Developers
 Copyright (c) 2013 NovaCoin Developers
 Copyright (c) 2011-2012 Bitcoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
@@ -16,37 +15,41 @@ cryptographic software written by Eric Young (eay@cryptsoft.com).
 
 Intro
 -----
-MintCoin is a free open source project derived from NovaCoin, with
-the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
-Built on the foundation of Bitcoin and NovaCoin, innovations such as proof-of-stake
-help further advance the field of crypto-currency.
+MintCoin is a free open source project derived from NovaCoin, with the
+goal of providing a long-term energy-efficient scrypt-based
+crypto-currency.  Built on the foundation of Bitcoin and NovaCoin,
+innovations such as proof-of-stake help further advance the field of
+crypto-currency.
 
 Setup
 -----
-After completing windows setup then run windows command line (cmd)
+After completing the Windows setup you can run the Windows command
+line program:
+
   cd daemon
   mintcoind
-You would need to create a configuration file mintcoin.conf in the default
-wallet directory. Grant access to mintcoind.exe in anti-virus and firewall
-applications if necessary.
+
+You would need to create a configuration file MintCoin.conf in the
+default wallet directory. Grant access to mintcoind.exe in anti-virus
+and firewall applications if necessary.
 
 The software automatically finds other nodes to connect to.  You can
-enable Universal Plug and Play (UPnP) with your router/firewall
-or forward port 12788 (TCP) to your computer so you can receive
-incoming connections.  MintCoin works without incoming connections,
-but allowing incoming connections helps the MintCoin network.
+enable Universal Plug and Play (UPnP) with your router/firewall or
+forward port 12788 (TCP) to your computer so you can receive incoming
+connections.  MintCoin works without incoming connections, but
+allowing incoming connections helps the MintCoin network.
 
 Upgrade
 -------
-All you existing coins/transactions should be intact with the upgrade.
-To upgrade first backup wallet
+All your existing coins/transactions should be intact with the
+upgrade.
+
+To upgrade first backup wallet:
+
 mintcoind backupwallet <destination_backup_file>
-Then shutdown mintcoind by
+
+Then shutdown mintcoind by:
+
 mintcoind stop
-Start up the new mintcoind.
 
-
-See the documentation/wiki at the MintCoin site:
-  http://www.mintcoinofficial.com/
-for help and more information.
-
+The start up the new mintcoind.

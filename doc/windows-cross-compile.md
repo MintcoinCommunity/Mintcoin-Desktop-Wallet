@@ -147,7 +147,6 @@ sudo apt-get --yes install mxe-i686-w64-mingw32.static-openssl
 sudo apt-get --yes install mxe-i686-w64-mingw32.static-db
 sudo apt-get --yes install mxe-i686-w64-mingw32.static-boost
 sudo apt-get --yes install mxe-i686-w64-mingw32.static-miniupnpc
-sudo apt-get --yes install mxe-i686-w64-mingw32.static-qt5
 sudo apt-get --yes install mxe-i686-w64-mingw32.static-qttools
 ```
 
@@ -159,7 +158,6 @@ sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-openssl
 sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-db
 sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-boost
 sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-miniupnpc
-sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-qt5
 sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-qttools
 ```
 
@@ -167,14 +165,16 @@ sudo apt-get --yes install mxe-x86-64-w64-mingw32.static-qttools
 
 Add the path to MXE:
 
-`$ export PATH=$PATH:`/usr/lib/mxe/mxe/usr/bin`
+```
+$ export PATH=$PATH:/usr/lib/mxe/usr/bin
+```
 
 To make a 32-bit Windows executable, go to the MintCoin repository
 and use the following:
 
 ```
 $ cd src
-$ make -f makefile.linux-mingw DEPSDIR=/usr/lib/mxe/usr/686-w64-mingw32.static  TARGET_PLATFORM=i686
+$ make -f makefile.linux-mingw DEPSDIR=/usr/lib/mxe/usr/i686-w64-mingw32.static  TARGET_PLATFORM=i686
 ```
 
 To make a 64-bit Windows executable, go to the MintCoin repository
@@ -182,7 +182,7 @@ and use the following:
 
 ```
 $ cd src
-$ make -f makefile.linux-mingw DEPSDIR=/usr/lib/mxe/usr/686-w64-mingw32.static  TARGET_PLATFORM=i686
+$ make -f makefile.linux-mingw DEPSDIR=/usr/lib/mxe/usr/x86_64-w64-mingw32.static  TARGET_PLATFORM=x86_64
 ```
 
 Either will create a file called `mintcoind.exe`, which should be
@@ -194,7 +194,7 @@ To make a 32-bit Windows GUI executable, go to the MintCoin repository
 and use the following:
 
 ```
-$ i686-w64-mingw32.static-qmake-qt5
+$ i686-w64-mingw32.static-qmake-qt5 QMAKE_LFLAGS+="-Wl,--large-address-aware"
 $ make
 ```
 
