@@ -1,4 +1,4 @@
-# 2.1.0-beta1
+# 2.1.0
 
 _Welcome back, MintCoin!_
 

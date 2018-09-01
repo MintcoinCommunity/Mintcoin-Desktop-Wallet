@@ -5,8 +5,8 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 2.1.0-beta1
-VIProductVersion "2.1.0.0"
+!define VERSION 2.1.0
+VIProductVersion "2.1.0.1"
 !define COMPANY "MintCoin Community"
 !define URL http://www.mintcoinofficial.com
 
