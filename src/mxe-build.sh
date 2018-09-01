@@ -57,6 +57,6 @@ if [ $QT_BUILD == "no" ]; then
 else
     sudo apt-get --yes install mxe-${MXE_TARGET}-qt5
     sudo apt-get --yes install mxe-${MXE_TARGET}-qttools
-    $CPU_TARGET-w64-mingw32.static-qmake-qt5 $OUR_QMAKE_EXTRA
+    $CPU_TARGET-w64-mingw32.static-qmake-qt5 $OUR_QMAKE_EXTRA USE_BUILD_INFO=1
     make -j $NCPU
 fi
