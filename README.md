@@ -16,26 +16,20 @@ saving your coins while securing the MintCoin network.
 * PoS interest: 5% annual
 * 4 confirmations for transaction
   * Fast 2 minutes confirmation time for transactions!
-* 50 confirmations for minted blocks
+* 60 confirmations for minted blocks
 * Ports: 12788 (connection) and 12789 (RPC)
 
 # Community 
 
 The official MintCoin web site:
 
-https://mintcoinofficial.com/
+http://www.mintcoinofficial.eu/
 
-The MintCoin team is on Twitter:
-
-https://twitter.com/MintCoin_
+The MintCoin team is on Twitter, @MintCoin_Team.
 
 The Telegram MintCoin group:
 
 https://t.me/joinchat/AYSXZBGdWRH6jeIX_EJijg
-
-A MintCoin fan site:
-
-http://www.mintymintcoin.com/
 
 # FAQ
 
@@ -45,16 +39,10 @@ A: You can mint 20 days after you get MintCoin in your wallet.
 Q: What interest rate do I get?  
 A: 5% annually (that is, 5% per year).
 
-Q: My wallet cannot connect to any nodes!!! What can I do?  
-A: For now, you have to add some nodes by hand (sorry). You can do
-   this by adding the nodes listed here:  
-     https://snapshot.mintcoin.zone/peers.txt  
-   To your `MintCoin.conf` file.
-
 Q: My wallet is taking really long to synchronize. How can I speed this up?  
 A: For now, you can either be patient or download a snapshot (sorry).  
    You can find a snapshot here:  
-     https://snapshot.mintcoin.zone/blockchain.zip   
+     https://mega.nz/#F!uKIQhYRY!CzW5ZhvHHEQ9hmX8-Wpoqw
    Stop your wallet, extract that into your MintCoin directory, and
    then restart your wallet. It will then start synchronizing from the
    time the last snapshot was taken.
@@ -80,10 +68,6 @@ GitHub releases link:
 
 https://github.com/MintCoinCommunity/MintCoin-Desktop-Wallet/releases
 
-If you want pre-release binaries, they may be available on this site:
-
-https://snapshot.mintcoin.zone/
-
 # Building the MintCoin Wallet
 
 There are two separate flavors of MintCoin wallet:
@@ -99,7 +83,7 @@ Directions for the graphical version are found in
 
 Directions for the daemon version are found in
 [doc/build-unix.txt](doc/build-unix.txt),
-[doc/build-msw.txt](doc/build-msw.txt), or
+[doc/windows-cross-compile.md](doc/windows-cross-compile.md), or
 [doc/build-osx.txt](doc/build-osx.txt), depending on whether you are
 building for a Unix-like system, Microsoft Windows, or macOS,
 respectively.
