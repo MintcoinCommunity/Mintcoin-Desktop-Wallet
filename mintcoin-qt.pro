@@ -224,8 +224,6 @@ HEADERS += src/qt/bitcoingui.h \
     src/version.h \
     src/netbase.h \
     src/clientversion.h \
-    src/qt/recurringsendentry.h \
-    src/qt/recurringsendpage.h \
     src/qt/repairwalletdialog.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
@@ -296,8 +294,6 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-arm.S \
     src/scrypt_mine.cpp \
     src/pbkdf2.cpp \
-    src/qt/recurringsendpage.cpp \
-    src/qt/recurringsendentry.cpp \
     src/qt/repairwalletdialog.cpp
 
 RESOURCES += \
@@ -316,8 +312,6 @@ FORMS += \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/optionsdialog.ui \
-    src/qt/forms/recurringSend.ui \
-    src/qt/forms/recurringEntry.ui \
     src/qt/forms/repairwalletdialog.ui
 
 QT += network
