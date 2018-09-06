@@ -827,27 +827,6 @@
       </spacer>
      </item>
      <item>
-      <widget class="QSpinBox" name="recurringDays">
-       <property name="suffix">
-        <string> Days</string>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="sendRecurring">
-       <property name="text">
-        <string>Recurring Send</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/send</normaloff>:/icons/send</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

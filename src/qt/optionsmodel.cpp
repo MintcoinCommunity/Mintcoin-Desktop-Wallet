@@ -48,7 +48,6 @@ void OptionsModel::Init()
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
     language = settings.value("language", "").toString();
-    sRecurringSendEntries = settings.value("sRecurringSendEntries","").toString();
     bPasswordOnSend = settings.value("bPasswordOnSend", false).toBool();
     strThirdPartyTxUrls = settings.value("strThirdPartyTxUrls", "").toString();
 
@@ -181,8 +180,6 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return QVariant(fCoinControlFeatures);
         case PasswordOnSend:
             return QVariant(bPasswordOnSend);
-        case recurringSendEntries:
-            return QVariant(sRecurringSendEntries);
         default:
             return QVariant();
         }
@@ -284,10 +281,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             emit coinControlFeaturesChanged(fCoinControlFeatures);
             }
             break;
-        case recurringSendEntries: {
-            sRecurringSendEntries = value.toString();
-            settings.setValue("sRecurringSendEntries", sRecurringSendEntries);
-            }
         case PasswordOnSend:
             bPasswordOnSend = value.toBool();
             settings.setValue("bPasswordOnSend",bPasswordOnSend);
@@ -331,19 +324,7 @@ bool OptionsModel::getDisplayAddresses()
     return bDisplayAddresses;
 }
 
-QString OptionsModel::getRecurringSendEntries()
-{
-    return sRecurringSendEntries;
-}
-
 bool OptionsModel::getPasswordOnSend()
 {
     return bPasswordOnSend;
-}
-
-void OptionsModel::setRecurringSendEntries(QString recurringSendEntries)
-{
-    QSettings settings;
-    sRecurringSendEntries=recurringSendEntries;
-    settings.setValue("sRecurringSendEntries", sRecurringSendEntries);
 }
