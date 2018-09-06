@@ -33,7 +33,6 @@ public:
         Language,          // QString
         CoinControlFeatures, // bool
         PasswordOnSend,    // bool
-        recurringSendEntries,//string
         OptionIDRowCount,
     };
 
@@ -54,9 +53,7 @@ public:
     bool getDisplayAddresses();
     QString getThirdPartyTxUrls() { return strThirdPartyTxUrls; }
     bool getCoinControlFeatures();
-    QString getRecurringSendEntries();
     bool getPasswordOnSend();
-    void setRecurringSendEntries(QString recurringSendEntries);
 
     QString getLanguage() { return language; }
 
@@ -70,7 +67,6 @@ private:
     bool fMinimizeOnClose;
     bool fCoinControlFeatures;
     bool bPasswordOnSend;
-    QString sRecurringSendEntries;
     QString language;
 
 signals:
