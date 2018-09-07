@@ -23,13 +23,35 @@ saving your coins while securing the MintCoin network.
 
 The official MintCoin web site:
 
-http://www.mintcoinofficial.eu/
+https://www.mintcoinofficial.eu/
 
-The MintCoin team is on Twitter, @MintCoin_Team.
+The MintCoin team can be reached by e-mail:
+
+info@mintcoinofficial.eu
 
 The Telegram MintCoin group:
 
-https://t.me/joinchat/AYSXZBGdWRH6jeIX_EJijg
+https://t.me/OfficialMintcoin
+
+The MintCoin team is on Twitter:
+
+https://twitter.com/MintCoin_Team
+
+We have a Discord server:
+
+https://discord.gg/g9EeSk3
+
+Our Reddit page:
+
+https://www.reddit.com/r/MintCoin/
+
+Our Facebook page:
+
+https://www.facebook.com/MintCoin-Official-Community-328740334335003/
+
+Finally, if you are looking for a block explorer you can use this:
+
+https://prohashing.com/explorer/Mintcoin/
 
 # FAQ
 
