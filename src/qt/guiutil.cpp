@@ -48,7 +48,15 @@ namespace GUIUtil {
 
 QString dateTimeStr(const QDateTime &date)
 {
-    return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") + date.toString("hh:mm");
+    // Qt doesn't accept the en_DK locale, because reasons:
+    //   https://bugreports.qt.io/browse/QTBUG-59382
+    // We love the en_DK locale, so work around this rejection of all
+    // that good in the world.
+    if (QLocale().name().toStdString() == "en_DK") {
+        return date.date().toString(Qt::ISODate) + QString(" ") + date.toString("hh:mm");
+    } else {
+        return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") + date.toString("hh:mm");
+    }
 }
 
 QString dateTimeStr(qint64 nTime)
