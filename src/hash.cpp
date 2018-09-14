@@ -40,7 +40,9 @@ unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char
     switch(vDataToHash.size() & 3)
     {
     case 3: k1 ^= tail[2] << 16;
+            // fall thru
     case 2: k1 ^= tail[1] << 8;
+            // fall thru
     case 1: k1 ^= tail[0];
             k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
     };
