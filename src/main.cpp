@@ -2041,6 +2041,12 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
 {
+    if(bComputedCheckBlock) {
+        bComputedCheckBlock = true;
+        return bCheckBlockReturn;
+    }
+    bComputedCheckBlock = true;
+
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
@@ -2117,6 +2123,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     if (!CheckBlockSignature())
         return DoS(100, error("CheckBlock() : bad block signature"));
 
+
+    bCheckBlockReturn = true;
     return true;
 }
 
