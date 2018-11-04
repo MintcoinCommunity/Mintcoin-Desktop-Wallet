@@ -1,3 +1,22 @@
+# 2.1.1
+
+_Bad people are bad._
+
+This release is mostly because we had some infected binaries published
+on GitHub for version 2.1.0. These were taken down as soon as they
+were discovered and all accounts that could have published these were
+either disabled or had their passwords updated. To help people using
+the MintCoin wallet be sure that they are using a clean version, we
+are releasing 2.1.1.
+
+There are only two real changes to the code, both minor:
+
+* We work better with the `en_DK` local, which provides ISO 8601
+  formatting for dates & times.
+
+* A few warnings for potential problems spotted by the most recent gcc
+  compiler version were fixed.
+
 # 2.1.0
 
 _Welcome back, MintCoin!_
