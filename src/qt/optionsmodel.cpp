@@ -288,6 +288,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             sRecurringSendEntries = value.toString();
             settings.setValue("sRecurringSendEntries", sRecurringSendEntries);
             }
+            break;
         case PasswordOnSend:
             bPasswordOnSend = value.toBool();
             settings.setValue("bPasswordOnSend",bPasswordOnSend);
