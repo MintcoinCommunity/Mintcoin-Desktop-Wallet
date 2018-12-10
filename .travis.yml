@@ -348,10 +348,13 @@ matrix:
 
   # Build MintCoin-Qt
   # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode7.3
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake USE_BUILD_INFO=1 && make -j2
-    after_script: python src/mega-copy.py MintCoin-Qt.app/Contents/MacOS/MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.osx-elcapitan
+  #
+  # Error: You are using macOS 10.11.
+  # We (and Apple) do not provide support for this old version.
+  # You will encounter build failures and other breakages.
+  # Please create pull requests instead of asking for help on Homebrew's
+  # GitHub, Discourse, Twitter or IRC. As you are running this old version,
+  # you are responsible for resolving any issues you experience.
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
