@@ -34,10 +34,10 @@ sudo apt-get update
 #     https://github.com/mxe/mxe/issues/2253
 
 #echo "deb http://pkg.mxe.cc/repos/apt/debian wheezy main" \
-echo "deb http://mirror.mxe.cc/repos/apt/debian trusty main" \
-    | sudo tee /etc/apt/sources.list.d/mxeapt.list
+
 sudo apt-key adv --keyserver keyserver.ubuntu.com \
     --recv-keys D43A795B73B16ABE9643FE1AFD8FFF16DB45C6AB
+sudo add-apt-repository 'deb [arch=amd64] http://mirror.mxe.cc/repos/apt trusty main'
 
 sudo apt-get update
 
