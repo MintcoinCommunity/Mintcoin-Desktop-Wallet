@@ -7,6 +7,10 @@
 
 #include <stdexcept>
 #include <vector>
+
+#ifdef _WIN32
+#include <windows>
+#endif // _WIN32
 #include <openssl/bn.h>
 
 #include "util.h" // for uint64
