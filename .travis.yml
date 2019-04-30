@@ -13,7 +13,7 @@ matrix:
   # Build mintcoind
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     addons:
       apt:
@@ -28,14 +28,14 @@ matrix:
   # Build mintcoind
   # Cross-compile Windows 32-bit daemon
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     script: bash src/mxe-build.sh windows32
 
   # Build mintcoind
   # Cross-compile Windows 64-bit daemon
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     script: bash src/mxe-build.sh windows64
 
@@ -43,7 +43,7 @@ matrix:
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   # Make a 32-bit version using Debian multiarch
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
@@ -89,7 +89,7 @@ matrix:
   # Build mintcoind static
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     addons:
       apt:
@@ -105,7 +105,7 @@ matrix:
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   # Make a 32-bit version using Debian multiarch
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
@@ -212,7 +212,7 @@ matrix:
   # Build MintCoin-Qt
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     addons:
       apt:
@@ -230,7 +230,7 @@ matrix:
   # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
   # Make a 32-bit version using Debian multiarch
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
@@ -297,14 +297,14 @@ matrix:
   # Build MintCoin-Qt
   # Cross-compile Windows 32-bit GUI
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     script: bash src/mxe-build.sh windows32-qt
 
   # Build MintCoin-Qt
   # Cross-compile Windows 64-bit GUI
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     script: bash src/mxe-build.sh windows64-qt
 
