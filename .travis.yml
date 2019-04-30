@@ -11,7 +11,7 @@ install:
 matrix:
   include:
   # Build mintcoind
-  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   - os: linux
     dist: xenial
     sudo: required
@@ -22,7 +22,6 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-          - libminiupnpc8
     script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind
@@ -40,7 +39,7 @@ matrix:
     script: bash src/mxe-build.sh windows64
 
   # Build mintcoind
-  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   # Make a 32-bit version using Debian multiarch
   - os: linux
     dist: xenial
@@ -87,7 +86,7 @@ matrix:
     script: cd src && make -f makefile.unix -j2
 
   # Build mintcoind static
-  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   - os: linux
     dist: xenial
     sudo: required
@@ -98,11 +97,10 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-          - libminiupnpc8
     script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind static
-  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   # Make a 32-bit version using Debian multiarch
   - os: linux
     dist: xenial
@@ -149,31 +147,6 @@ matrix:
     script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
-  # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
-  #- os: linux
-  #  dist: xenial
-  #  sudo: required
-  #  addons:
-  #    apt:
-  #      packages:
-  #        - libdb++-dev
-  #        - libboost-all-dev
-  #        - libqrencode-dev
-  #        - libminiupnpc-dev
-  #        - libminiupnpc8
-  #  script: cd src && make -f makefile.unix -j2 && python mega-copy.py mintcoind $TRAVIS_BRANCH/mintcoind.linux-ubuntu-xenial
-
-  # Build mintcoind
-  # OS X 10.10 (Yosemite)
-  #
-  # "pip: command not found" on Travis, so we will just not build this
-
-  # Build mintcoind static
-  # OS X 10.10 (Yosemite)
-  #
-  # "pip: command not found" on Travis, so we will just not build this
-
-  # Build mintcoind
   # OS X 10.11 (El Capitan)
   - os: osx
     osx_image: xcode7.3
@@ -210,7 +183,7 @@ matrix:
     script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   # Build MintCoin-Qt
-  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   - os: linux
     dist: xenial
     sudo: required
@@ -221,13 +194,12 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-          - libminiupnpc8
           - qt4-qmake
           - libqt4-dev
     script: qmake && make -j2
 
   # Build MintCoin-Qt
-  # Ubuntu 14.04 LTS (Trusty Tahr) is our latest (and only) Ubuntu version
+  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   # Make a 32-bit version using Debian multiarch
   - os: linux
     dist: xenial
@@ -279,22 +251,6 @@ matrix:
     script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && make -j2
 
   # Build MintCoin-Qt
-  # Ubuntu 16.04 LTS (Xenial Xerus) not supported yet
-  #- os: linux
-  #  dist: xenial
-  #  addons:
-  #    apt:
-  #      packages:
-  #        - libdb++-dev
-  #        - libboost-all-dev
-  #        - libqrencode-dev
-  #        - libminiupnpc-dev
-  #        - libminiupnpc8
-  #        - qt4-qmake
-  #        - libqt4-dev
-  #  script: qmake && make -j2 && python src/mega-copy.py MintCoin-Qt $TRAVIS_BRANCH/MintCoin-Qt.linux-ubuntu-xenial
-
-  # Build MintCoin-Qt
   # Cross-compile Windows 32-bit GUI
   - os: linux
     dist: xenial
@@ -307,23 +263,6 @@ matrix:
     dist: xenial
     sudo: required
     script: bash src/mxe-build.sh windows64-qt
-
-  # Build MintCoin-Qt
-  # OS X 10.10 (Yosemite)
-  #  
-  #   Error: You are using macOS 10.10.
-  #   We (and Apple) do not provide support for this old version.
-  #   You may encounter build failures or other breakages.
-
-  # Build MintCoin-Qt
-  # OS X 10.11 (El Capitan)
-  #
-  #   Error: You are using macOS 10.11.
-  #   We (and Apple) do not provide support for this old version.
-  #   You will encounter build failures and other breakages.
-  #   Please create pull requests instead of asking for help on Homebrew's
-  #   GitHub, Discourse, Twitter or IRC. As you are running this old version,
-  #   you are responsible for resolving any issues you experience.
 
   # Build MintCoin-Qt
   # OS X 10.12 (Sierra)
