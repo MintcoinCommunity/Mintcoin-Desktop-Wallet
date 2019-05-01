@@ -233,6 +233,6 @@ matrix:
 
   # Build MintCoin-Qt
   # macOS 10.14 (Mojave)
-  - os: osx
-    osx_image: xcode10.2
-    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
+  #- os: osx
+  #  osx_image: xcode10.2
+  #  script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
