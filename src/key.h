@@ -13,6 +13,16 @@
 #include "uint256.h"
 #include "hash.h"
 
+#ifdef _WINDOWS
+#include <windows.h>
+#undef X509_NAME
+#undef X509_EXTENSIONS
+#undef X509_CERT_PAIR
+#undef PKCS7_ISSUER_AND_SERIAL
+#undef OCSP_REQUEST
+#undef OCSP_RESPONSE
+#endif // _WINDOWS
+
 #include <openssl/ec.h> // for EC_KEY definition
 
 // secp160k1

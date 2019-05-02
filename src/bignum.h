@@ -7,6 +7,18 @@
 
 #include <stdexcept>
 #include <vector>
+
+#ifdef _WINDOWS
+#include <winsock2.h>
+#include <windows.h>
+#undef X509_NAME
+#undef X509_EXTENSIONS
+#undef X509_CERT_PAIR
+#undef PKCS7_ISSUER_AND_SERIAL
+#undef OCSP_REQUEST
+#undef OCSP_RESPONSE
+#endif // _WINDOWS
+
 #include <openssl/bn.h>
 
 #include "util.h" // for uint64
