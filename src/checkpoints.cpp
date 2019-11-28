@@ -53,6 +53,8 @@ namespace Checkpoints
         ( 0, hashGenesisBlockTestNet )
         ;
 
+    static uint256 lastVerifiedBlockHash = 0;
+
     bool CheckHardened(int nHeight, const uint256& hash)
     {
         MapCheckpoints& checkpoints = (fTestNet ? mapCheckpointsTestnet : mapCheckpoints);
@@ -238,18 +240,24 @@ namespace Checkpoints
 
         if (nHeight > pindexSync->nHeight)
         {
-            // trace back to same height as sync-checkpoint
-            const CBlockIndex* pindex = pindexPrev;
-            while (pindex->nHeight > pindexSync->nHeight)
-                if (!(pindex = pindex->pprev))
-                    return error("CheckSync: pprev null - block index structure failure");
-            if (pindex->nHeight < pindexSync->nHeight || pindex->GetBlockHash() != hashSyncCheckpoint)
-                return false; // only descendant of sync-checkpoint can pass check
+            uint256 thisHash = (pindexPrev->pprev != NULL) ? pindexPrev->pprev->GetBlockHash() : 1;
+            if(thisHash != lastVerifiedBlockHash)
+            {
+                // trace back to same height as sync-checkpoint
+                const CBlockIndex* pindex = pindexPrev;
+                while (pindex->nHeight > pindexSync->nHeight)
+                    if (!(pindex = pindex->pprev))
+                        return error("CheckSync: pprev null - block index structure failure");
+                if (pindex->nHeight < pindexSync->nHeight || pindex->GetBlockHash() != hashSyncCheckpoint)
+                    return false; // only descendant of sync-checkpoint can pass check
+            }
         }
         if (nHeight == pindexSync->nHeight && hashBlock != hashSyncCheckpoint)
             return false; // same height with sync-checkpoint
         if (nHeight < pindexSync->nHeight && !mapBlockIndex.count(hashBlock))
             return false; // lower height than sync-checkpoint
+
+        lastVerifiedBlockHash = pindexPrev->GetBlockHash();
         return true;
     }
 
