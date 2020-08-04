@@ -197,9 +197,9 @@ matrix:
 
   # Build MintCoin-Qt
   # macOS 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode10.1
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
+  #- os: osx
+  #  osx_image: xcode10.1
+  #  script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
 
   # Build MintCoin-Qt
   # macOS 10.14 (Mojave)
