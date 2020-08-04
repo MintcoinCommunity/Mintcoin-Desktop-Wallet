@@ -1,4 +1,5 @@
 language: cpp
+cache: ccache
 
 install:
   # Travis already has OpenSSL and Boost installed via Homebrew, but we
@@ -10,8 +11,6 @@ install:
 
 matrix:
   include:
-  # Build mintcoind
-  # Ubuntu 18.04 LTS (Bionic Beaver)
   - name: Ubuntu 18.04 64-bit daemon
     os: linux
     dist: bionic
@@ -22,10 +21,8 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && make -f makefile.unix -j2
+    script: cd src && CXX=ccache make -f makefile.unix -j2
 
-  # Build mintcoind
-  # Ubuntu 16.04 LTS (Xenial Xerus)
   - name: Ubuntu 16.04 64-bit daemon
     os: linux
     dist: xenial
@@ -36,25 +33,19 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && make -f makefile.unix -j2
+    script: cd src && CXX=ccache make -f makefile.unix -j2
 
-  # Build mintcoind
-  # Cross-compile Windows 32-bit daemon
   - name: Windows 32-bit daemon
     os: linux
     dist: bionic
     script: bash src/mxe-build.sh windows32
 
-  # Build mintcoind
-  # Cross-compile Windows 64-bit daemon
   # Doesn't actually run, so don't bother to build.
   #- name: Windows 64-bit daemon
   #  os: linux
   #  dist: bionic
   #  script: bash src/mxe-build.sh windows64
 
-  # Build mintcoind
-  # Ubuntu 18.04 LTS (Bionic Beaver)
   # Make a 32-bit version using Debian multiarch
   - name: Ubuntu 18.04 32-bit daemon
     os: linux
@@ -78,11 +69,11 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && make -f makefile.unix -j2
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 python:i386
+    script: cd src && CXX=ccache make -f makefile.unix -j2
 
-  # Build mintcoind
-  # Ubuntu 16.04 LTS (Xenial Xerus)
+#        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
+
   # Make a 32-bit version using Debian multiarch
   - name: Ubuntu 16.04 32-bit daemon
     os: linux
@@ -107,10 +98,8 @@ matrix:
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && make -f makefile.unix -j2
+    script: cd src && CXX=ccache make -f makefile.unix -j2
 
-  # Build mintcoind static
-  # Ubuntu 18.04 LTS (Bionic Beaver)
   - name: Ubuntu 18.04 64-bit static daemon
     os: linux
     dist: bionic
@@ -121,10 +110,8 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind static
-  # Ubuntu 16.04 LTS (Xenial Xerus)
   - name: Ubuntu 16.04 64-bit static daemon
     os: linux
     dist: xenial
@@ -135,11 +122,8 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind static
-  # Ubuntu 18.04 LTS (Bionic Beaver)
-  # Make a 32-bit version using Debian multiarch
   - name: Ubuntu 18.04 32-bit static daemon
     os: linux
     dist: bionic
@@ -162,12 +146,11 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 python:i386
+    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind static
-  # Ubuntu 16.04 LTS (Xenial Xerus)
-  # Make a 32-bit version using Debian multiarch
+#        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
+
   - name: Ubuntu 16.04 32-bit static daemon
     os: linux
     dist: xenial
@@ -191,52 +174,38 @@ matrix:
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind
-  # macOS 10.13 (High Sierra)
-  - name: macOS 10.13 daemon
-    os: osx
-    osx_image: xcode10.1
-    script: cd src && make -f makefile.osx -j2
-
-  # Build mintcoind static
-  # macOS 10.13 (High Sierra)
-  - name: macOS 10.13 static daemon
-    os: osx
-    osx_image: xcode10.1
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
-
-  # Build mintcoind
-  # macOS 10.14 (Mojave)
-  - name: macOS 10.14 daemon
-    os: osx
-    osx_image: xcode10.2
-    script: cd src && make -f makefile.osx -j2
-
-  # Build mintcoind static
-  # macOS 10.14 (Mojave)
-  - name: macOS 10.14 static daemon
-    os: osx
-    osx_image: xcode10.2
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
-
-  # Build mintcoind
-  # macOS 10.15 (Catalina)
-  - name: macOS 10.15 daemon
+  - name: macOS Catalina daemon
     os: osx
     osx_image: xcode12u
-    script: cd src && make -f makefile.osx -j2
+    script: cd src && CXX=ccache make -f makefile.osx -j2
 
-  # Build mintcoind static
-  # macOS 10.15 (Catalina)
-  - name: macOS 10.15 static daemon
+  - name: macOS Catalina static daemon
     os: osx
     osx_image: xcode12u
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX=ccache make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build MintCoin-Qt
-  # Ubuntu 18.04 LTS (Bionic Beaver)
+  - name: macOS Mojave daemon
+    os: osx
+    osx_image: xcode10.2
+    script: cd src && CXX=ccache make -f makefile.osx -j2
+
+  - name: macOS Mojave static daemon
+    os: osx
+    osx_image: xcode10.2
+    script: cd src && CXX=ccache make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+
+  - name: macOS High Sierra daemon
+    os: osx
+    osx_image: xcode10.1
+    script: cd src && CXX=ccache make -f makefile.osx -j2
+
+  - name: macOS High Sierra static daemon
+    os: osx
+    osx_image: xcode10.1
+    script: cd src && CXX=ccache make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+
   - name: Ubuntu 18.04 64-bit GUI
     os: linux
     dist: bionic
@@ -249,10 +218,8 @@ matrix:
           - libminiupnpc-dev
           - qt4-qmake
           - libqt4-dev
-    script: qmake && make -j2
+    script: qmake && CXX=ccache make -j2
 
-  # Build MintCoin-Qt
-  # Ubuntu 16.04 LTS (Xenial Xerus)
   - name: Ubuntu 16.04 64-bit GUI
     os: linux
     dist: xenial
@@ -265,11 +232,8 @@ matrix:
           - libminiupnpc-dev
           - qt4-qmake
           - libqt4-dev
-    script: qmake && make -j2
+    script: qmake && CXX=ccache make -j2
 
-  # Build MintCoin-Qt
-  # Ubuntu 18.04 LTS (Bionic Beaver)
-  # Make a 32-bit version using Debian multiarch
   - name: Ubuntu 18.04 32-bit GUI
     os: linux
     dist: bionic
@@ -292,17 +256,16 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 python:i386
         - sudo apt-get install -y libqrencode-dev:i386
         - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
         - sudo apt-get install -y qtchooser:i386
         - sudo apt-get install -y qt4-linguist-tools:i386
         - sudo apt-get install -y libqt4-dev-bin:i386
-    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && make -j2
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX=ccache make -j2
 
-  # Build MintCoin-Qt
-  # Ubuntu 16.04 LTS (Xenial Xerus)
-  # Make a 32-bit version using Debian multiarch
+#        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
+
   - name: Ubuntu 16.04 32-bit GUI
     os: linux
     dist: xenial
@@ -331,32 +294,25 @@ matrix:
         - sudo apt-get install -y qtchooser:i386
         - sudo apt-get install -y qt4-linguist-tools:i386
         - sudo apt-get install -y libqt4-dev-bin:i386
-    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && make -j2
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX=ccache make -j2
 
-  # Build MintCoin-Qt
-  # Cross-compile Windows 32-bit GUI
   - name: Windows 32-bit GUI
     os: linux
     dist: bionic
     script: bash src/mxe-build.sh windows32-qt
 
-  # Build MintCoin-Qt
-  # Cross-compile Windows 64-bit GUI
   # Doesn't actually run, so don't bother to build.
   #- os: linux
   #  dist: xenial
   #  script: bash src/mxe-build.sh windows64-qt
 
-  # Build MintCoin-Qt
-  # macOS 10.13 (High Sierra)
-  - name: macOS 10.13 GUI
-    os: osx
-    osx_image: xcode10.1
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
-
-  # Build MintCoin-Qt
-  # macOS 10.14 (Mojave)
-  - name: macOS 10.14 GUI
+  - name: macOS Mojave GUI
     os: osx
     osx_image: xcode11.3
-    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
+    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX=ccache make -j2
+
+  - name: macOS High Sierra GUI
+    os: osx
+    osx_image: xcode10.1
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX=ccache make -j2
+
