@@ -15,7 +15,6 @@ matrix:
   - name: Ubuntu 18.04 64-bit daemon
     os: linux
     dist: bionic
-    sudo: required
     addons:
       apt:
         packages:
@@ -30,7 +29,6 @@ matrix:
   - name: Ubuntu 16.04 64-bit daemon
     os: linux
     dist: xenial
-    sudo: required
     addons:
       apt:
         packages:
@@ -45,7 +43,6 @@ matrix:
   - name: Windows 32-bit daemon
     os: linux
     dist: bionic
-    sudo: required
     script: bash src/mxe-build.sh windows32
 
   # Build mintcoind
@@ -54,7 +51,6 @@ matrix:
   #- name: Windows 64-bit daemon
   #  os: linux
   #  dist: bionic
-  #  sudo: required
   #  script: bash src/mxe-build.sh windows64
 
   # Build mintcoind
@@ -63,7 +59,6 @@ matrix:
   - name: Ubuntu 18.04 32-bit daemon
     os: linux
     dist: bionic
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -92,7 +87,6 @@ matrix:
   - name: Ubuntu 16.04 32-bit daemon
     os: linux
     dist: xenial
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -120,7 +114,6 @@ matrix:
   - name: Ubuntu 18.04 64-bit static daemon 
     os: linux
     dist: bionic
-    sudo: required
     addons:
       apt:
         packages:
@@ -135,7 +128,6 @@ matrix:
   - name: Ubuntu 16.04 64-bit static daemon 
     os: linux
     dist: xenial
-    sudo: required
     addons:
       apt:
         packages:
@@ -151,7 +143,6 @@ matrix:
   - name: Ubuntu 18.04 32-bit static daemon 
     os: linux
     dist: bionic
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -180,7 +171,6 @@ matrix:
   - name: Ubuntu 16.04 32-bit static daemon 
     os: linux
     dist: xenial
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -250,7 +240,6 @@ matrix:
   - name: Ubuntu 18.04 64-bit GUI
     os: linux
     dist: bionic
-    sudo: required
     addons:
       apt:
         packages:
@@ -267,7 +256,6 @@ matrix:
   - name: Ubuntu 16.04 64-bit GUI
     os: linux
     dist: xenial
-    sudo: required
     addons:
       apt:
         packages:
@@ -285,7 +273,6 @@ matrix:
   - name: Ubuntu 18.04 32-bit GUI
     os: linux
     dist: bionic
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -319,7 +306,6 @@ matrix:
   - name: Ubuntu 16.04 32-bit GUI
     os: linux
     dist: xenial
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -352,7 +338,6 @@ matrix:
   - name: Windows 32-bit GUI
     os: linux
     dist: bionic
-    sudo: required
     script: bash src/mxe-build.sh windows32-qt
 
   # Build MintCoin-Qt
@@ -360,17 +345,18 @@ matrix:
   # Doesn't actually run, so don't bother to build.
   #- os: linux
   #  dist: xenial
-  #  sudo: required
   #  script: bash src/mxe-build.sh windows64-qt
 
   # Build MintCoin-Qt
   # macOS 10.13 (High Sierra)
-  #- os: osx
-  #  osx_image: xcode10.1
-  #  script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
+  - name: macOS 10.13 GUI
+    os: osx
+    osx_image: xcode10.1
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
 
   # Build MintCoin-Qt
   # macOS 10.14 (Mojave)
-  - os: osx
+  - name: macOS 10.14 GUI
+    os: osx
     osx_image: xcode11.3
     script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
