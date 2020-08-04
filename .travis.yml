@@ -1,5 +1,5 @@
 language: cpp
-cache: ccache
+cache: "ccache c++"
 
 install:
   # Travis already has OpenSSL and Boost installed via Homebrew, but we
@@ -21,7 +21,7 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && CXX=ccache make -f makefile.unix -j2
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
   - name: Ubuntu 16.04 64-bit daemon
     os: linux
@@ -33,7 +33,7 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && CXX=ccache make -f makefile.unix -j2
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
   - name: Windows 32-bit daemon
     os: linux
@@ -69,10 +69,9 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 python:i386
-    script: cd src && CXX=ccache make -f makefile.unix -j2
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
-#        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
 
   # Make a 32-bit version using Debian multiarch
   - name: Ubuntu 16.04 32-bit daemon
@@ -98,7 +97,7 @@ matrix:
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && CXX=ccache make -f makefile.unix -j2
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
   - name: Ubuntu 18.04 64-bit static daemon
     os: linux
@@ -110,7 +109,7 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   - name: Ubuntu 16.04 64-bit static daemon
     os: linux
@@ -122,7 +121,7 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   - name: Ubuntu 18.04 32-bit static daemon
     os: linux
@@ -146,10 +145,9 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 python:i386
-    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-#        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
 
   - name: Ubuntu 16.04 32-bit static daemon
     os: linux
@@ -174,37 +172,37 @@ matrix:
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && CXX=ccache make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   - name: macOS Catalina daemon
     os: osx
     osx_image: xcode12u
-    script: cd src && CXX=ccache make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" make -f makefile.osx -j2
 
   - name: macOS Catalina static daemon
     os: osx
     osx_image: xcode12u
-    script: cd src && CXX=ccache make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   - name: macOS Mojave daemon
     os: osx
     osx_image: xcode10.2
-    script: cd src && CXX=ccache make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" make -f makefile.osx -j2
 
   - name: macOS Mojave static daemon
     os: osx
     osx_image: xcode10.2
-    script: cd src && CXX=ccache make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   - name: macOS High Sierra daemon
     os: osx
     osx_image: xcode10.1
-    script: cd src && CXX=ccache make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" make -f makefile.osx -j2
 
   - name: macOS High Sierra static daemon
     os: osx
     osx_image: xcode10.1
-    script: cd src && CXX=ccache make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   - name: Ubuntu 18.04 64-bit GUI
     os: linux
@@ -218,7 +216,7 @@ matrix:
           - libminiupnpc-dev
           - qt4-qmake
           - libqt4-dev
-    script: qmake && CXX=ccache make -j2
+    script: qmake && CXX="ccache c++" make -j2
 
   - name: Ubuntu 16.04 64-bit GUI
     os: linux
@@ -232,7 +230,7 @@ matrix:
           - libminiupnpc-dev
           - qt4-qmake
           - libqt4-dev
-    script: qmake && CXX=ccache make -j2
+    script: qmake && CXX="ccache c++" make -j2
 
   - name: Ubuntu 18.04 32-bit GUI
     os: linux
@@ -256,15 +254,13 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 python:i386
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386
         - sudo apt-get install -y libqrencode-dev:i386
         - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
         - sudo apt-get install -y qtchooser:i386
         - sudo apt-get install -y qt4-linguist-tools:i386
         - sudo apt-get install -y libqt4-dev-bin:i386
-    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX=ccache make -j2
-
-#        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX="ccache c++" make -j2
 
   - name: Ubuntu 16.04 32-bit GUI
     os: linux
@@ -294,7 +290,7 @@ matrix:
         - sudo apt-get install -y qtchooser:i386
         - sudo apt-get install -y qt4-linguist-tools:i386
         - sudo apt-get install -y libqt4-dev-bin:i386
-    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX=ccache make -j2
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX="ccache c++" make -j2
 
   - name: Windows 32-bit GUI
     os: linux
@@ -309,10 +305,10 @@ matrix:
   - name: macOS Mojave GUI
     os: osx
     osx_image: xcode11.3
-    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX=ccache make -j2
+    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" make -j2
 
   - name: macOS High Sierra GUI
     os: osx
     osx_image: xcode10.1
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX=ccache make -j2
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" make -j2
 
