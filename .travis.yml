@@ -109,30 +109,6 @@ matrix:
     script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   # Build mintcoind
-  # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode8
-    script: cd src && make -f makefile.osx -j2
-
-  # Build mintcoind static
-  # OS X 10.11 (El Capitan)
-  - os: osx
-    osx_image: xcode8
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
-
-  # Build mintcoind
-  # macOS 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode9.2
-    script: cd src && make -f makefile.osx -j2
-
-  # Build mintcoind static
-  # macOS 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode9.2
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
-
-  # Build mintcoind
   # macOS 10.13 (High Sierra)
   - os: osx
     osx_image: xcode10.1
@@ -220,16 +196,10 @@ matrix:
     script: bash src/mxe-build.sh windows64-qt
 
   # Build MintCoin-Qt
-  # macOS 10.12 (Sierra)
-  - os: osx
-    osx_image: xcode9
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
-
-  # Build MintCoin-Qt
   # macOS 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode10.1
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
+  #- os: osx
+  #  osx_image: xcode10.1
+  #  script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
 
   # Build MintCoin-Qt
   # macOS 10.14 (Mojave)
