@@ -111,7 +111,7 @@ matrix:
 
   # Build mintcoind static
   # Ubuntu 18.04 LTS (Bionic Beaver)
-  - name: Ubuntu 18.04 64-bit static daemon 
+  - name: Ubuntu 18.04 64-bit static daemon
     os: linux
     dist: bionic
     addons:
@@ -125,7 +125,7 @@ matrix:
 
   # Build mintcoind static
   # Ubuntu 16.04 LTS (Xenial Xerus)
-  - name: Ubuntu 16.04 64-bit static daemon 
+  - name: Ubuntu 16.04 64-bit static daemon
     os: linux
     dist: xenial
     addons:
@@ -140,7 +140,7 @@ matrix:
   # Build mintcoind static
   # Ubuntu 18.04 LTS (Bionic Beaver)
   # Make a 32-bit version using Debian multiarch
-  - name: Ubuntu 18.04 32-bit static daemon 
+  - name: Ubuntu 18.04 32-bit static daemon
     os: linux
     dist: bionic
     # To support 32-bit builds, we add the i386 architecture to
@@ -168,7 +168,7 @@ matrix:
   # Build mintcoind static
   # Ubuntu 16.04 LTS (Xenial Xerus)
   # Make a 32-bit version using Debian multiarch
-  - name: Ubuntu 16.04 32-bit static daemon 
+  - name: Ubuntu 16.04 32-bit static daemon
     os: linux
     dist: xenial
     # To support 32-bit builds, we add the i386 architecture to
@@ -352,7 +352,7 @@ matrix:
   - name: macOS 10.13 GUI
     os: osx
     osx_image: xcode10.1
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
 
   # Build MintCoin-Qt
   # macOS 10.14 (Mojave)
