@@ -72,7 +72,6 @@ matrix:
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 binutils:i386
     script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
-
   # Make a 32-bit version using Debian multiarch
   - name: Ubuntu 16.04 32-bit daemon
     os: linux
@@ -147,7 +146,6 @@ matrix:
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-regex-dev:i386 libboost-iostreams-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 binutils:i386
     script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
-
 
   - name: Ubuntu 16.04 32-bit static daemon
     os: linux
@@ -311,4 +309,3 @@ matrix:
     os: osx
     osx_image: xcode10.1
     script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
-
