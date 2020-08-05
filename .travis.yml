@@ -6,7 +6,7 @@ install:
   # need to add a couple more packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
       brew upgrade ;
-      brew install miniupnpc berkeley-db@4 ;
+      brew install miniupnpc berkeley-db@4 make;
     fi
 
 matrix:
@@ -64,7 +64,7 @@ matrix:
     before_script:
         - sudo dpkg --add-architecture i386
         - sudo apt-get update
-        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386 binutils
+        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
         - sudo apt-get install -y libssl-dev:i386
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
@@ -139,7 +139,7 @@ matrix:
     before_script:
         - sudo dpkg --add-architecture i386
         - sudo apt-get update
-        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386 binutils
+        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
         - sudo apt-get install -y libssl-dev:i386
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
@@ -175,32 +175,32 @@ matrix:
   - name: macOS Catalina daemon
     os: osx
     osx_image: xcode12u
-    script: cd src && CXX="ccache c++" make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2
 
   - name: macOS Catalina static daemon
     os: osx
     osx_image: xcode12u
-    script: cd src && CXX="ccache c++" make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   - name: macOS Mojave daemon
     os: osx
     osx_image: xcode10.2
-    script: cd src && CXX="ccache c++" make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2
 
   - name: macOS Mojave static daemon
     os: osx
     osx_image: xcode10.2
-    script: cd src && CXX="ccache c++" make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   - name: macOS High Sierra daemon
     os: osx
     osx_image: xcode10.1
-    script: cd src && CXX="ccache c++" make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2
 
   - name: macOS High Sierra static daemon
     os: osx
     osx_image: xcode10.1
-    script: cd src && CXX="ccache c++" make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
   - name: Ubuntu 18.04 64-bit GUI
     os: linux
@@ -247,7 +247,7 @@ matrix:
     before_script:
         - sudo dpkg --add-architecture i386
         - sudo apt-get update
-        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386 binutils
+        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
         - sudo apt-get install -y libssl-dev:i386
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
@@ -303,9 +303,9 @@ matrix:
   - name: macOS Mojave GUI
     os: osx
     osx_image: xcode11.3
-    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt make && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" /usr/local/bin/make -j2
+    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
 
   - name: macOS High Sierra GUI
     os: osx
     osx_image: xcode10.1
-    script: brew install qrencode qt make && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" /usr/local/bin/make -j2
+    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
