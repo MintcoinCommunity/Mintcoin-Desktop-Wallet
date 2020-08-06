@@ -63,13 +63,14 @@ matrix:
     # dependencies.
     before_script:
         - sudo dpkg --add-architecture i386
-        - sudo apt-get update
-        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
-        - sudo apt-get install -y libssl-dev:i386
-        - sudo apt-get install -y libdb++-dev:i386
-        - sudo apt-get install -y libminiupnpc-dev:i386
-        - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils:i386 dh-python:i386
+        - sudo apt update
+        - sudo apt install -y dpkg-dev
+        - sudo apt install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
+        - sudo apt install -y libssl-dev:i386
+        - sudo apt install -y libdb++-dev:i386
+        - sudo apt install -y libminiupnpc-dev:i386
+        - sudo apt install -y openmpi-common:i386
+        - sudo apt install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils dh-python
     script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
   # Make a 32-bit version using Debian multiarch
@@ -144,7 +145,7 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 libboost-iostreams-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils:i386 dh-python:i386
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 libboost-iostreams-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils dh-python
     script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
   - name: Ubuntu 16.04 32-bit static daemon
@@ -252,7 +253,7 @@ matrix:
         - sudo apt-get install -y libdb++-dev:i386
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
-        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 libboost-mpi-python1.65-dev:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils:i386 dh-python:i386
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 libboost-mpi-python1.65-dev:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils dh-python
         - sudo apt-get install -y libqrencode-dev:i386
         - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
         - sudo apt-get install -y qtchooser:i386
@@ -303,9 +304,9 @@ matrix:
   - name: macOS Mojave GUI
     os: osx
     osx_image: xcode11.3
-    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
+    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && QMAKE_CXX="ccache c++" /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
 
   - name: macOS High Sierra GUI
     os: osx
     osx_image: xcode10.1
-    script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
+    script: brew install qrencode qt && QMAKE_CXX="ccache c++" /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
