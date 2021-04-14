@@ -104,6 +104,8 @@ ifeq ($(CPU),armv6l)
 	xCXXFLAGS += -DNOSSE
 else ifeq ($(CPU),armv7l)
 	xCXXFLAGS += -DNOSSE
+else ifeq ($(CPU),aarch64)
+	xCXXFLAGS += -DNOSSE
 else
 	xCXXFLAGS += -msse2
 endif
