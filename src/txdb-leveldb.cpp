@@ -13,7 +13,7 @@
 #include <leveldb/cache.h>
 #include <leveldb/filter_policy.h>
 #include <memenv/memenv.h>
-
+#include "ui_interface.h"
 #include "kernel.h"
 #include "checkpoints.h"
 #include "txdb.h"
@@ -290,6 +290,10 @@ static CBlockIndex *InsertBlockIndex(uint256 hash)
 
 bool CTxDB::LoadBlockIndex()
 {
+    int64 nStart;
+    int64 nCount=0;
+    string sCountMessage;
+    char buffer[100];
     if (mapBlockIndex.size() > 0) {
         // Already loaded once in this session. It can happen during migration
         // from BDB.
@@ -304,8 +308,10 @@ bool CTxDB::LoadBlockIndex()
     ssStartKey << make_pair(string("blockindex"), uint256(0));
     iterator->Seek(ssStartKey.str());
     // Now read each entry.
+    nStart = GetTimeMillis();
     while (iterator->Valid())
     {
+        nCount++;
         // Unpack keys and values.
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.write(iterator->key().data(), iterator->key().size());
@@ -343,6 +349,14 @@ bool CTxDB::LoadBlockIndex()
         if (pindexGenesisBlock == NULL && diskindex.GetBlockHash() == hashGenesisBlock)
             pindexGenesisBlock = pindexNew;
 
+        if (nCount%10000 == 0) {
+            sprintf(buffer, "Loading index %" PRI64d, nCount);
+            sCountMessage = buffer;
+            uiInterface.InitMessage(sCountMessage);
+            printf("LoadBlockIndex(): Loading index %" PRI64d " in %" PRI64d " ms\n", nCount,GetTimeMillis()-nStart);
+            nStart = GetTimeMillis();
+         }
+
         if (!pindexNew->CheckIndex()) {
             delete iterator;
             return error("LoadBlockIndex() : CheckIndex failed at %d", pindexNew->nHeight);
@@ -358,7 +372,7 @@ bool CTxDB::LoadBlockIndex()
 
     if (fRequestShutdown)
         return true;
-
+    uiInterface.InitMessage("Reorganizing blockchain");
     // Calculate nChainTrust
     vector<pair<int, CBlockIndex*> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
@@ -367,7 +381,9 @@ bool CTxDB::LoadBlockIndex()
         CBlockIndex* pindex = item.second;
         vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
     }
+    uiInterface.InitMessage("Still Reorganizing");
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
+    uiInterface.InitMessage("Reorganizing almost complete");
     BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
     {
         CBlockIndex* pindex = item.second;
@@ -378,6 +394,8 @@ bool CTxDB::LoadBlockIndex()
             return error("CTxDB::LoadBlockIndex() : Failed stake modifier checkpoint height=%d, modifier=0x%016" PRI64x, pindex->nHeight, pindex->nStakeModifier);
     }
 
+    uiInterface.InitMessage("Reorganizing completed");
+    sleep(2);
     // Load hashBestChain pointer to end of best chain
     if (!ReadHashBestChain(hashBestChain))
     {
@@ -395,10 +413,15 @@ bool CTxDB::LoadBlockIndex()
       hashBestChain.ToString().substr(0,20).c_str(), nBestHeight, CBigNum(nBestChainTrust).ToString().c_str(),
       DateTimeStrFormat(pindexBest->GetBlockTime()).c_str());
 
+    sprintf(buffer, "Current blockchain height: %i" , nBestHeight);
+    uiInterface.InitMessage(buffer);   
     // NovaCoin: load hashSyncCheckpoint
     if (!ReadSyncCheckpoint(Checkpoints::hashSyncCheckpoint))
         return error("CTxDB::LoadBlockIndex() : hashSyncCheckpoint not loaded");
     printf("LoadBlockIndex(): synchronized checkpoint %s\n", Checkpoints::hashSyncCheckpoint.ToString().c_str());
+    sprintf(buffer, "Checkpoint: %s" , Checkpoints::hashSyncCheckpoint.ToString().c_str());
+    uiInterface.InitMessage(buffer);
+    sleep(2);
 
     // Load bnBestInvalidTrust, OK if it doesn't exist
     CBigNum bnBestInvalidTrust;
@@ -413,7 +436,9 @@ bool CTxDB::LoadBlockIndex()
     if (nCheckDepth > nBestHeight)
         nCheckDepth = nBestHeight;
     printf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
-    CBlockIndex* pindexFork = NULL;
+    sprintf(buffer, "Verifying last %i blocks " , nCheckDepth);
+    uiInterface.InitMessage(buffer);
+        CBlockIndex* pindexFork = NULL;
     map<pair<unsigned int, unsigned int>, CBlockIndex*> mapBlockPos;
     for (CBlockIndex* pindex = pindexBest; pindex && pindex->pprev; pindex = pindex->pprev)
     {
