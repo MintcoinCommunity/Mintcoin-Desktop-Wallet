@@ -394,8 +394,8 @@ bool CTxDB::LoadBlockIndex()
             return error("CTxDB::LoadBlockIndex() : Failed stake modifier checkpoint height=%d, modifier=0x%016" PRI64x, pindex->nHeight, pindex->nStakeModifier);
     }
 
-    uiInterface.InitMessage("Reorganizing completed");
-    sleep(2);
+    uiInterface.InitMessage("Reorganizing completed. Looking for highest block index");
+    Sleep(2000);
     // Load hashBestChain pointer to end of best chain
     if (!ReadHashBestChain(hashBestChain))
     {
@@ -421,7 +421,7 @@ bool CTxDB::LoadBlockIndex()
     printf("LoadBlockIndex(): synchronized checkpoint %s\n", Checkpoints::hashSyncCheckpoint.ToString().c_str());
     sprintf(buffer, "Checkpoint: %s" , Checkpoints::hashSyncCheckpoint.ToString().c_str());
     uiInterface.InitMessage(buffer);
-    sleep(2);
+    Sleep(2000);
 
     // Load bnBestInvalidTrust, OK if it doesn't exist
     CBigNum bnBestInvalidTrust;
