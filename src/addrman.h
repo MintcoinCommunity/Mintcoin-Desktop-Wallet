@@ -498,6 +498,12 @@ public:
             Check();
         }
     }
+
+    // Remove any terrible addresses from our manager.
+    unsigned int CleanTerribleAddresses(void);
+
+private:
+    unsigned int CleanTerribleAddressesInBucket(std::set<int> &vNew);
 };
 
 #endif
