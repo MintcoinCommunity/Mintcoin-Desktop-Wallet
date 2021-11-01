@@ -1,9 +1,9 @@
-Copyright (c) 2013-2018 MintCoin Developers
+Copyright (c) 2013-2021 MintCoin Developers
 
 
-MintCoin 2.1.1
+MintCoin 2.1.3
 
-Copyright (c) 2013-2018 MintCoin Developers
+Copyright (c) 2013-2021 MintCoin Developers
 Copyright (c) 2013 NovaCoin Developers
 Copyright (c) 2011-2012 Bitcoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
