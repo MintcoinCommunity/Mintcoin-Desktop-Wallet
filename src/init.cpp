@@ -11,6 +11,7 @@
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include <boost/filesystem.hpp>
+#include <boost/version.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
@@ -234,7 +235,7 @@ std::string HelpMessage()
         "  -datadir=<dir>         " + _("Specify data directory") + "\n" +
         "  -dbcache=<n>           " + _("Set database cache size in megabytes (default: 25)") + "\n" +
         "  -dblogsize=<n>         " + _("Set database disk log size in megabytes (default: 100)") + "\n" +
-        "  -timeout=<n>           " + _("Specify connection timeout in milliseconds (default: 5000)") + "\n" +
+        "  -timeout=<n>           " + _("Specify connection timeout in milliseconds (default: 2500)") + "\n" +
         "  -proxy=<ip:port>       " + _("Connect through socks proxy") + "\n" +
         "  -socks=<n>             " + _("Select the version of socks proxy to use (4-5, default: 5)") + "\n" +
         "  -tor=<ip:port>         " + _("Use proxy to reach tor hidden services (default: same as -proxy)") + "\n"
@@ -426,7 +427,7 @@ bool AppInit2()
 
     if (mapArgs.count("-timeout"))
     {
-        int nNewTimeout = GetArg("-timeout", 5000);
+        int nNewTimeout = GetArg("-timeout", 2500);
         if (nNewTimeout > 0 && nNewTimeout < 600000)
             nConnectTimeout = nNewTimeout;
     }
@@ -463,6 +464,7 @@ bool AppInit2()
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     printf("MintCoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    printf("Using Boost version %s\n", BOOST_LIB_VERSION );
     printf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
     if (!fLogTimestamps)
         printf("Startup time: %s\n", DateTimeStrFormat(GetTime()).c_str());

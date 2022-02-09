@@ -2,6 +2,15 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+# :=0 --> UPnP support turned off by default at runtime
+# :=1 --> UPnP support turned on by default at runtime
+# :=- --> No UPnP support - miniupnp not required
+USE_UPNP:=0
+
+# :=1 --> Enable IPv6 support
+# :=0 --> Disable IPv6 support
+USE_IPV6:=1
+
 LINK:=$(CXX)
 
 CPU:=$(shell uname -m)
@@ -43,9 +52,6 @@ ifneq (${USE_UPNP}, -)
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 endif
 
-ifndef USE_IPV6
-	USE_IPV6 = 1
-endif
 ifneq (${USE_IPV6}, -)
 	DEFS += -DUSE_IPV6=$(USE_IPV6)
 endif
@@ -95,7 +101,9 @@ DEBUGFLAGS=-g
 
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
-xCXXFLAGS=-O2 -pthread -std=c++11 -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Werror \
+#xCXXFLAGS=-O2 -pthread -std=c++11 -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Werror \
+#   $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
+xCXXFLAGS=-O2 -pthread -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
     $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
 
 # If we have an ARM CPU, we can't use SSE2, so define as thumb.
