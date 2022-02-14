@@ -1,6 +1,7 @@
 #define BOOST_TEST_MODULE Bitcoin Test Suite
 #include <boost/test/unit_test.hpp>
 
+#include "init.h"
 #include "db.h"
 #include "main.h"
 #include "wallet.h"
@@ -10,6 +11,8 @@ CClientUIInterface uiInterface;
 
 extern bool fPrintToConsole;
 extern void noui_connect();
+
+bool fUseFastIndex = GetBoolArg("-fastindex", true);
 
 struct TestingSetup {
     TestingSetup() {

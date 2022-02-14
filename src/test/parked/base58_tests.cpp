@@ -4,6 +4,8 @@
 #include "json/json_spirit_utils.h"
 
 #include "base58.h"
+#include "data/base58_encode_decode.json.h"
+
 #include "util.h"
 
 using namespace json_spirit;
