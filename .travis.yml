@@ -1,20 +1,112 @@
 language: cpp
+cache: "ccache c++"
 
 install:
   # Travis already has OpenSSL and Boost installed via Homebrew, but we
   # need to add a couple more packages
   - if [ $TRAVIS_OS_NAME = osx ]; then
       brew upgrade ;
-      brew install miniupnpc berkeley-db@4 ;
+      brew install miniupnpc berkeley-db@4 make;
     fi
 
-matrix:
+jobs:
   include:
-  # Build mintcoind
-  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
-  - os: linux
-    dist: xenial
-    sudo: required
+  # Make a 32-bit version using Debian multiarch
+  - name: Ubuntu 18.04 32-bit daemon
+    os: linux
+    dist: bionic
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance.
+    #
+    # apt does not seem to understand dependencies for the
+    # multiarch stuff, so we have to explicitly install all of the
+    # dependencies.
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt update
+        - sudo apt install -y dpkg-dev
+        - sudo apt install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
+        - sudo apt install -y libssl-dev:i386
+        - sudo apt install -y libdb++-dev:i386
+        - sudo apt install -y libminiupnpc-dev:i386
+        - sudo apt install -y openmpi-common:i386
+        - sudo apt install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 dh-python pkg-config:i386
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
+
+  - name: Ubuntu 18.04 32-bit static daemon
+    os: linux
+    dist: bionic
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance.
+    #
+    # apt-get does not seem to understand dependencies for the
+    # multiarch stuff, so we have to explicitly install all of the
+    # dependencies.
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
+        - sudo apt-get install -y libssl-dev:i386
+        - sudo apt-get install -y libdb++-dev:i386
+        - sudo apt-get install -y libminiupnpc-dev:i386
+        - sudo apt-get install -y openmpi-common:i386
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python1.65-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 python3-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 libboost-iostreams-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils dh-python
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+
+  - name: Ubuntu 18.04 32-bit GUI
+    os: linux
+    dist: bionic
+    # To support 32-bit builds, we add the i386 architecture to
+    # Ubuntu, and then install 32-bit versions of the compiler and
+    # libraries needed. For details of Debian multiarch see the wiki:
+    #
+    # https://wiki.debian.org/Multiarch
+    #
+    # Even with multiarch support, we have to do a bit of a dance.
+    #
+    # apt-get does not seem to understand dependencies for the
+    # multiarch stuff, so we have to explicitly install all of the
+    # dependencies.
+    before_script:
+        - sudo dpkg --add-architecture i386
+        - sudo apt-get update
+        - sudo apt-get install -y g++:i386 cpp:i386 gcc:i386 cpp-5:i386 gcc-5:i386 binutils:i386
+        - sudo apt-get install -y libssl-dev:i386
+        - sudo apt-get install -y libdb++-dev:i386
+        - sudo apt-get install -y libminiupnpc-dev:i386
+        - sudo apt-get install -y openmpi-common:i386
+        - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.65-dev:i386 python:i386 libboost-mpi-python1.65-dev:i386 python3-dev:i386 libboost-iostreams-dev:i386 libboost-regex-dev:i386 libicu-dev:i386 dpkg-dev python3:i386 libpython3-dev:i386 python3.6-dev:i386 libboost-iostreams1.65-dev:i386 libboost-regex1.65-dev:i386 python3-distutils dh-python
+        - sudo apt-get install -y libqrencode-dev:i386
+        - sudo apt-get install -y qt4-qmake:i386 libqt4-dev:i386
+        - sudo apt-get install -y qtchooser:i386
+        - sudo apt-get install -y qt4-linguist-tools:i386
+        - sudo apt-get install -y libqt4-dev-bin:i386
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX="ccache c++" make -j2
+
+  - name: macOS Mojave GUI
+    os: osx
+    osx_image: xcode11.3
+    script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && sudo xcode-select --switch /Library/Developer/CommandLineTools/ && brew install qrencode qt && QMAKE_CXX="ccache c++" /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
+
+  - name: macOS High Sierra GUI
+    os: osx
+    osx_image: xcode10.1
+    script: brew install qrencode qt && QMAKE_CXX="ccache c++" /usr/local/opt/qt/bin/qmake && CXX="ccache c++" gmake -j2
+
+  exclude:
+  - name: Ubuntu 18.04 64-bit daemon
+    os: linux
+    dist: bionic
     addons:
       apt:
         packages:
@@ -22,28 +114,35 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && make -f makefile.unix -j2
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
-  # Build mintcoind
-  # Cross-compile Windows 32-bit daemon
-  - os: linux
+  - name: Ubuntu 16.04 64-bit daemon
+    os: linux
     dist: xenial
-    sudo: required
+    addons:
+      apt:
+        packages:
+          - libdb++-dev
+          - libboost-all-dev
+          - libqrencode-dev
+          - libminiupnpc-dev
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
+
+  - name: Windows 32-bit daemon
+    os: linux
+    dist: bionic
     script: bash src/mxe-build.sh windows32
 
-  # Build mintcoind
-  # Cross-compile Windows 64-bit daemon
-  - os: linux
-    dist: xenial
-    sudo: required
-    script: bash src/mxe-build.sh windows64
+  # Doesn't actually run, so don't bother to build.
+  #- name: Windows 64-bit daemon
+  #  os: linux
+  #  dist: bionic
+  #  script: bash src/mxe-build.sh windows64
 
-  # Build mintcoind
-  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
   # Make a 32-bit version using Debian multiarch
-  - os: linux
+  - name: Ubuntu 16.04 32-bit daemon
+    os: linux
     dist: xenial
-    sudo: required
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -64,13 +163,11 @@ matrix:
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && make -f makefile.unix -j2
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2
 
-  # Build mintcoind static
-  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
-  - os: linux
-    dist: xenial
-    sudo: required
+  - name: Ubuntu 18.04 64-bit static daemon
+    os: linux
+    dist: bionic
     addons:
       apt:
         packages:
@@ -78,14 +175,23 @@ matrix:
           - libboost-all-dev
           - libqrencode-dev
           - libminiupnpc-dev
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind static
-  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
-  # Make a 32-bit version using Debian multiarch
-  - os: linux
+  - name: Ubuntu 16.04 64-bit static daemon
+    os: linux
     dist: xenial
-    sudo: required
+    addons:
+      apt:
+        packages:
+          - libdb++-dev
+          - libboost-all-dev
+          - libqrencode-dev
+          - libminiupnpc-dev
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+
+  - name: Ubuntu 16.04 32-bit static daemon
+    os: linux
+    dist: xenial
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -106,37 +212,41 @@ matrix:
         - sudo apt-get install -y libminiupnpc-dev:i386
         - sudo apt-get install -y openmpi-common:i386
         - sudo apt-get install -y libboost-all-dev:i386 libboost-mpi-dev:i386 libboost-mpi-python-dev:i386 libboost-python-dev:i386 libboost-python1.58-dev:i386 python:i386
-    script: cd src && make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" make -f makefile.unix -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind
-  # macOS 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode10.1
-    script: cd src && make -f makefile.osx -j2
+  - name: macOS Catalina daemon
+    os: osx
+    osx_image: xcode12u
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2
 
-  # Build mintcoind static
-  # macOS 10.13 (High Sierra)
-  - os: osx
-    osx_image: xcode10.1
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+  - name: macOS Catalina static daemon
+    os: osx
+    osx_image: xcode12u
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build mintcoind
-  # macOS 10.14 (Mojave)
-  - os: osx
+  - name: macOS Mojave daemon
+    os: osx
     osx_image: xcode10.2
-    script: cd src && make -f makefile.osx -j2
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2
 
-  # Build mintcoind static
-  # macOS 10.14 (Mojave)
-  - os: osx
+  - name: macOS Mojave static daemon
+    os: osx
     osx_image: xcode10.2
-    script: cd src && make -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
 
-  # Build MintCoin-Qt
-  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
-  - os: linux
-    dist: xenial
-    sudo: required
+  - name: macOS High Sierra daemon
+    os: osx
+    osx_image: xcode10.1
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2
+
+  - name: macOS High Sierra static daemon
+    os: osx
+    osx_image: xcode10.1
+    script: cd src && CXX="ccache c++" gmake -f makefile.osx -j2 STATIC="all" LDFLAGS="-static"
+
+  - name: Ubuntu 18.04 64-bit GUI
+    os: linux
+    dist: bionic
     addons:
       apt:
         packages:
@@ -146,14 +256,26 @@ matrix:
           - libminiupnpc-dev
           - qt4-qmake
           - libqt4-dev
-    script: qmake && make -j2
+    script: qmake && CXX="ccache c++" make -j2
 
-  # Build MintCoin-Qt
-  # Ubuntu 16.04 LTS (Xenial Xerus) is our latest Ubuntu version
-  # Make a 32-bit version using Debian multiarch
-  - os: linux
+  - name: Ubuntu 16.04 64-bit GUI
+    os: linux
     dist: xenial
-    sudo: required
+    addons:
+      apt:
+        packages:
+          - libdb++-dev
+          - libboost-all-dev
+          - libqrencode-dev
+          - libminiupnpc-dev
+          - qt4-qmake
+          - libqt4-dev
+    script: qmake && CXX="ccache c++" make -j2
+
+
+  - name: Ubuntu 16.04 32-bit GUI
+    os: linux
+    dist: xenial
     # To support 32-bit builds, we add the i386 architecture to
     # Ubuntu, and then install 32-bit versions of the compiler and
     # libraries needed. For details of Debian multiarch see the wiki:
@@ -179,30 +301,15 @@ matrix:
         - sudo apt-get install -y qtchooser:i386
         - sudo apt-get install -y qt4-linguist-tools:i386
         - sudo apt-get install -y libqt4-dev-bin:i386
-    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && make -j2
+    script: /usr/lib/i386-linux-gnu/qt4/bin/qmake && CXX="ccache c++" make -j2
 
-  # Build MintCoin-Qt
-  # Cross-compile Windows 32-bit GUI
-  - os: linux
-    dist: xenial
-    sudo: required
+  - name: Windows 32-bit GUI
+    os: linux
+    dist: bionic
     script: bash src/mxe-build.sh windows32-qt
 
-  # Build MintCoin-Qt
-  # Cross-compile Windows 64-bit GUI
-  - os: linux
-    dist: xenial
-    sudo: required
-    script: bash src/mxe-build.sh windows64-qt
+  # Doesn't actually run, so don't bother to build.
+  #- os: linux
+  #  dist: xenial
+  #  script: bash src/mxe-build.sh windows64-qt
 
-  # Build MintCoin-Qt
-  # macOS 10.13 (High Sierra)
-  #- os: osx
-  #  osx_image: xcode10.1
-  #  script: brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2 
-
-  # Build MintCoin-Qt
-  # macOS 10.14 (Mojave)
-  #- os: osx
-  #  osx_image: xcode10.2
-  #  script: export MACOSX_DEPLOYMENT_TARGET=10.14 && open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg && brew install qrencode qt && /usr/local/opt/qt/bin/qmake && make -j2
