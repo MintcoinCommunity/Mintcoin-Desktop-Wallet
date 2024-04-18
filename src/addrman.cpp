@@ -147,13 +147,10 @@ int CAddrMan::SelectTried(int nKBucket)
     return nOldestPos;
 }
 
-int CAddrMan::ShrinkNew(int nUBucket)
+unsigned int CAddrMan::CleanTerribleAddressesInBucket(std::set<int> &vNew)
 {
-    assert(nUBucket >= 0 && (unsigned int)nUBucket < vvNew.size());
-    std::set<int> &vNew = vvNew[nUBucket];
-
-    // first look for deletable items
-    for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); it++)
+    unsigned int numDeleted = 0;
+    for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); )
     {
         assert(mapInfo.count(*it));
         CAddrInfo &info = mapInfo[*it];
@@ -167,9 +164,33 @@ int CAddrMan::ShrinkNew(int nUBucket)
                 mapInfo.erase(*it);
                 nNew--;
             }
-            vNew.erase(it);
-            return 0;
+            it = vNew.erase(it);
+            numDeleted++;
+        } else {
+            it++;
         }
+    }
+
+    return numDeleted;
+}
+
+unsigned int CAddrMan::CleanTerribleAddresses(void)
+{
+    unsigned int numDeleted = 0;
+    for (std::vector<std::set<int>>::iterator it=vvNew.begin(); it != vvNew.end(); it++) {
+        numDeleted += CAddrMan::CleanTerribleAddressesInBucket(*it);
+    }
+    return numDeleted;
+}
+
+int CAddrMan::ShrinkNew(int nUBucket)
+{
+    assert(nUBucket >= 0 && (unsigned int)nUBucket < vvNew.size());
+    std::set<int> &vNew = vvNew[nUBucket];
+
+    // first look for deletable items
+    if (CleanTerribleAddressesInBucket(vNew) > 0) {
+        return 0;
     }
 
     // otherwise, select four randomly, and pick the oldest of those to replace
